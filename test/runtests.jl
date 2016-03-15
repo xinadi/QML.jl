@@ -1,5 +1,6 @@
-using QML
 using Base.Test
+using QML
 
-# write your own tests here
-@test 1 == 1
+app = QML.application()
+e = QML.QQmlApplicationEngine(QML.QString("main.qml"))
+QML.exec()
