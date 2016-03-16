@@ -20,7 +20,7 @@ ApplicationWindow {
       Button {
           Layout.alignment: Qt.AlignCenter
           text: "Push Me"
-          onClicked: { resultDisplay.text = julia.call("my_one").toString() }
+          onClicked: { resultDisplay.text = julia.call("increment_counter").toString() }
       }
 
       Text {
