@@ -71,4 +71,6 @@ JULIA_CPP_MODULE_BEGIN(registry)
   qml_module.add_type<QQmlApplicationEngine>("QQmlApplicationEngine")
     .constructor<QString>(); // Construct with path to QML
 
+  // Exports:
+  qml_module.export_symbols("QString", "QApplication", "QQmlApplicationEngine");
 JULIA_CPP_MODULE_END

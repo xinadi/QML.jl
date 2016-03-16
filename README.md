@@ -18,7 +18,7 @@ To run the QML file `main.qml` from the current directory, execute:
 using QML
 
 app = QML.application()
-e = QML.QQmlApplicationEngine(QML.QString("main.qml"))
+e = QQmlApplicationEngine(QString("main.qml"))
 QML.exec()
 ```
 

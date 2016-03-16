@@ -9,7 +9,7 @@ function increment_counter()
 end
 
 app = QML.application()
-e = QML.QQmlApplicationEngine(QML.QString("main.qml"))
+e = QQmlApplicationEngine(QString("main.qml"))
 QML.exec()
 
 println("Button was pressed $counter times")
