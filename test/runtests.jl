@@ -10,6 +10,11 @@ function increment_counter()
   counter += 1
 end
 
+function counter_value()
+  global counter
+  return counter
+end
+
 app = QML.application()
 e = QQmlApplicationEngine(QString("main.qml"))
 QML.exec()

@@ -13,7 +13,11 @@ class JuliaContext : public QObject
 {
   Q_OBJECT
 public slots:
-  // Call a Julia function that takes no arguments and returns a double
+
+  // Call a Julia function that takes any number of arguments as a list
+  QVariant call(const QString& fname, const QVariantList& arg);
+
+  // Call a Julia function that takes no arguments
   QVariant call(const QString& fname);
 };
 

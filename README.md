@@ -33,4 +33,10 @@ Then call a Julia function in QML using:
 ```qml
 julia.call("my_function")
 ```
+
+To call a function with arguments, put them in a list:
+```qml
+julia.call("my_function", [arg1, arg2])
+```
+
 See test for complete example.

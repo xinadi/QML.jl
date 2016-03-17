@@ -34,5 +34,28 @@ ApplicationWindow {
           Layout.alignment: Qt.AlignCenter
           text: "Push button for result"
       }
+
+      TextField {
+          id: lowerIn
+          Layout.alignment: Qt.AlignCenter
+          Layout.minimumWidth: 300
+          placeholderText: qsTr("Start typing, Julia does the rest...")
+      }
+
+      Text {
+          id: upperOut
+          Layout.alignment: Qt.AlignCenter
+          text: julia.call("uppercase", [lowerIn.text])
+      }
+
+      Text {
+          Layout.alignment: Qt.AlignCenter
+          text: "Concatenation, showing multiple arguments:"
+      }
+
+      Text {
+          Layout.alignment: Qt.AlignCenter
+          text: julia.call("string", [julia.call("counter_value"), ", ", upperOut.text])
+      }
   }
 }
