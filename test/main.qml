@@ -14,8 +14,14 @@ ApplicationWindow {
     }
 
     ColumnLayout {
-      spacing: 2
+      spacing: 6
       anchors.centerIn: parent
+
+      Text {
+          id: juliaHello
+          Layout.alignment: Qt.AlignCenter
+          text: julia.call("hello")
+      }
 
       Button {
           Layout.alignment: Qt.AlignCenter

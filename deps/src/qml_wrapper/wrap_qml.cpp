@@ -9,6 +9,40 @@
 namespace qml_wrapper
 {
 
+namespace detail
+{
+  // Helper to convert from Julia to a QVariant
+  template<typename CppT>
+  QVariant convert_to_qt(jl_value_t* v)
+  {
+    if(jl_type_morespecific(jl_typeof(v), (jl_value_t*)cpp_wrapper::julia_type<CppT>()))
+    {
+      return QVariant(cpp_wrapper::convert_to_cpp<CppT>(v));
+    }
+
+    return QVariant();
+  }
+
+  // Try conversion for a list of types
+  template<typename... TypesT>
+  QVariant try_convert_to_qt(jl_value_t* v)
+  {
+    for(auto&& variant : {convert_to_qt<TypesT>(v)...})
+    {
+      if(!variant.isNull())
+        return variant;
+    }
+
+    return QVariant();
+  }
+
+  // Helper to convert from Julia to a QVariant. Tries a few common types
+  QVariant convert_to_qt(jl_value_t* v)
+  {
+    return try_convert_to_qt<double, int64_t, const char*>(v);
+  }
+}
+
 // Create an application, taking care of argc and argv
 QApplication* application()
 {
@@ -36,18 +70,11 @@ QVariant JuliaContext::call(const QString& fname)
   jl_value_t* result;
   JL_GC_PUSH1(&result);
   result = jl_call0(func);
-  if(jl_is_float64(result))
-  {
-    var = QVariant::fromValue(jl_unbox_float64(result));
-  }
-  else if(jl_is_int64(result))
-  {
-    var = QVariant::fromValue(jl_unbox_int64(result));
-  }
+  var = detail::convert_to_qt(result);
   JL_GC_POP();
   if(var.isNull())
   {
-    qWarning() << "Julia method " << fname << " returns a " << QString(cpp_wrapper::julia_type_name((jl_datatype_t*)jl_typeof(result)).c_str());
+    qWarning() << "Julia method " << fname << " returns unsupported " << QString(cpp_wrapper::julia_type_name((jl_datatype_t*)jl_typeof(result)).c_str());
   }
   return var;
 }

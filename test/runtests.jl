@@ -1,6 +1,8 @@
 using Base.Test
 using QML
 
+hello() = "Hello from Julia"
+
 counter = 0
 
 function increment_counter()
