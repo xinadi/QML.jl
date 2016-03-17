@@ -17,7 +17,19 @@ namespace detail
   {
     if(jl_type_morespecific(jl_typeof(v), (jl_value_t*)cpp_wrapper::julia_type<CppT>()))
     {
-      return QVariant(cpp_wrapper::convert_to_cpp<CppT>(v));
+      return QVariant::fromValue(cpp_wrapper::convert_to_cpp<CppT>(v));
+    }
+
+    return QVariant();
+  }
+
+  // String overload
+  template<>
+  QVariant convert_to_qt<QString>(jl_value_t* v)
+  {
+    if(jl_type_morespecific(jl_typeof(v), (jl_value_t*)cpp_wrapper::julia_type<const char*>()))
+    {
+      return QVariant::fromValue(QString(cpp_wrapper::convert_to_cpp<const char*>(v)));
     }
 
     return QVariant();
@@ -39,7 +51,7 @@ namespace detail
   // Helper to convert from Julia to a QVariant. Tries a few common types
   QVariant convert_to_qt(jl_value_t* v)
   {
-    return try_convert_to_qt<double, int64_t, const char*>(v);
+    return try_convert_to_qt<double, int64_t, QString>(v);
   }
 }
 
