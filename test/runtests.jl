@@ -15,8 +15,11 @@ function counter_value()
   return counter
 end
 
+# absolute path in case working dir is overridden
+qml_file = QString(joinpath(Pkg.dir("QML"), "test", "main.qml"))
+
 app = QML.application()
-e = QQmlApplicationEngine(QString("main.qml"))
+e = QQmlApplicationEngine(qml_file)
 QML.exec()
 
 println("Button was pressed $counter times")
