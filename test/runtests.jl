@@ -7,6 +7,8 @@ counter = 0
 
 function increment_counter()
   global counter
+  global root_ctx
+  set_context_property(root_ctx, "oldcounter", counter)
   counter += 1
 end
 
@@ -19,7 +21,9 @@ end
 qml_file = QString(joinpath(Pkg.dir("QML"), "test", "main.qml"))
 
 app = QML.application()
-e = QQmlApplicationEngine(qml_file)
+qml_engine = QQmlApplicationEngine(qml_file)
+root_ctx = root_context(qml_engine)
+set_context_property(root_ctx, "oldcounter", counter) # avoids undefined reference at startup
 QML.exec()
 
 println("Button was pressed $counter times")

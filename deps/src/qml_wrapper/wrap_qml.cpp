@@ -2,6 +2,7 @@
 
 #include <QApplication>
 #include <QQmlApplicationEngine>
+#include <QQmlContext>
 #include <QtQml>
 
 #include "wrap_qml.hpp"
@@ -48,12 +49,6 @@ namespace detail
     return QVariant();
   }
 
-  // Helper to convert from Julia to a QVariant. Tries a few common types
-  QVariant convert_to_qt(jl_value_t* v)
-  {
-    return try_convert_to_qt<double, int64_t, QString>(v);
-  }
-
   // Generic conversion from QVariant to jl_value_t*
   template<typename CppT>
   jl_value_t* convert_to_julia(const QVariant& v)
@@ -92,11 +87,34 @@ namespace detail
     return nullptr;
   }
 
-  jl_value_t* convert_to_julia(const QVariant& v)
+} // namespace detail
+} // namespace qml_wrapper
+
+namespace cpp_wrapper
+{
+
+  template<>
+  struct ConvertToCpp<QVariant, false, false, false>
   {
-    return try_convert_to_julia<double, int64_t, QString>(v);
-  }
-}
+    QVariant operator()(jl_value_t* julia_value) const
+    {
+      return qml_wrapper::detail::try_convert_to_qt<double, int64_t, QString>(julia_value);
+    }
+  };
+
+  template<>
+  struct ConvertToJulia<QVariant, false, false, false>
+  {
+    jl_value_t* operator()(const QVariant& v) const
+    {
+      return qml_wrapper::detail::try_convert_to_julia<double, int64_t, QString>(v);
+    }
+  };
+
+} // namespace cpp_wrapper
+
+namespace qml_wrapper
+{
 
 // Create an application, taking care of argc and argv
 QApplication* application()
@@ -132,7 +150,7 @@ QVariant JuliaContext::call(const QString& fname, const QVariantList& args)
   // Process arguments
   for(int i = 0; i != nb_args; ++i)
   {
-    julia_args[i] = detail::convert_to_julia(args.at(i));
+    julia_args[i] = cpp_wrapper::convert_to_julia<QVariant>(args.at(i));
     if(julia_args[i] == nullptr)
     {
       qWarning() << "Julia argument type for function " << fname << " is unsupported:" << args[0].typeName();
@@ -152,7 +170,7 @@ QVariant JuliaContext::call(const QString& fname, const QVariantList& args)
   }
   else
   {
-    result_var = detail::convert_to_qt(result);
+    result_var = cpp_wrapper::convert_to_cpp<QVariant>(result);
     if(result_var.isNull())
     {
       qWarning() << "Julia method " << fname << " returns unsupported " << QString(cpp_wrapper::julia_type_name((jl_datatype_t*)jl_typeof(result)).c_str());
@@ -185,9 +203,21 @@ JULIA_CPP_MODULE_BEGIN(registry)
   qml_module.method("application", qml_wrapper::application);
   qml_module.method("exec", QApplication::exec);
 
+  qml_module.add_type<QQmlContext>("QQmlContext");
+  qml_module.method("set_context_property", [](QQmlContext* ctx, const std::string& name, jl_value_t* v)
+  {
+    if(ctx == nullptr)
+    {
+      qWarning() << "Can't set property " << name.c_str() << " on null context";
+      return;
+    }
+    ctx->setContextProperty(QString(name.c_str()), convert_to_cpp<QVariant>(v));
+  });
+
   qml_module.add_type<QQmlApplicationEngine>("QQmlApplicationEngine")
-    .constructor<QString>(); // Construct with path to QML
+    .constructor<QString>() // Construct with path to QML
+    .method("root_context", &QQmlApplicationEngine::rootContext);
 
   // Exports:
-  qml_module.export_symbols("QString", "QApplication", "QQmlApplicationEngine");
+  qml_module.export_symbols("QString", "QApplication", "QQmlApplicationEngine", "QQmlContext", "set_context_property", "root_context");
 JULIA_CPP_MODULE_END

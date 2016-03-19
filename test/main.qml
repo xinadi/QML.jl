@@ -55,7 +55,7 @@ ApplicationWindow {
 
       Text {
           Layout.alignment: Qt.AlignCenter
-          text: julia.call("string", [julia.call("counter_value"), ", ", upperOut.text])
+          text: julia.call("string", [oldcounter, ", ", upperOut.text])
       }
   }
 }
