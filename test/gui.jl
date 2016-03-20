@@ -32,7 +32,7 @@ end
 qml_file = QString(joinpath(Pkg.dir("QML"), "test", "main.qml"))
 
 app = QML.application()
-qml_engine = QQmlApplicationEngine(qml_file)
+qml_engine = QQmlApplicationEngine()
 root_ctx = root_context(qml_engine)
 set_context_property(root_ctx, "oldcounter", counter)
 
@@ -41,6 +41,10 @@ timer = QTimer() # important to keep timer variable, to avoid deletion upon GC
 cslot_obj = JuliaSlot(counter_slot)
 connect_timeout(timer, cslot_obj)
 set_context_property(root_ctx, "timer", timer)
+set_context_property(root_ctx, "bg_counter", bg_counter) # initial value to avoid startup warning
+
+# Load QML after setting context properties, to avoid errors
+load(qml_engine, qml_file)
 
 # Run the application
 QML.exec()

@@ -236,7 +236,8 @@ JULIA_CPP_MODULE_BEGIN(registry)
 
   qml_module.add_type<QQmlApplicationEngine>("QQmlApplicationEngine", julia_type<QObject>())
     .constructor<QString>() // Construct with path to QML
-    .method("root_context", &QQmlApplicationEngine::rootContext);
+    .method("root_context", &QQmlApplicationEngine::rootContext)
+    .method("load", static_cast<void (QQmlApplicationEngine::*)(const QString&)>(&QQmlApplicationEngine::load)); // cast needed because load is overloaded
 
   qml_module.add_type<qml_wrapper::JuliaSlot>("JuliaSlot", julia_type<QObject>())
     .constructor<jl_function_t*>()
@@ -251,5 +252,5 @@ JULIA_CPP_MODULE_BEGIN(registry)
   });
 
   // Exports:
-  qml_module.export_symbols("QString", "QApplication", "QQmlApplicationEngine", "QQmlContext", "set_context_property", "root_context", "JuliaSlot", "call_julia", "QTimer", "connect_timeout");
+  qml_module.export_symbols("QString", "QApplication", "QQmlApplicationEngine", "QQmlContext", "set_context_property", "root_context", "JuliaSlot", "call_julia", "QTimer", "connect_timeout", "load");
 JULIA_CPP_MODULE_END
