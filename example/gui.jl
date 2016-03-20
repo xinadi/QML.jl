@@ -1,4 +1,10 @@
 using QML
+"""
+A simple gui. A set of diagrams can be selected with check boxes.
+They should be displayed, when the button "Plot" is clicked.
+Currently only an array with the numbers of the selected diagrams
+will be printed.
+"""
 
 """
 Convert a floating point number with values of the checkboxes, encoded
