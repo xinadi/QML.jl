@@ -97,7 +97,7 @@ namespace cpp_wrapper
   {
     QVariant operator()(jl_value_t* julia_value) const
     {
-      return qml_wrapper::detail::try_convert_to_qt<double, int64_t, QString>(julia_value);
+      return qml_wrapper::detail::try_convert_to_qt<bool, float, double, int32_t, int64_t, uint32_t, uint64_t, QString>(julia_value);
     }
   };
 
@@ -106,7 +106,7 @@ namespace cpp_wrapper
   {
     jl_value_t* operator()(const QVariant& v) const
     {
-      return qml_wrapper::detail::try_convert_to_julia<double, int64_t, QString>(v);
+      return qml_wrapper::detail::try_convert_to_julia<bool, float, double, int32_t, int64_t, uint32_t, uint64_t, QString>(v);
     }
   };
 

@@ -1,5 +1,5 @@
 # QML
-Small example for starting an interface to [Qt5 QML](http://qt.io/). It uses the [`CppWrapper`](https://github.com/barche/CppWrapper) package to expose C++ classes. Current functionality allows loading a simple QML file and calling a Julia function without arguments returning either a `FLoat64` or an `Int64`.
+Small example for starting an interface to [Qt5 QML](http://qt.io/). It uses the [`CppWrapper`](https://github.com/barche/CppWrapper) package to expose C++ classes. Current functionality allows loading a simple QML file, calling Julia functions and run a background task during event loop idle time. See test/gui.jl for details, docs not fully up-to-date.
 
 ## Installation
 This was tested on Linux and OS X. You need `cmake` in your path for installation to work.
