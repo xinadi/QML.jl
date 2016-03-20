@@ -1,9 +1,8 @@
-#include <cpp_wrapper.hpp>
-
 #include <QApplication>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QtQml>
+#include <QTimer>
 
 #include "wrap_qml.hpp"
 
@@ -168,7 +167,7 @@ QVariant JuliaContext::call(const QString& fname, const QVariantList& args)
   {
     qWarning() << "Null result calling Julia function " << fname;
   }
-  else
+  else if(!jl_is_nothing(result))
   {
     result_var = cpp_wrapper::convert_to_cpp<QVariant>(result);
     if(result_var.isNull())
@@ -187,6 +186,16 @@ QVariant JuliaContext::call(const QString& fname)
   return call(fname, QVariantList());
 }
 
+JuliaSlot::JuliaSlot(jl_function_t* func) : m_function(func)
+{
+  assert(m_function != nullptr);
+}
+
+void JuliaSlot::callJulia()
+{
+  jl_call0(m_function);
+}
+
 } // namespace qml_wrapper
 
 JULIA_CPP_MODULE_BEGIN(registry)
@@ -196,14 +205,16 @@ JULIA_CPP_MODULE_BEGIN(registry)
 
   qmlRegisterType<qml_wrapper::JuliaContext>("org.julialang", 1, 0, "JuliaContext");
 
+  qml_module.add_abstract<QObject>("QObject");
+
   qml_module.add_type<QString>("QString")
     .constructor<const char*>();
 
-  qml_module.add_type<QApplication>("QApplication");
+  qml_module.add_type<QApplication>("QApplication", julia_type<QObject>());
   qml_module.method("application", qml_wrapper::application);
   qml_module.method("exec", QApplication::exec);
 
-  qml_module.add_type<QQmlContext>("QQmlContext");
+  qml_module.add_type<QQmlContext>("QQmlContext", julia_type<QObject>());
   qml_module.method("set_context_property", [](QQmlContext* ctx, const std::string& name, jl_value_t* v)
   {
     if(ctx == nullptr)
@@ -213,11 +224,32 @@ JULIA_CPP_MODULE_BEGIN(registry)
     }
     ctx->setContextProperty(QString(name.c_str()), convert_to_cpp<QVariant>(v));
   });
+  qml_module.method("set_context_property", [](QQmlContext* ctx, const std::string& name, QObject* o)
+  {
+    if(ctx == nullptr)
+    {
+      qWarning() << "Can't set object " << name.c_str() << " on null context";
+      return;
+    }
+    ctx->setContextProperty(QString(name.c_str()), o);
+  });
 
-  qml_module.add_type<QQmlApplicationEngine>("QQmlApplicationEngine")
+  qml_module.add_type<QQmlApplicationEngine>("QQmlApplicationEngine", julia_type<QObject>())
     .constructor<QString>() // Construct with path to QML
     .method("root_context", &QQmlApplicationEngine::rootContext);
 
+  qml_module.add_type<qml_wrapper::JuliaSlot>("JuliaSlot", julia_type<QObject>())
+    .constructor<jl_function_t*>()
+    .method("call_julia", &qml_wrapper::JuliaSlot::callJulia);
+
+  qml_module.add_type<QTimer>("QTimer", julia_type<QObject>());
+  qml_module.method("connect_timeout", [](QTimer* timer, qml_wrapper::JuliaSlot* jslot)
+  {
+    assert(timer != nullptr);
+    assert(jslot != nullptr);
+    QObject::connect(timer, SIGNAL(timeout()), jslot, SLOT(callJulia()));
+  });
+
   // Exports:
-  qml_module.export_symbols("QString", "QApplication", "QQmlApplicationEngine", "QQmlContext", "set_context_property", "root_context");
+  qml_module.export_symbols("QString", "QApplication", "QQmlApplicationEngine", "QQmlContext", "set_context_property", "root_context", "JuliaSlot", "call_julia", "QTimer", "connect_timeout");
 JULIA_CPP_MODULE_END

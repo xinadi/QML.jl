@@ -1,6 +1,8 @@
 #ifndef WRAP_QML_H
 #define WRAP_QML_H
 
+#include <cpp_wrapper.hpp>
+
 #include <QObject>
 #include <QString>
 #include <QVariant>
@@ -19,6 +21,19 @@ public slots:
 
   // Call a Julia function that takes no arguments
   QVariant call(const QString& fname);
+};
+
+/// Provides a slot for a zero-argument function
+class JuliaSlot : public QObject
+{
+  Q_OBJECT
+public:
+  JuliaSlot(jl_function_t* func);
+public slots:
+  void callJulia();
+
+private:
+  jl_function_t* m_function;
 };
 
 }
