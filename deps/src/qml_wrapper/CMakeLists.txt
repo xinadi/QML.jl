@@ -1,4 +1,4 @@
-project(Examples)
+project(QML)
 
 cmake_minimum_required(VERSION 3.1)
 
@@ -20,4 +20,6 @@ target_link_libraries(qml_wrapper Qt5::Core Qt5::Quick Qt5::Widgets CppWrapper::
 
 install(TARGETS
   qml_wrapper
-LIBRARY DESTINATION lib)
+LIBRARY DESTINATION lib
+ARCHIVE DESTINATION lib
+RUNTIME DESTINATION lib)
