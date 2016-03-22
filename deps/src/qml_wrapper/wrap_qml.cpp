@@ -1,4 +1,5 @@
 #include <QApplication>
+#include <QLibraryInfo>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QtQml>
@@ -251,6 +252,8 @@ JULIA_CPP_MODULE_BEGIN(registry)
     QObject::connect(timer, SIGNAL(timeout()), jslot, SLOT(callJulia()));
   });
 
+  qml_module.method("qt_prefix_path", []() { return QLibraryInfo::location(QLibraryInfo::PrefixPath).toStdString(); });
+
   // Exports:
-  qml_module.export_symbols("QString", "QApplication", "QQmlApplicationEngine", "QQmlContext", "set_context_property", "root_context", "JuliaSlot", "call_julia", "QTimer", "connect_timeout", "load");
+  qml_module.export_symbols("QString", "QApplication", "QQmlApplicationEngine", "QQmlContext", "set_context_property", "root_context", "JuliaSlot", "call_julia", "QTimer", "connect_timeout", "load", "qt_prefix_path");
 JULIA_CPP_MODULE_END
