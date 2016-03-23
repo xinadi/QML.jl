@@ -2,6 +2,7 @@
 #include <QLibraryInfo>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
+#include <QQuickView>
 #include <QtQml>
 #include <QTimer>
 
@@ -116,7 +117,6 @@ struct ConvertToJulia<QString, false, false, false>
 	}
 };
 
-// strings
 template<>
 struct ConvertToCpp<QString, false, false, false>
 {
@@ -127,6 +127,42 @@ struct ConvertToCpp<QString, false, false, false>
 			throw std::runtime_error("Any type to convert to string is not a string");
 		}
 		return QString(jl_bytestring_ptr(julia_string));
+	}
+};
+
+// Treat QUrl specially to make conversion transparent
+template<> struct static_type_mapping<QUrl>
+{
+	typedef jl_value_t* type;
+	static jl_datatype_t* julia_type() { return (jl_datatype_t*)jl_get_global(jl_base_module, jl_symbol("AbstractString")); }
+	template<typename T> using remove_const_ref = cpp_wrapper::remove_const_ref<T>;
+};
+
+template<>
+struct ConvertToJulia<QUrl, false, false, false>
+{
+	jl_value_t* operator()(const QUrl& url) const
+	{
+		return jl_cstr_to_string(url.toDisplayString().toStdString().c_str());
+	}
+};
+
+template<>
+struct ConvertToCpp<QUrl, false, false, false>
+{
+	QUrl operator()(jl_value_t* julia_string) const
+	{
+		if(julia_string == nullptr || !jl_is_byte_string(julia_string))
+		{
+			throw std::runtime_error("Any type to convert to string is not a string");
+		}
+
+    QString qstr(jl_bytestring_ptr(julia_string));
+    if(qstr.contains(':'))
+    {
+      return QUrl(qstr);
+    }
+		return QUrl::fromLocalFile(qstr);
 	}
 };
 
@@ -251,9 +287,11 @@ JULIA_CPP_MODULE_BEGIN(registry)
     ctx->setContextProperty(name, o);
   });
 
-  qml_module.add_type<QQmlApplicationEngine>("QQmlApplicationEngine", julia_type<QObject>())
+  qml_module.add_type<QQmlEngine>("QQmlEngine", julia_type<QObject>())
+    .method("root_context", &QQmlApplicationEngine::rootContext);
+
+  qml_module.add_type<QQmlApplicationEngine>("QQmlApplicationEngine", julia_type<QQmlEngine>())
     .constructor<QString>() // Construct with path to QML
-    .method("root_context", &QQmlApplicationEngine::rootContext)
     .method("load", static_cast<void (QQmlApplicationEngine::*)(const QString&)>(&QQmlApplicationEngine::load)); // cast needed because load is overloaded
 
   qml_module.add_type<qml_wrapper::JuliaSlot>("JuliaSlot", julia_type<QObject>())
@@ -270,6 +308,11 @@ JULIA_CPP_MODULE_BEGIN(registry)
 
   qml_module.method("qt_prefix_path", []() { return QLibraryInfo::location(QLibraryInfo::PrefixPath); });
 
+  qml_module.add_type<QQuickView>("QQuickView", julia_type<QObject>())
+    .method("set_source", &QQuickView::setSource)
+    .method("show", &QQuickView::show) // not exported: conflicts with Base.show
+    .method("engine", &QQuickView::engine);
+
   // Exports:
-  qml_module.export_symbols("QApplication", "QQmlApplicationEngine", "QQmlContext", "set_context_property", "root_context", "JuliaSlot", "call_julia", "QTimer", "connect_timeout", "load", "qt_prefix_path");
+  qml_module.export_symbols("QApplication", "QQmlApplicationEngine", "QQmlContext", "set_context_property", "root_context", "JuliaSlot", "call_julia", "QTimer", "connect_timeout", "load", "qt_prefix_path", "QQuickView", "set_source", "engine");
 JULIA_CPP_MODULE_END
