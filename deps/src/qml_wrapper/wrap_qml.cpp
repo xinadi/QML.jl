@@ -12,80 +12,68 @@ namespace qml_wrapper
 
 namespace detail
 {
-  // Helper to convert from Julia to a QVariant
-  template<typename CppT>
-  QVariant convert_to_qt(jl_value_t* v)
+// Helper to convert from Julia to a QVariant
+template<typename CppT>
+QVariant convert_to_qt(jl_value_t* v)
+{
+  if(jl_type_morespecific(jl_typeof(v), (jl_value_t*)cpp_wrapper::julia_type<CppT>()))
   {
-    if(jl_type_morespecific(jl_typeof(v), (jl_value_t*)cpp_wrapper::julia_type<CppT>()))
-    {
-      return QVariant::fromValue(cpp_wrapper::convert_to_cpp<CppT>(v));
-    }
-
-    return QVariant();
+    return QVariant::fromValue(cpp_wrapper::convert_to_cpp<CppT>(v));
   }
 
-  // String overload
-  template<>
-  QVariant convert_to_qt<QString>(jl_value_t* v)
-  {
-    if(jl_type_morespecific(jl_typeof(v), (jl_value_t*)cpp_wrapper::julia_type<const char*>()))
-    {
-      return QVariant::fromValue(QString(cpp_wrapper::convert_to_cpp<const char*>(v)));
-    }
+  return QVariant();
+}
 
-    return QVariant();
+// Try conversion for a list of types
+template<typename... TypesT>
+QVariant try_convert_to_qt(jl_value_t* v)
+{
+  for(auto&& variant : {convert_to_qt<TypesT>(v)...})
+  {
+    if(!variant.isNull())
+      return variant;
   }
 
-  // Try conversion for a list of types
-  template<typename... TypesT>
-  QVariant try_convert_to_qt(jl_value_t* v)
-  {
-    for(auto&& variant : {convert_to_qt<TypesT>(v)...})
-    {
-      if(!variant.isNull())
-        return variant;
-    }
+  return QVariant();
+}
 
-    return QVariant();
+// Generic conversion from QVariant to jl_value_t*
+template<typename CppT>
+jl_value_t* convert_to_julia(const QVariant& v)
+{
+  if(v.type() == qMetaTypeId<CppT>())
+  {
+    return cpp_wrapper::box(v.template value<CppT>());
   }
 
-  // Generic conversion from QVariant to jl_value_t*
-  template<typename CppT>
-  jl_value_t* convert_to_julia(const QVariant& v)
-  {
-    if(v.type() == qMetaTypeId<CppT>())
-    {
-      return cpp_wrapper::box(v.template value<CppT>());
-    }
+  return nullptr;
+}
 
-    return nullptr;
+// String
+template<>
+jl_value_t* convert_to_julia<QString>(const QVariant& v)
+{
+  if(v.type() == qMetaTypeId<QString>())
+  {
+    return cpp_wrapper::convert_to_julia(v.template value<QString>().toStdString());
   }
 
-  // String
-  template<>
-  jl_value_t* convert_to_julia<QString>(const QVariant& v)
-  {
-    if(v.type() == qMetaTypeId<QString>())
-    {
-      return cpp_wrapper::convert_to_julia(v.template value<QString>().toStdString());
-    }
+  return nullptr;
+}
 
-    return nullptr;
+// Try conversion for a list of types
+template<typename... TypesT>
+jl_value_t* try_convert_to_julia(const QVariant& v)
+{
+  for(auto&& jval : {convert_to_julia<TypesT>(v)...})
+  {
+    if(jval != nullptr)
+      return jval;
   }
 
-  // Try conversion for a list of types
-  template<typename... TypesT>
-  jl_value_t* try_convert_to_julia(const QVariant& v)
-  {
-    for(auto&& jval : {convert_to_julia<TypesT>(v)...})
-    {
-      if(jval != nullptr)
-        return jval;
-    }
-
-    qWarning() << "returning null julia value for variant of type " << v.typeName();
-    return nullptr;
-  }
+  qWarning() << "returning null julia value for variant of type " << v.typeName();
+  return nullptr;
+}
 
 } // namespace detail
 } // namespace qml_wrapper
@@ -93,23 +81,54 @@ namespace detail
 namespace cpp_wrapper
 {
 
-  template<>
-  struct ConvertToCpp<QVariant, false, false, false>
+template<>
+struct ConvertToCpp<QVariant, false, false, false>
+{
+  QVariant operator()(jl_value_t* julia_value) const
   {
-    QVariant operator()(jl_value_t* julia_value) const
-    {
-      return qml_wrapper::detail::try_convert_to_qt<bool, float, double, int32_t, int64_t, uint32_t, uint64_t, QString>(julia_value);
-    }
-  };
+    return qml_wrapper::detail::try_convert_to_qt<bool, float, double, int32_t, int64_t, uint32_t, uint64_t, QString>(julia_value);
+  }
+};
 
-  template<>
-  struct ConvertToJulia<QVariant, false, false, false>
+template<>
+struct ConvertToJulia<QVariant, false, false, false>
+{
+  jl_value_t* operator()(const QVariant& v) const
   {
-    jl_value_t* operator()(const QVariant& v) const
-    {
-      return qml_wrapper::detail::try_convert_to_julia<bool, float, double, int32_t, int64_t, uint32_t, uint64_t, QString>(v);
-    }
-  };
+    return qml_wrapper::detail::try_convert_to_julia<bool, float, double, int32_t, int64_t, uint32_t, uint64_t, QString>(v);
+  }
+};
+
+// Treat QString specially to make conversion transparent
+template<> struct static_type_mapping<QString>
+{
+	typedef jl_value_t* type;
+	static jl_datatype_t* julia_type() { return (jl_datatype_t*)jl_get_global(jl_base_module, jl_symbol("AbstractString")); }
+	template<typename T> using remove_const_ref = cpp_wrapper::remove_const_ref<T>;
+};
+
+template<>
+struct ConvertToJulia<QString, false, false, false>
+{
+	jl_value_t* operator()(const QString& str) const
+	{
+		return jl_cstr_to_string(str.toStdString().c_str());
+	}
+};
+
+// strings
+template<>
+struct ConvertToCpp<QString, false, false, false>
+{
+	QString operator()(jl_value_t* julia_string) const
+	{
+		if(julia_string == nullptr || !jl_is_byte_string(julia_string))
+		{
+			throw std::runtime_error("Any type to convert to string is not a string");
+		}
+		return QString(jl_bytestring_ptr(julia_string));
+	}
+};
 
 } // namespace cpp_wrapper
 
@@ -208,31 +227,28 @@ JULIA_CPP_MODULE_BEGIN(registry)
 
   qml_module.add_abstract<QObject>("QObject");
 
-  qml_module.add_type<QString>("QString")
-    .constructor<const char*>();
-
   qml_module.add_type<QApplication>("QApplication", julia_type<QObject>());
   qml_module.method("application", qml_wrapper::application);
   qml_module.method("exec", QApplication::exec);
 
   qml_module.add_type<QQmlContext>("QQmlContext", julia_type<QObject>());
-  qml_module.method("set_context_property", [](QQmlContext* ctx, const std::string& name, jl_value_t* v)
+  qml_module.method("set_context_property", [](QQmlContext* ctx, const QString& name, jl_value_t* v)
   {
     if(ctx == nullptr)
     {
-      qWarning() << "Can't set property " << name.c_str() << " on null context";
+      qWarning() << "Can't set property " << name << " on null context";
       return;
     }
-    ctx->setContextProperty(QString(name.c_str()), convert_to_cpp<QVariant>(v));
+    ctx->setContextProperty(name, convert_to_cpp<QVariant>(v));
   });
-  qml_module.method("set_context_property", [](QQmlContext* ctx, const std::string& name, QObject* o)
+  qml_module.method("set_context_property", [](QQmlContext* ctx, const QString& name, QObject* o)
   {
     if(ctx == nullptr)
     {
-      qWarning() << "Can't set object " << name.c_str() << " on null context";
+      qWarning() << "Can't set object " << name << " on null context";
       return;
     }
-    ctx->setContextProperty(QString(name.c_str()), o);
+    ctx->setContextProperty(name, o);
   });
 
   qml_module.add_type<QQmlApplicationEngine>("QQmlApplicationEngine", julia_type<QObject>())
@@ -252,8 +268,8 @@ JULIA_CPP_MODULE_BEGIN(registry)
     QObject::connect(timer, SIGNAL(timeout()), jslot, SLOT(callJulia()));
   });
 
-  qml_module.method("qt_prefix_path", []() { return QLibraryInfo::location(QLibraryInfo::PrefixPath).toStdString(); });
+  qml_module.method("qt_prefix_path", []() { return QLibraryInfo::location(QLibraryInfo::PrefixPath); });
 
   // Exports:
-  qml_module.export_symbols("QString", "QApplication", "QQmlApplicationEngine", "QQmlContext", "set_context_property", "root_context", "JuliaSlot", "call_julia", "QTimer", "connect_timeout", "load", "qt_prefix_path");
+  qml_module.export_symbols("QApplication", "QQmlApplicationEngine", "QQmlContext", "set_context_property", "root_context", "JuliaSlot", "call_julia", "QTimer", "connect_timeout", "load", "qt_prefix_path");
 JULIA_CPP_MODULE_END

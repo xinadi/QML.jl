@@ -28,10 +28,10 @@ function plot_diagram(param)
     return 0
 end
 
-qml_file = QString(joinpath(dirname(Base.source_path()), "qml", "main.qml"))
+qml_file = joinpath(dirname(Base.source_path()), "qml", "main.qml")
 
 app = QML.application()
-e = QQmlApplicationEngine(QString(qml_file))
+e = QQmlApplicationEngine(qml_file)
 QML.exec()
 
 return

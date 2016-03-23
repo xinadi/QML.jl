@@ -21,7 +21,7 @@ To run the QML file `main.qml` from the current directory, execute:
 using QML
 
 app = QML.application()
-e = QQmlApplicationEngine(QString("main.qml"))
+e = QQmlApplicationEngine("main.qml")
 QML.exec()
 ```
 
