@@ -1,7 +1,9 @@
 #include <QApplication>
 #include <QLibraryInfo>
 #include <QQmlApplicationEngine>
+#include <QQmlComponent>
 #include <QQmlContext>
+#include <QQuickItem>
 #include <QQuickView>
 #include <QtQml>
 #include <QTimer>
@@ -308,11 +310,38 @@ JULIA_CPP_MODULE_BEGIN(registry)
 
   qml_module.method("qt_prefix_path", []() { return QLibraryInfo::location(QLibraryInfo::PrefixPath); });
 
-  qml_module.add_type<QQuickView>("QQuickView", julia_type<QObject>())
+
+  qml_module.add_abstract<QQuickItem>("QQuickItem");
+
+  qml_module.add_abstract<QQuickWindow>("QQuickWindow")
+    .method("content_item", &QQuickWindow::contentItem);
+
+  qml_module.add_type<QQuickView>("QQuickView", julia_type<QQuickWindow>())
     .method("set_source", &QQuickView::setSource)
     .method("show", &QQuickView::show) // not exported: conflicts with Base.show
-    .method("engine", &QQuickView::engine);
+    .method("engine", &QQuickView::engine)
+    .method("root_object", &QQuickView::rootObject);
+
+  qml_module.add_type<QByteArray>("QByteArray").constructor<const char*>();
+  qml_module.add_type<QQmlComponent>("QQmlComponent", julia_type<QObject>())
+    .constructor<QQmlEngine*>()
+    .method("set_data", &QQmlComponent::setData)
+    .method("create", static_cast<QObject* (QQmlComponent::*)(QQmlContext*)>(&QQmlComponent::create));
+  qml_module.method("create", [](QQmlComponent& comp, QQmlContext* context)
+  {
+    if(!comp.isReady())
+    {
+      qWarning() << "QQmlComponent is not ready, aborting create";
+      return;
+    }
+
+    QObject* obj = comp.create(context);
+    if(context != nullptr)
+    {
+      obj->setParent(context); // setting this makes sure the new object gets deleted
+    }
+  });
 
   // Exports:
-  qml_module.export_symbols("QApplication", "QQmlApplicationEngine", "QQmlContext", "set_context_property", "root_context", "JuliaSlot", "call_julia", "QTimer", "connect_timeout", "load", "qt_prefix_path", "QQuickView", "set_source", "engine");
+  qml_module.export_symbols("QApplication", "QQmlApplicationEngine", "QQmlContext", "set_context_property", "root_context", "JuliaSlot", "call_julia", "QTimer", "connect_timeout", "load", "qt_prefix_path", "QQuickView", "set_source", "engine", "QByteArray", "QQmlComponent", "set_data", "create", "QQuickItem", "content_item", "QQuickWindow", "QQmlEngine");
 JULIA_CPP_MODULE_END
