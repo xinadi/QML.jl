@@ -36,3 +36,6 @@ create(qcomp, root_ctx);
 
 # Run the application
 QML.exec()
+
+# Needed to prevent crash-on-exit
+finalize(app)

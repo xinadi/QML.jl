@@ -23,7 +23,11 @@ using QML
 app = QML.application()
 e = QQmlApplicationEngine("main.qml")
 QML.exec()
+finalize(app)
 ```
+
+### Preventing crash-on-exit
+To prevent a crash when exiting the program, the app object must be deleted manually, hence the call to `finalize(app)` in the above example.
 
 In QML, include the `JuliaContext` component:
 ```qml

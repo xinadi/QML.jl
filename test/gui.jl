@@ -49,5 +49,8 @@ load(qml_engine, qml_file)
 # Run the application
 QML.exec()
 
+# Needed to prevent crash-on-exit
+finalize(app)
+
 println("Button was pressed $counter times")
 println("Background counter now at $bg_counter")

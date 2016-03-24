@@ -174,7 +174,7 @@ namespace qml_wrapper
 {
 
 // Create an application, taking care of argc and argv
-QApplication* application()
+jl_value_t* application()
 {
   static int argc = 1;
   static std::vector<char*> argv_buffer;
@@ -182,8 +182,9 @@ QApplication* application()
   {
     argv_buffer.push_back(const_cast<char*>("julia"));
   }
-  QApplication* app = new QApplication(argc, &argv_buffer[0]);
-  return app;
+
+  // Using create instead of new automatically attaches a finalizer that calls delete
+  return cpp_wrapper::create<QApplication>(argc, &argv_buffer[0]);
 }
 
 QVariant JuliaContext::call(const QString& fname, const QVariantList& args)
