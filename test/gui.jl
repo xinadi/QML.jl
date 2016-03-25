@@ -33,7 +33,10 @@ qml_file = joinpath(Pkg.dir("QML"), "test", "qml", "main.qml")
 
 app = QML.application()
 qml_engine = QQmlApplicationEngine()
+
 root_ctx = root_context(qml_engine)
+jctx = JuliaContext()
+set_context_property(root_ctx, "julia", jctx)
 set_context_property(root_ctx, "oldcounter", counter)
 
 # Set up a timer

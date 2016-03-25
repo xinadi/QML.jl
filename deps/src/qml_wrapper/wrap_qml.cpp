@@ -266,6 +266,8 @@ JULIA_CPP_MODULE_BEGIN(registry)
 
   qml_module.add_abstract<QObject>("QObject");
 
+  qml_module.add_type<qml_wrapper::JuliaContext>("JuliaContext", julia_type<QObject>());
+
   qml_module.add_type<QApplication>("QApplication", julia_type<QObject>());
   qml_module.method("application", qml_wrapper::application);
   qml_module.method("exec", QApplication::exec);
@@ -291,7 +293,7 @@ JULIA_CPP_MODULE_BEGIN(registry)
   });
 
   qml_module.add_type<QQmlEngine>("QQmlEngine", julia_type<QObject>())
-    .method("root_context", &QQmlApplicationEngine::rootContext);
+    .method("root_context", &QQmlEngine::rootContext);
 
   qml_module.add_type<QQmlApplicationEngine>("QQmlApplicationEngine", julia_type<QQmlEngine>())
     .constructor<QString>() // Construct with path to QML
@@ -326,8 +328,7 @@ JULIA_CPP_MODULE_BEGIN(registry)
   qml_module.add_type<QByteArray>("QByteArray").constructor<const char*>();
   qml_module.add_type<QQmlComponent>("QQmlComponent", julia_type<QObject>())
     .constructor<QQmlEngine*>()
-    .method("set_data", &QQmlComponent::setData)
-    .method("create", static_cast<QObject* (QQmlComponent::*)(QQmlContext*)>(&QQmlComponent::create));
+    .method("set_data", &QQmlComponent::setData);
   qml_module.method("create", [](QQmlComponent& comp, QQmlContext* context)
   {
     if(!comp.isReady())
@@ -344,5 +345,5 @@ JULIA_CPP_MODULE_BEGIN(registry)
   });
 
   // Exports:
-  qml_module.export_symbols("QApplication", "QQmlApplicationEngine", "QQmlContext", "set_context_property", "root_context", "JuliaSlot", "call_julia", "QTimer", "connect_timeout", "load", "qt_prefix_path", "QQuickView", "set_source", "engine", "QByteArray", "QQmlComponent", "set_data", "create", "QQuickItem", "content_item", "QQuickWindow", "QQmlEngine");
+  qml_module.export_symbols("QApplication", "QQmlApplicationEngine", "QQmlContext", "set_context_property", "root_context", "JuliaContext", "JuliaSlot", "call_julia", "QTimer", "connect_timeout", "load", "qt_prefix_path", "QQuickView", "set_source", "engine", "QByteArray", "QQmlComponent", "set_data", "create", "QQuickItem", "content_item", "QQuickWindow", "QQmlEngine");
 JULIA_CPP_MODULE_END
