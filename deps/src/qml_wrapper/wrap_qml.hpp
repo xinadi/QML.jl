@@ -1,7 +1,7 @@
 #ifndef WRAP_QML_H
 #define WRAP_QML_H
 
-#include <cpp_wrapper.hpp>
+#include <cxx_wrap.hpp>
 
 #include <QObject>
 #include <QString>

@@ -1,5 +1,5 @@
-using CppWrapper
-wrap_modules(CppWrapper.lib_path(joinpath(Pkg.dir("QML"),"deps","usr","lib","libqml_wrapper")))
+using CxxWrap
+wrap_modules(CxxWrap.lib_path(joinpath(Pkg.dir("QML"),"deps","usr","lib","libqml_wrapper")))
 
 @doc """
 Module for building [Qt5 QML](http://doc.qt.io/qt-5/qtqml-index.html) graphical user interfaces for Julia programs.

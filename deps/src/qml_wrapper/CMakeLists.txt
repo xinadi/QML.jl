@@ -9,14 +9,14 @@ list(APPEND CMAKE_CXX_FLAGS "-std=c++11")
 find_package(Qt5Quick)
 find_package(Qt5Core)
 find_package(Qt5Widgets)
-find_package(CppWrapper)
+find_package(CxxWrap)
 
 get_target_property(QtCore_location Qt5::Core LOCATION)
 get_filename_component(QtCore_location ${QtCore_location} DIRECTORY)
-set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib;${CppWrapper_DIR}/../;${QtCore_location}")
+set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib;${CxxWrap_DIR}/../;${QtCore_location}")
 
 add_library(qml_wrapper SHARED wrap_qml.hpp wrap_qml.cpp ${MOC_BUILT_SOURCES} ${UI_BUILT_SOURCES})
-target_link_libraries(qml_wrapper Qt5::Core Qt5::Quick Qt5::Widgets CppWrapper::cpp_wrapper)
+target_link_libraries(qml_wrapper Qt5::Core Qt5::Quick Qt5::Widgets CxxWrap::cxx_wrap)
 
 install(TARGETS
   qml_wrapper

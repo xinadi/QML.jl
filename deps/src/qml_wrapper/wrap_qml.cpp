@@ -19,9 +19,9 @@ namespace detail
 template<typename CppT>
 QVariant convert_to_qt(jl_value_t* v)
 {
-  if(jl_type_morespecific(jl_typeof(v), (jl_value_t*)cpp_wrapper::julia_type<CppT>()))
+  if(jl_type_morespecific(jl_typeof(v), (jl_value_t*)cxx_wrap::julia_type<CppT>()))
   {
-    return QVariant::fromValue(cpp_wrapper::convert_to_cpp<CppT>(v));
+    return QVariant::fromValue(cxx_wrap::convert_to_cpp<CppT>(v));
   }
 
   return QVariant();
@@ -46,7 +46,7 @@ jl_value_t* convert_to_julia(const QVariant& v)
 {
   if(v.type() == qMetaTypeId<CppT>())
   {
-    return cpp_wrapper::box(v.template value<CppT>());
+    return cxx_wrap::box(v.template value<CppT>());
   }
 
   return nullptr;
@@ -58,7 +58,7 @@ jl_value_t* convert_to_julia<QString>(const QVariant& v)
 {
   if(v.type() == qMetaTypeId<QString>())
   {
-    return cpp_wrapper::convert_to_julia(v.template value<QString>().toStdString());
+    return cxx_wrap::convert_to_julia(v.template value<QString>().toStdString());
   }
 
   return nullptr;
@@ -81,7 +81,7 @@ jl_value_t* try_convert_to_julia(const QVariant& v)
 } // namespace detail
 } // namespace qml_wrapper
 
-namespace cpp_wrapper
+namespace cxx_wrap
 {
 
 template<>
@@ -107,7 +107,7 @@ template<> struct static_type_mapping<QString>
 {
 	typedef jl_value_t* type;
 	static jl_datatype_t* julia_type() { return (jl_datatype_t*)jl_get_global(jl_base_module, jl_symbol("AbstractString")); }
-	template<typename T> using remove_const_ref = cpp_wrapper::remove_const_ref<T>;
+	template<typename T> using remove_const_ref = cxx_wrap::remove_const_ref<T>;
 };
 
 template<>
@@ -137,7 +137,7 @@ template<> struct static_type_mapping<QUrl>
 {
 	typedef jl_value_t* type;
 	static jl_datatype_t* julia_type() { return (jl_datatype_t*)jl_get_global(jl_base_module, jl_symbol("AbstractString")); }
-	template<typename T> using remove_const_ref = cpp_wrapper::remove_const_ref<T>;
+	template<typename T> using remove_const_ref = cxx_wrap::remove_const_ref<T>;
 };
 
 template<>
@@ -168,7 +168,7 @@ struct ConvertToCpp<QUrl, false, false, false>
 	}
 };
 
-} // namespace cpp_wrapper
+} // namespace cxx_wrap
 
 namespace qml_wrapper
 {
@@ -184,7 +184,7 @@ jl_value_t* application()
   }
 
   // Using create instead of new automatically attaches a finalizer that calls delete
-  return cpp_wrapper::create<QApplication>(argc, &argv_buffer[0]);
+  return cxx_wrap::create<QApplication>(argc, &argv_buffer[0]);
 }
 
 QVariant JuliaContext::call(const QString& fname, const QVariantList& args)
@@ -208,7 +208,7 @@ QVariant JuliaContext::call(const QString& fname, const QVariantList& args)
   // Process arguments
   for(int i = 0; i != nb_args; ++i)
   {
-    julia_args[i] = cpp_wrapper::convert_to_julia<QVariant>(args.at(i));
+    julia_args[i] = cxx_wrap::convert_to_julia<QVariant>(args.at(i));
     if(julia_args[i] == nullptr)
     {
       qWarning() << "Julia argument type for function " << fname << " is unsupported:" << args[0].typeName();
@@ -228,10 +228,10 @@ QVariant JuliaContext::call(const QString& fname, const QVariantList& args)
   }
   else if(!jl_is_nothing(result))
   {
-    result_var = cpp_wrapper::convert_to_cpp<QVariant>(result);
+    result_var = cxx_wrap::convert_to_cpp<QVariant>(result);
     if(result_var.isNull())
     {
-      qWarning() << "Julia method " << fname << " returns unsupported " << QString(cpp_wrapper::julia_type_name((jl_datatype_t*)jl_typeof(result)).c_str());
+      qWarning() << "Julia method " << fname << " returns unsupported " << QString(cxx_wrap::julia_type_name((jl_datatype_t*)jl_typeof(result)).c_str());
     }
   }
   JL_GC_POP();
@@ -258,7 +258,7 @@ void JuliaSlot::callJulia()
 } // namespace qml_wrapper
 
 JULIA_CPP_MODULE_BEGIN(registry)
-  using namespace cpp_wrapper;
+  using namespace cxx_wrap;
 
   Module& qml_module = registry.create_module("QML");
 
