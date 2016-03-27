@@ -35,6 +35,9 @@ provides(BuildProcess,
 		end
 	end),qml_wrapper)
 
+deps = [qml_wrapper]
+provides(Binaries, Dict(URI("https://github.com/barche/QML.jl/releases/download/v0.1.0/QML.zip") => deps), os = :Windows)
+
 @BinDeps.install
 
 @windows_only pop!(BinDeps.defaults)

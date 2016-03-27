@@ -1,4 +1,5 @@
 #include <QApplication>
+#include <QFileInfo>
 #include <QLibraryInfo>
 #include <QQmlApplicationEngine>
 #include <QQmlComponent>
@@ -160,7 +161,8 @@ struct ConvertToCpp<QUrl, false, false, false>
 		}
 
     QString qstr(jl_bytestring_ptr(julia_string));
-    if(qstr.contains(':'))
+    QFileInfo finfo(qstr);
+    if(!finfo.exists())
     {
       return QUrl(qstr);
     }
