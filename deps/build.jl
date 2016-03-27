@@ -1,4 +1,5 @@
 using BinDeps
+using CxxWrap
 
 @windows_only push!(BinDeps.defaults, SimpleBuild)
 @BinDeps.setup
@@ -35,3 +36,5 @@ provides(BuildProcess,
 	end),qml_wrapper)
 
 @BinDeps.install
+
+@windows_only pop!(BinDeps.defaults)
