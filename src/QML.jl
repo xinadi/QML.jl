@@ -1,7 +1,7 @@
+@windows_only ENV["QML_PREFIX_PATH"] = joinpath(Pkg.dir("QML"),"deps","usr")
 using CxxWrap
 wrap_modules(CxxWrap.lib_path(joinpath(Pkg.dir("QML"),"deps","usr","lib","libqml_wrapper")))
 
-@windows_only ENV["QML_PREFIX_PATH"] = joinpath(Pkg.dir("QML"),"deps","usr")
 
 @doc """
 Module for building [Qt5 QML](http://doc.qt.io/qt-5/qtqml-index.html) graphical user interfaces for Julia programs.
