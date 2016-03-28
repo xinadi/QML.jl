@@ -1,6 +1,6 @@
 project(QML)
 
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.0)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
@@ -25,9 +25,7 @@ if(WIN32)
   get_filename_component(QML_DIR "${QML_DIR}" DIRECTORY)
   set(QML_DIR "${QML_DIR}/test/qml")
   configure_file("${CMAKE_SOURCE_DIR}/cmake/WinDeployQt.cmake" "${CMAKE_BINARY_DIR}/WinDeployQt.cmake")
-  configure_file("${CMAKE_SOURCE_DIR}/resources/resources.qrc" "${CMAKE_BINARY_DIR}/resources/resources.qrc" COPYONLY)
-  configure_file("${CMAKE_SOURCE_DIR}/resources/qt.conf" "${CMAKE_BINARY_DIR}/resources/qt.conf")
-  qt5_add_resources(RESOURCES ${CMAKE_BINARY_DIR}/resources/resources.qrc)
+  qt5_add_resources(RESOURCES ${CMAKE_SOURCE_DIR}/resources/resources.qrc)
 endif(WIN32)
 
 add_library(qml_wrapper SHARED wrap_qml.hpp wrap_qml.cpp ${MOC_BUILT_SOURCES} ${UI_BUILT_SOURCES} ${RESOURCES})
