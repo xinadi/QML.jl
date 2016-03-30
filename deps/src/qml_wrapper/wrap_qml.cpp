@@ -257,6 +257,58 @@ void JuliaSlot::callJulia()
   jl_call0(m_function);
 }
 
+JuliaObject::JuliaObject(jl_value_t* julia_object, QObject* parent) : QQmlPropertyMap(parent), m_julia_object(julia_object)
+{
+  jl_datatype_t* dt = (jl_datatype_t*)jl_typeof(julia_object);
+  if(jl_is_structtype(dt))
+  {
+    const uint32_t nb_fields = jl_datatype_nfields(dt);
+    for(uint32_t i = 0; i != nb_fields; ++i)
+    {
+      const std::string fname = cxx_wrap::symbol_name(jl_field_name(dt, i));
+      jl_value_t* field_val = jl_fieldref(julia_object, i);
+      if(jl_is_structtype(jl_typeof(field_val)))
+      {
+        insert(fname.c_str(), QVariant::fromValue(new JuliaObject(field_val, this)));
+        m_field_mapping[fname] = i;
+      }
+      else
+      {
+        QVariant qt_fd = cxx_wrap::convert_to_cpp<QVariant>(field_val);
+        if(qt_fd.isNull())
+        {
+          qWarning() << "not converting unsupported field " << fname.c_str() << " of type " << cxx_wrap::julia_type_name((jl_datatype_t*)jl_typeof(field_val)).c_str();
+          continue;
+        }
+        qWarning() << "adding field " << fname.c_str() << " with value " << qt_fd;
+        m_field_mapping[fname] = i;
+        insert(fname.c_str(), qt_fd);
+      }
+    }
+  }
+  else
+  {
+    qWarning() << "Can't wrap a non-composite type in a JuliaObject";
+  }
+
+  QObject::connect(this, &JuliaObject::valueChanged, this, &JuliaObject::onValueChanged);
+}
+
+void JuliaObject::onValueChanged(const QString &key, const QVariant &value)
+{
+  const auto map_it = m_field_mapping.find(key.toStdString());
+  if(map_it == m_field_mapping.end())
+  {
+    qWarning() << "value change on unmapped field: " << key << ": " << value;
+    return;
+  }
+  qWarning() << "value change on field: " << key << ": " << value << " at index " << map_it->second;
+  jl_value_t* val = cxx_wrap::convert_to_julia(value);
+  JL_GC_PUSH1(&val);
+  jl_set_nth_field(m_julia_object, map_it->second, val);
+  JL_GC_POP();
+}
+
 } // namespace qml_wrapper
 
 JULIA_CPP_MODULE_BEGIN(registry)
@@ -270,6 +322,10 @@ JULIA_CPP_MODULE_BEGIN(registry)
 
   qml_module.add_type<qml_wrapper::JuliaContext>("JuliaContext", julia_type<QObject>());
 
+  qml_module.add_type<qml_wrapper::JuliaSlot>("JuliaSlot", julia_type<QObject>())
+    .constructor<jl_function_t*>()
+    .method("call_julia", &qml_wrapper::JuliaSlot::callJulia);
+
   qml_module.add_type<QApplication>("QApplication", julia_type<QObject>());
   qml_module.method("application", qml_wrapper::application);
   qml_module.method("exec", QApplication::exec);
@@ -282,7 +338,15 @@ JULIA_CPP_MODULE_BEGIN(registry)
       qWarning() << "Can't set property " << name << " on null context";
       return;
     }
-    ctx->setContextProperty(name, convert_to_cpp<QVariant>(v));
+    QVariant qt_var = convert_to_cpp<QVariant>(v);
+    if(!qt_var.isNull())
+    {
+      ctx->setContextProperty(name, qt_var);
+    }
+    else if(jl_is_structtype(jl_typeof(v)))
+    {
+      ctx->setContextProperty(name, new qml_wrapper::JuliaObject(v, ctx));
+    }
   });
   qml_module.method("set_context_property", [](QQmlContext* ctx, const QString& name, QObject* o)
   {
@@ -300,10 +364,6 @@ JULIA_CPP_MODULE_BEGIN(registry)
   qml_module.add_type<QQmlApplicationEngine>("QQmlApplicationEngine", julia_type<QQmlEngine>())
     .constructor<QString>() // Construct with path to QML
     .method("load", static_cast<void (QQmlApplicationEngine::*)(const QString&)>(&QQmlApplicationEngine::load)); // cast needed because load is overloaded
-
-  qml_module.add_type<qml_wrapper::JuliaSlot>("JuliaSlot", julia_type<QObject>())
-    .constructor<jl_function_t*>()
-    .method("call_julia", &qml_wrapper::JuliaSlot::callJulia);
 
   qml_module.add_type<QTimer>("QTimer", julia_type<QObject>());
   qml_module.method("connect_timeout", [](QTimer* timer, qml_wrapper::JuliaSlot* jslot)
@@ -347,5 +407,5 @@ JULIA_CPP_MODULE_BEGIN(registry)
   });
 
   // Exports:
-  qml_module.export_symbols("QApplication", "QQmlApplicationEngine", "QQmlContext", "set_context_property", "root_context", "JuliaContext", "JuliaSlot", "call_julia", "QTimer", "connect_timeout", "load", "qt_prefix_path", "QQuickView", "set_source", "engine", "QByteArray", "QQmlComponent", "set_data", "create", "QQuickItem", "content_item", "QQuickWindow", "QQmlEngine");
+  qml_module.export_symbols("QApplication", "QQmlApplicationEngine", "QQmlContext", "set_context_property", "root_context", "JuliaContext", "JuliaSlot", "call_julia", "QTimer", "connect_timeout", "load", "qt_prefix_path", "QQuickView", "set_source", "engine", "QByteArray", "QQmlComponent", "set_data", "create", "QQuickItem", "content_item", "QQuickWindow", "QQmlEngine", "JuliaObject");
 JULIA_CPP_MODULE_END
