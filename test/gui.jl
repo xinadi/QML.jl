@@ -35,14 +35,10 @@ app = QML.application()
 qml_engine = QQmlApplicationEngine()
 
 root_ctx = root_context(qml_engine)
-jctx = JuliaContext()
-set_context_property(root_ctx, "julia", jctx)
 set_context_property(root_ctx, "oldcounter", counter)
 
 # Set up a timer
-timer = QTimer() # important to keep timer variable, to avoid deletion upon GC
-cslot_obj = JuliaSlot(counter_slot)
-connect_timeout(timer, cslot_obj)
+timer = QTimer()
 set_context_property(root_ctx, "timer", timer)
 set_context_property(root_ctx, "bg_counter", bg_counter) # initial value to avoid startup warning
 

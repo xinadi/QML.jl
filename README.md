@@ -29,21 +29,19 @@ finalize(app)
 ### Preventing crash-on-exit
 To prevent a crash when exiting the program, the app object must be deleted manually, hence the call to `finalize(app)` in the above example.
 
-In QML, include the `JuliaContext` component:
+In QML, include the Julia API:
 ```qml
-JuliaContext {
-  id: julia
-}
+import org.julialang 1.0
 ```
 
 Then call a Julia function in QML using:
 ```qml
-julia.call("my_function")
+Julia.call("my_function")
 ```
 
 To call a function with arguments, put them in a list:
 ```qml
-julia.call("my_function", [arg1, arg2])
+Julia.call("my_function", [arg1, arg2])
 ```
 
 See test for complete example.

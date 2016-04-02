@@ -9,10 +9,6 @@ ApplicationWindow {
     height: 480
     visible: true
 
-    JuliaContext {
-      id: julia
-    }
-
     Rectangle {
         id: page
         width: 320; height: 480

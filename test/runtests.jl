@@ -1,6 +1,5 @@
 include("gui.jl")
 include("libinfo.jl")
-include("slot.jl")
 include("qquickview.jl")
 include("qqmlcomponent.jl")
 include("julia_object.jl")

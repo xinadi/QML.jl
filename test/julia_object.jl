@@ -13,9 +13,6 @@ app = QML.application()
 qml_engine = QQmlApplicationEngine()
 root_ctx = root_context(qml_engine)
 
-jctx = JuliaContext()
-set_context_property(root_ctx, "julia", jctx)
-
 jobj = JuliaTestType(0.)
 set_context_property(root_ctx, "julia_object", jobj)
 

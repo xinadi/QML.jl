@@ -28,11 +28,19 @@ if(WIN32)
   qt5_add_resources(RESOURCES ${CMAKE_SOURCE_DIR}/resources/resources.qrc)
 endif(WIN32)
 
-add_library(qml_wrapper SHARED wrap_qml.hpp wrap_qml.cpp ${MOC_BUILT_SOURCES} ${UI_BUILT_SOURCES} ${RESOURCES})
-target_link_libraries(qml_wrapper Qt5::Core Qt5::Quick Qt5::Widgets CxxWrap::cxx_wrap)
+add_library(qmlwrap SHARED
+  julia_api.hpp
+  julia_api.cpp
+  julia_object.hpp
+  julia_object.cpp
+  type_conversion.hpp
+  type_conversion.cpp
+  wrap_qml.cpp
+${MOC_BUILT_SOURCES} ${UI_BUILT_SOURCES} ${RESOURCES})
+target_link_libraries(qmlwrap Qt5::Core Qt5::Quick Qt5::Widgets CxxWrap::cxx_wrap)
 
 install(TARGETS
-  qml_wrapper
+  qmlwrap
 LIBRARY DESTINATION lib
 ARCHIVE DESTINATION lib
 RUNTIME DESTINATION lib)

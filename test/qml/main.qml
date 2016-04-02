@@ -1,12 +1,18 @@
 import QtQuick 2.0
 import QtQuick.Controls 1.0
 import QtQuick.Layouts 1.0
+import org.julialang 1.0
 
 ApplicationWindow {
     title: "My Application"
     width: 480
     height: 640
     visible: true
+
+    Connections {
+      target: timer
+      onTimeout: Julia.call("counter_slot")
+    }
 
     ColumnLayout {
       spacing: 6
@@ -15,13 +21,13 @@ ApplicationWindow {
       Text {
           id: juliaHello
           Layout.alignment: Qt.AlignCenter
-          text: julia.call("hello")
+          text: Julia.call("hello")
       }
 
       Button {
           Layout.alignment: Qt.AlignCenter
           text: "Push Me"
-          onClicked: { resultDisplay.text = julia.call("increment_counter").toString() }
+          onClicked: { resultDisplay.text = Julia.call("increment_counter").toString() }
       }
 
       Text {
@@ -40,7 +46,7 @@ ApplicationWindow {
       Text {
           id: upperOut
           Layout.alignment: Qt.AlignCenter
-          text: julia.call("uppercase", [lowerIn.text])
+          text: Julia.call("uppercase", [lowerIn.text])
       }
 
       Text {
@@ -50,7 +56,7 @@ ApplicationWindow {
 
       Text {
           Layout.alignment: Qt.AlignCenter
-          text: julia.call("string", [oldcounter, ", ", upperOut.text])
+          text: Julia.call("string", [oldcounter, ", ", upperOut.text])
       }
 
       Button {
