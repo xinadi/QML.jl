@@ -26,3 +26,4 @@ QML.exec()
 finalize(app)
 
 @test jobj.a == 1
+@test value(context_property(root_ctx, "julia_object"), "a") == 1
