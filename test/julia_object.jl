@@ -14,7 +14,7 @@ qml_engine = QQmlApplicationEngine()
 root_ctx = root_context(qml_engine)
 
 jobj = JuliaTestType(0.)
-set_context_property(root_ctx, "julia_object", jobj)
+@qmlset root_ctx.julia_object = jobj
 
 # Load QML after setting context properties, to avoid errors
 load(qml_engine, qml_file)
@@ -27,3 +27,5 @@ finalize(app)
 
 @test jobj.a == 1
 @test @qmlget(root_ctx.julia_object.a) == 1
+@qmlset root_ctx.julia_object.a = 2
+@test @qmlget(root_ctx.julia_object.a) == 2

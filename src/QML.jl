@@ -4,9 +4,16 @@ module QML
 using CxxWrap
 wrap_module(CxxWrap.lib_path(joinpath(Pkg.dir("QML"),"deps","usr","lib","libqmlwrap")))
 
+"""
+Overloads for getting a property value based on its name for any base class
+"""
 generic_property_get(ctx::QQmlContext, key::AbstractString) = context_property(ctx, key)
 generic_property_get(o::JuliaObject, key::AbstractString) = value(o, key)
 
+"""
+Expand an expression of the form a.b.c to replace the dot operator by function calls:
+`@expand_dots a.b.c.d f` returns `f(f(f(a,"b"),"c"),"d")`
+"""
 macro expand_dots(source_expr, func)
   if isa(source_expr, Expr) && source_expr.head == :(.)
     return :($func(@expand_dots($(esc(source_expr.args[1])), $func), $(string(source_expr.args[2].args[1]))))
@@ -14,15 +21,34 @@ macro expand_dots(source_expr, func)
   return esc(source_expr)
 end
 
+"""
+Get a property from the Qt hierarchy using ".":
+```
+@qmlget o.a.b
+```
+returns the value of property with name "b" of property with name "a" of the root object o
+"""
 macro qmlget(dots_expr)
   :(@expand_dots($(esc(dots_expr)), generic_property_get))
 end
 
+"""
+Overloads for setting a property value based on its name for any base class
+"""
+generic_property_set(ctx::QQmlContext, key::AbstractString, value::Any) = set_context_property(ctx, key, value)
+generic_property_set(o::JuliaObject, key::AbstractString, value::Any) = set(o, key, value)
+
+"""
+Setter version of `@qmlget`, use in the form:
+```
+@qmlset o.a.b = value
+```
+"""
 macro qmlset(assign_expr)
-  :(generic_property_set(@expand_dots($(assign_expr.args[1].args[1]), generic_property_get), $(string(assign_expr.args[1].args[2].args[1])), $(assign_expr.args[2])))
+  :(generic_property_set(@expand_dots($(esc(assign_expr.args[1].args[1])), generic_property_get), $(string(assign_expr.args[1].args[2].args[1])), $(esc(assign_expr.args[2]))))
 end
 
-export @qmlget
+export @qmlget,@qmlset
 
 @doc """
 Module for building [Qt5 QML](http://doc.qt.io/qt-5/qtqml-index.html) graphical user interfaces for Julia programs.
