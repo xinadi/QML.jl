@@ -28,7 +28,7 @@ ApplicationWindow {
 app = QML.application()
 qengine = QQmlEngine()
 root_ctx = root_context(qengine)
-set_context_property(root_ctx, "hi", hi)
+@qmlset root_ctx.hi = hi
 
 qcomp = QQmlComponent(qengine)
 set_data(qcomp, qml_data, "")

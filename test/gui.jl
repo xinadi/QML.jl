@@ -8,7 +8,7 @@ counter = 0
 function increment_counter()
   global counter
   global root_ctx
-  set_context_property(root_ctx, "oldcounter", counter)
+  @qmlset root_ctx.oldcounter = counter
   counter += 1
 end
 
@@ -18,14 +18,12 @@ function counter_value()
 end
 
 bg_counter = 0
-run_counter = false
 
 function counter_slot()
   global bg_counter
-  global run_counter
   global root_ctx
   bg_counter += 1
-  set_context_property(root_ctx, "bg_counter", bg_counter)
+  @qmlset root_ctx.bg_counter = bg_counter
 end
 
 # absolute path in case working dir is overridden
@@ -35,12 +33,12 @@ app = QML.application()
 qml_engine = QQmlApplicationEngine()
 
 root_ctx = root_context(qml_engine)
-set_context_property(root_ctx, "oldcounter", counter)
+@qmlset root_ctx.oldcounter = counter
 
 # Set up a timer
 timer = QTimer()
-set_context_property(root_ctx, "timer", timer)
-set_context_property(root_ctx, "bg_counter", bg_counter) # initial value to avoid startup warning
+@qmlset root_ctx.timer = timer
+@qmlset root_ctx.bg_counter = bg_counter # initial value to avoid startup warning
 
 # Load QML after setting context properties, to avoid errors
 load(qml_engine, qml_file)

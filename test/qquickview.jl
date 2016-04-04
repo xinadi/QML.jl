@@ -10,7 +10,7 @@ app = QML.application()
 qview = QQuickView()
 qengine = engine(qview)
 root_ctx = root_context(qengine)
-set_context_property(root_ctx, "hi", hi)
+@qmlset root_ctx.hi = hi
 
 # Load QML after setting context properties, to avoid errors
 set_source(qview, qml_file)
