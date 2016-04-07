@@ -1,8 +1,8 @@
 # QML
-Small example for starting an interface to [Qt5 QML](http://qt.io/). It uses the [`CxxWrap`](https://github.com/barche/CxxWrap.jl) package to expose C++ classes. Current functionality allows loading a simple QML file, calling Julia functions and run a background task during event loop idle time. See test/gui.jl for details, docs not fully up-to-date.
+This package provides an interface to [Qt5 QML](http://qt.io/). It uses the [`CxxWrap`](https://github.com/barche/CxxWrap.jl) package to expose C++ classes. Current functionality allows interaction between QML and Julia using basic numerical and string types.
 
 ## Installation
-This was tested on Linux and OS X. You need `cmake` in your path for installation to work.
+This was tested on Linux and OS X. You need `cmake` in your path for installation to work. Building on Windows should also work, see CxxWrap docs for compiler requirements.
 
 First install [`CxxWrap`](https://github.com/barche/CxxWrap.jl) using `Pkg.add`. Compilation of `QML.jl` requires Qt to be reachable by CMake. If it is in a non-standard location, set the environment variable `CMAKE_PREFIX_PATH` to the base Qt directory (the one containing `lib` and `bin`) before executing the following commands:
 
@@ -160,7 +160,7 @@ The above signal is emitted from Julia using simply:
 **There must never be more than one JuliaSignals block in QML**
 
 ## Using QTimer
-`QTimer` can be used to simulate running Julia code in the background. Exerepts from [`test/gui.jl`](test/gui.jl):
+`QTimer` can be used to simulate running Julia code in the background. Excerpts from [`test/gui.jl`](test/gui.jl):
 
 ```julia
 bg_counter = 0
