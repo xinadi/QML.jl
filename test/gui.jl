@@ -30,9 +30,9 @@ end
 qml_file = joinpath(Pkg.dir("QML"), "test", "qml", "main.qml")
 
 app = QML.application()
-qml_engine = QQmlApplicationEngine()
+qml_engine1 = QQmlApplicationEngine()
 
-root_ctx = root_context(qml_engine)
+root_ctx = root_context(qml_engine1)
 @qmlset root_ctx.oldcounter = counter
 
 # Set up a timer
@@ -41,7 +41,7 @@ timer = QTimer()
 @qmlset root_ctx.bg_counter = bg_counter # initial value to avoid startup warning
 
 # Load QML after setting context properties, to avoid errors
-load(qml_engine, qml_file)
+load(qml_engine1, qml_file)
 
 # Run the application
 QML.exec()

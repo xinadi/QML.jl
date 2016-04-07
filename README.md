@@ -78,8 +78,11 @@ QML.exec()
 Interaction with Julia happens through the following mechanisms:
 * Call Julia functions from QML
 * Read and set context properties from Julia and QML
+* Emit signals from Julia to QML
 
-## Calling Julia functions
+Note that Julia slots appear missing, but they are not needed since it is possible to directly connect a Julia function to a QML signal in the QML code (see the QTimer example below).
+
+### Calling Julia functions
 In QML, include the Julia API:
 ```qml
 import org.julialang 1.0
@@ -95,7 +98,7 @@ To call a function with arguments, put them in a list:
 Julia.call("my_function", [arg1, arg2])
 ```
 
-## Context properties
+### Context properties
 The entry point for setting context properties is the root context of the engine:
 ```julia
 root_ctx = root_context(qml_engine)
@@ -109,10 +112,10 @@ The value of a property can be queried from Julia like this:
 @qmlget root_ctx.property_name
 ```
 
-### Type conversion
+#### Type conversion
 Most fundamental types are converted implicitly. Mind that the default integer type in QML corresponds to `Int32` in Julia
 
-### Composite types
+#### Composite types
 Setting a composite type as a context property maps the type fields into a `JuliaObject`, which derives from `QQmlPropertyMap`. Example:
 
 ```julia
@@ -139,6 +142,22 @@ Timer {
      }
  }
 ```
+
+### Emitting signals from Julia
+Defining signals must be done in QML in the JuliaSignals block, following the instructions from the [QML manual](http://doc.qt.io/qt-5/qtqml-syntax-objectattributes.html#signal-attributes). Example signal with connection:
+```qml
+JuliaSignals {
+  signal fizzBuzzFound(int fizzbuzzvalue)
+  onFizzBuzzFound: lastFizzBuzz.text = fizzbuzzvalue
+}
+```
+
+The above signal is emitted from Julia using simply:
+```julia
+@emit fizzBuzzFound(i)
+```
+
+**There must never be more than one JuliaSignals block in QML**
 
 ## Using QTimer
 `QTimer` can be used to simulate running Julia code in the background. Exerepts from [`test/gui.jl`](test/gui.jl):

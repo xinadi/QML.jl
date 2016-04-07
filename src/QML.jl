@@ -48,7 +48,17 @@ macro qmlset(assign_expr)
   :(generic_property_set(@expand_dots($(esc(assign_expr.args[1].args[1])), generic_property_get), $(string(assign_expr.args[1].args[2].args[1])), $(esc(assign_expr.args[2]))))
 end
 
-export @qmlget,@qmlset
+"""
+Emit a signal in the form:
+```
+@emit signal_name(arg1, arg2)
+```
+"""
+macro emit(expr)
+  esc(:(emit($(string(expr.args[1])), Any[$(expr.args[2:end]...)])))
+end
+
+export @qmlget, @qmlset, @emit
 
 @doc """
 Module for building [Qt5 QML](http://doc.qt.io/qt-5/qtqml-index.html) graphical user interfaces for Julia programs.

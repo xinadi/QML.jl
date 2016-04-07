@@ -1,19 +1,35 @@
 using Base.Test
 using QML
 
-function emit_signal()
-  emit("testsignal", [])
+function emit_signal1()
+  @emit testsignal()
+end
+
+function emit_signal2()
+  @emit testsignalargs(2., "Hi from Julia")
+end
+
+function check1(result::Bool)
+  @test result
+  nothing
+end
+
+function check2(x::Float64, s::AbstractString)
+  @test x == 2.
+  @test s == "Hi from Julia"
+  nothing
 end
 
 # absolute path in case working dir is overridden
 qml_file = joinpath(Pkg.dir("QML"), "test", "qml", "julia_signal.qml")
 
 app = QML.application()
-qml_engine = QQmlApplicationEngine()
-root_ctx = root_context(qml_engine)
+qml_engine3 = QQmlApplicationEngine()
+root_ctx = root_context(qml_engine3)
 
 # Load QML after setting context properties, to avoid errors
-load(qml_engine, qml_file)
+load(qml_engine3, qml_file)
+
 # Run the application
 QML.exec()
 

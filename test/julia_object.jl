@@ -10,14 +10,14 @@ end
 qml_file = joinpath(Pkg.dir("QML"), "test", "qml", "julia_object.qml")
 
 app = QML.application()
-qml_engine = QQmlApplicationEngine()
-root_ctx = root_context(qml_engine)
+qml_engine2 = QQmlApplicationEngine()
+root_ctx = root_context(qml_engine2)
 
 jobj = JuliaTestType(0.)
 @qmlset root_ctx.julia_object = jobj
 
 # Load QML after setting context properties, to avoid errors
-load(qml_engine, qml_file)
+load(qml_engine2, qml_file)
 
 # Run the application
 QML.exec()

@@ -14,7 +14,7 @@ ApplicationWindow {
         anchors.margins: 10
         TextField {
             placeholderText: "Input"
-            text: "0"
+            text: ""
             id: textField
             onTextChanged: Julia.call("do_fizzbuzz", [textField.text])
         }
@@ -28,7 +28,12 @@ ApplicationWindow {
         }
         Text {
             id: lastFizzBuzz
-            text: fizzbuzz.lastfizzbuzz
+            text: "No fizzbuzz yet!"
         }
+    }
+
+    JuliaSignals {
+      signal fizzBuzzFound(int fizzbuzzvalue)
+      onFizzBuzzFound: lastFizzBuzz.text = fizzbuzzvalue
     }
 }
