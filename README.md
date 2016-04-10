@@ -83,6 +83,16 @@ Interaction with Julia happens through the following mechanisms:
 Note that Julia slots appear missing, but they are not needed since it is possible to directly connect a Julia function to a QML signal in the QML code (see the QTimer example below).
 
 ### Calling Julia functions
+In Julia, functions are registered using the `@qmlfunction` macro:
+```julia
+my_function() = "Hello from Julia"
+my_other_function(a, b) = "Hi from Julia"
+
+@qmlfunction my_function my_other_function
+```
+
+The macro takes any number of function names as arguments
+
 In QML, include the Julia API:
 ```qml
 import org.julialang 1.0
@@ -90,12 +100,8 @@ import org.julialang 1.0
 
 Then call a Julia function in QML using:
 ```qml
-Julia.call("my_function")
-```
-
-To call a function with arguments, put them in a list:
-```qml
-Julia.call("my_function", [arg1, arg2])
+Julia.my_function()
+Julia.my_other_function(arg1, arg2)
 ```
 
 ### Context properties
@@ -172,6 +178,8 @@ function counter_slot()
   @qmlset root_ctx.bg_counter = bg_counter
 end
 
+@qmlfunction counter_slot
+
 timer = QTimer()
 @qmlset root_ctx.timer = timer
 @qmlset root_ctx.bg_counter = bg_counter
@@ -192,7 +200,7 @@ ApplicationWindow {
 
     Connections {
       target: timer
-      onTimeout: Julia.call("counter_slot")
+      onTimeout: Julia.counter_slot()
     }
 
     ColumnLayout {

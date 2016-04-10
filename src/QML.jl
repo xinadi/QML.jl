@@ -58,7 +58,17 @@ macro emit(expr)
   esc(:(emit($(string(expr.args[1])), Any[$(expr.args[2:end]...)])))
 end
 
-export @qmlget, @qmlset, @emit
+"""
+Register a Julia function for access from QML:
+```
+@qmlfunction MyFunc
+```
+"""
+macro qmlfunction(fname...)
+  esc(:(QML.register_function($(Any[string(f) for f in fname]))))
+end
+
+export @qmlget, @qmlset, @emit, @qmlfunction
 
 @doc """
 Module for building [Qt5 QML](http://doc.qt.io/qt-5/qtqml-index.html) graphical user interfaces for Julia programs.

@@ -56,7 +56,7 @@ ApplicationWindow {
         onClicked: {
             res.result = chk1.checked + 2*chk2.checked+4*chk3.checked + 8*chk4.checked
             res.result += 16*chk5.checked + 32*chk6.checked + 64*chk7.checked + 128*chk8.checked +256*chk9.checked
-            Julia.call("plot_diagram", [res.result])
+            Julia.plot_diagram(res.result)
         }
     }
 }

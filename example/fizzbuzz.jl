@@ -31,6 +31,8 @@ function do_fizzbuzz(input::AbstractString)
   nothing
 end
 
+@qmlfunction do_fizzbuzz
+
 # Create the Qt app
 app = QML.application()
 eng = QQmlApplicationEngine()

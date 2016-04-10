@@ -16,7 +16,7 @@ ApplicationWindow {
             placeholderText: "Input"
             text: ""
             id: textField
-            onTextChanged: Julia.call("do_fizzbuzz", [textField.text])
+            onTextChanged: Julia.do_fizzbuzz(textField.text)
         }
         Text {
             id: text

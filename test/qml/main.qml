@@ -11,7 +11,7 @@ ApplicationWindow {
 
     Connections {
       target: timer
-      onTimeout: Julia.call("counter_slot")
+      onTimeout: Julia.counter_slot()
     }
 
     ColumnLayout {
@@ -21,13 +21,13 @@ ApplicationWindow {
       Text {
           id: juliaHello
           Layout.alignment: Qt.AlignCenter
-          text: Julia.call("hello")
+          text: Julia.hello()
       }
 
       Button {
           Layout.alignment: Qt.AlignCenter
           text: "Push Me"
-          onClicked: { resultDisplay.text = Julia.call("increment_counter").toString() }
+          onClicked: { resultDisplay.text = Julia.increment_counter().toString() }
       }
 
       Text {
@@ -46,7 +46,7 @@ ApplicationWindow {
       Text {
           id: upperOut
           Layout.alignment: Qt.AlignCenter
-          text: Julia.call("uppercase", [lowerIn.text])
+          text: Julia.uppercase(lowerIn.text)
       }
 
       Text {
@@ -56,7 +56,7 @@ ApplicationWindow {
 
       Text {
           Layout.alignment: Qt.AlignCenter
-          text: Julia.call("string", [oldcounter, ", ", upperOut.text])
+          text: Julia.string(oldcounter, ", ", upperOut.text)
       }
 
       Button {

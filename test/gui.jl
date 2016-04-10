@@ -26,6 +26,8 @@ function counter_slot()
   @qmlset root_ctx.bg_counter = bg_counter
 end
 
+@qmlfunction counter_slot hello increment_counter uppercase string
+
 # absolute path in case working dir is overridden
 qml_file = joinpath(Pkg.dir("QML"), "test", "qml", "main.qml")
 

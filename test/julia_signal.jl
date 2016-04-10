@@ -20,8 +20,12 @@ function check2(x::Float64, s::AbstractString)
   nothing
 end
 
+@qmlfunction emit_signal1
+@qmlfunction emit_signal2
+@qmlfunction check1 check2
+
 # absolute path in case working dir is overridden
-qml_file = joinpath(Pkg.dir("QML"), "test", "qml", "julia_signal.qml")
+qml_file = Pkg.dir("QML", "test", "qml", "julia_signal.qml")
 
 app = QML.application()
 qml_engine3 = QQmlApplicationEngine()
