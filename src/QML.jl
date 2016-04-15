@@ -68,6 +68,12 @@ macro qmlfunction(fname...)
   esc(:(QML.register_function($(Any[string(f) for f in fname]))))
 end
 
+function Base.display(d::JuliaDisplay, x)
+  buf = IOBuffer()
+  writemime(buf, MIME"image/png"(), x)
+  load_png(d, takebuf_array(buf))
+end
+
 export @qmlget, @qmlset, @emit, @qmlfunction
 
 @doc """
