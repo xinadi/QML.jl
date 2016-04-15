@@ -5,8 +5,8 @@ import org.julialang 1.0
 
 ApplicationWindow {
   title: "My Application"
-  width: 300
-  height: 300
+  width: 640
+  height: 480
   visible: true
 
   ColumnLayout {
@@ -17,9 +17,8 @@ ApplicationWindow {
     function do_plot()
     {
       if(jdisp === null)
-      {
         return;
-      }
+
       Julia.plotsin(jdisp, jdisp.width, jdisp.height, amplitude.value, frequency.value);
     }
 
