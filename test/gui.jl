@@ -7,8 +7,7 @@ counter = 0
 
 function increment_counter()
   global counter
-  global root_ctx
-  @qmlset root_ctx.oldcounter = counter
+  @qmlset qmlcontext().oldcounter = counter
   counter += 1
 end
 
@@ -21,9 +20,8 @@ bg_counter = 0
 
 function counter_slot()
   global bg_counter
-  global root_ctx
   bg_counter += 1
-  @qmlset root_ctx.bg_counter = bg_counter
+  @qmlset qmlcontext().bg_counter = bg_counter
 end
 
 @qmlfunction counter_slot hello increment_counter uppercase string
@@ -31,25 +29,22 @@ end
 # absolute path in case working dir is overridden
 qml_file = joinpath(Pkg.dir("QML"), "test", "qml", "main.qml")
 
-app = QML.application()
-qml_engine1 = QQmlApplicationEngine()
-
-root_ctx = root_context(qml_engine1)
-@qmlset root_ctx.oldcounter = counter
+# Initialize app and engine. Lifetime managed by C++
+qml_engine = init_qmlapplicationengine()
 
 # Set up a timer
 timer = QTimer()
-@qmlset root_ctx.timer = timer
-@qmlset root_ctx.bg_counter = bg_counter # initial value to avoid startup warning
 
-# Load QML after setting context properties, to avoid errors
-load(qml_engine1, qml_file)
+# Set context properties
+@qmlset qmlcontext().oldcounter = counter
+@qmlset qmlcontext().bg_counter = bg_counter
+@qmlset qmlcontext().timer = timer
+
+# Load the QML file
+load(qml_engine, qml_file)
 
 # Run the application
 QML.exec()
-
-# Needed to prevent crash-on-exit
-finalize(app)
 
 println("Button was pressed $counter times")
 println("Background counter now at $bg_counter")

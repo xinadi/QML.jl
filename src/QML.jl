@@ -68,27 +68,33 @@ macro qmlfunction(fname...)
   esc(:(QML.register_function($(Any[string(f) for f in fname]))))
 end
 
+"""
+Load the given QML path using a QQmlApplicationEngine, initializing the context with the given properties
+"""
+macro qmlapp(path, context_properties...)
+  esc(:(QML.load_qml_app($path, $(Any[string(p) for p in context_properties]), Any[$(context_properties...)])))
+end
+
 function Base.display(d::JuliaDisplay, x)
   buf = IOBuffer()
   writemime(buf, MIME"image/png"(), x)
   load_png(d, takebuf_array(buf))
 end
 
-export @qmlget, @qmlset, @emit, @qmlfunction
+function Base.displayable(d::JuliaDisplay, mime::AbstractString)
+  if mime == "image/png"
+    return true
+  end
+  return false
+end
+
+export @qmlget, @qmlset, @emit, @qmlfunction, @qmlapp
 
 @doc """
 Module for building [Qt5 QML](http://doc.qt.io/qt-5/qtqml-index.html) graphical user interfaces for Julia programs.
 Types starting with `Q` are equivalent of their Qt C++ counterpart, so they have no Julia docstring and we refer to
 the [Qt documentation](http://doc.qt.io/qt-5/qtqml-index.html) for details instead.
 """ QML
-
-@doc """
-Create a new [QApplication](http://doc.qt.io/qt-5/qapplication.html). This function generates
-a writable `argc` and `argv` as required by Qt. The returned object must be manually finalized
-before julia exit.
-""" application
-
-@doc "Equivalent to [`QApplication::exec`](http://doc.qt.io/qt-5/qapplication.html#exec)" exec
 
 @doc """
 Equivalent to [`QQmlContext::setContextProperty`](http://doc.qt.io/qt-5/qqmlcontext.html#setContextProperty).

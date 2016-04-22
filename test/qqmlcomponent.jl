@@ -25,17 +25,12 @@ ApplicationWindow {
 }
 """)
 
-app = QML.application()
-qengine = QQmlEngine()
-root_ctx = root_context(qengine)
-@qmlset root_ctx.hi = hi
+qengine = init_qmlengine()
+@qmlset qmlcontext().hi = hi
 
 qcomp = QQmlComponent(qengine)
 set_data(qcomp, qml_data, "")
-create(qcomp, root_ctx);
+create(qcomp, qmlcontext());
 
 # Run the application
 QML.exec()
-
-# Needed to prevent crash-on-exit
-finalize(app)
