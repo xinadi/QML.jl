@@ -7,11 +7,10 @@ function test_display(d::JuliaDisplay)
   display(d, img)
 end
 
-@qmlfunction test_display
-
 qml_file = joinpath(Pkg.dir("QML"), "test", "qml", "image.qml")
 
 @qmlapp qml_file
+@qmlfunction test_display
 
 # Run the application
 QML.exec()
