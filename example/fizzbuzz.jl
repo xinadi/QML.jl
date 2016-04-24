@@ -8,7 +8,6 @@ type FizzBuzz
 end
 
 function do_fizzbuzz(input::AbstractString)
-  global ctx
   if isempty(input)
     return
   end
@@ -16,33 +15,26 @@ function do_fizzbuzz(input::AbstractString)
   try
     i = parse(Int32, input)
   catch
-    @qmlset ctx.fizzbuzz.result = "parse error"
+    @qmlset qmlcontext().fizzbuzz.result = "parse error"
   end
   if i % 15 == 0
-    @qmlset ctx.fizzbuzz.result = "FizzBuzz"
+    @qmlset qmlcontext().fizzbuzz.result = "FizzBuzz"
     @emit fizzBuzzFound(i)
   elseif i % 3 == 0
-    @qmlset ctx.fizzbuzz.result = "Fizz"
+    @qmlset qmlcontext().fizzbuzz.result = "Fizz"
   elseif i % 5 == 0
-    @qmlset ctx.fizzbuzz.result = "Buzz"
+    @qmlset qmlcontext().fizzbuzz.result = "Buzz"
   else
-    @qmlset ctx.fizzbuzz.result = input
+    @qmlset qmlcontext().fizzbuzz.result = input
   end
   nothing
 end
 
+qmlfile = joinpath(dirname(Base.source_path()), "qml", "fizzbuzz.qml")
+fizzbuzz = FizzBuzz("")
+
+@qmlapp qmlfile fizzbuzz
+
 @qmlfunction do_fizzbuzz
-
-# Create the Qt app
-app = QML.application()
-eng = QQmlApplicationEngine()
-
-# Set up the context
-ctx = root_context(eng)
-fb = FizzBuzz("")
-@qmlset ctx.fizzbuzz = fb
-
-# Load the QML
-load(eng, joinpath(dirname(Base.source_path()), "qml", "fizzbuzz.qml"))
 
 QML.exec()

@@ -17,7 +17,7 @@ function plotsin(d::JuliaDisplay, width::Float64, height::Float64, amplitude::Fl
   global oldheight
 
   if oldwidth != width || oldheight != height
-    gr(size=(Int64(round(width)),Int64(round(height))))
+    pyplot(size=(Int64(round(width)),Int64(round(height))))
     oldwidth = width
     oldheight = height
   end
@@ -25,8 +25,8 @@ function plotsin(d::JuliaDisplay, width::Float64, height::Float64, amplitude::Fl
   x = 0:π/100:π
   f = amplitude*sin(frequency*x)
 
-  @time plt = plot(x,f)
-  @profile display(d, plt)
+  plt = plot(x,f)
+  display(d, plt)
   close()
 end
 
@@ -34,17 +34,7 @@ end
 
 qml_file = Pkg.dir("QML", "example", "qml", "plot.qml")
 
-app = QML.application()
-qml_engine4 = QQmlApplicationEngine()
-
-# Load QML after setting context properties, to avoid errors
-load(qml_engine4, qml_file)
+@qmlapp qml_file
 
 # Run the application
 QML.exec()
-
-# Needed to prevent crash-on-exit (order of finalization matters)
-finalize(qml_engine4)
-finalize(app)
-
-Profile.print()

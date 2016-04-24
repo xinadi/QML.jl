@@ -6,6 +6,7 @@ wrap_module(CxxWrap.lib_path(joinpath(Pkg.dir("QML"),"deps","usr","lib","libqmlw
 
 function __init__()
   # Make sure we have an application at module load, so any QObject is created after this
+  global __appmanager = ApplicationManager()
   init_application()
 end
 
