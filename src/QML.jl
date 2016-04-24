@@ -4,6 +4,11 @@ module QML
 using CxxWrap
 wrap_module(CxxWrap.lib_path(joinpath(Pkg.dir("QML"),"deps","usr","lib","libqmlwrap")))
 
+function __init__()
+  # Make sure we have an application at module load, so any QObject is created after this
+  init_application()
+end
+
 """
 Overloads for getting a property value based on its name for any base class
 """
