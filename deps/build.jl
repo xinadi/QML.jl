@@ -29,7 +29,8 @@ end
 	end
 end
 
-@windows_only push!(BinDeps.defaults, SimpleBuild)
+#@windows_only push!(BinDeps.defaults, SimpleBuild)
+@windows_only push!(BinDeps.defaults, Binaries)
 @BinDeps.setup
 
 cxx_wrap_dir = Pkg.dir("CxxWrap","deps","usr","lib","cmake")
@@ -63,8 +64,8 @@ provides(BuildProcess,
     end
   end),qmlwrap)
 
-#deps = [qmlwrap]
-#provides(Binaries, Dict(URI("https://github.com/barche/QML.jl/releases/download/v0.1.0/QML-julia-$(VERSION.major).$(VERSION.minor)-win$(WORD_SIZE).zip") => deps), os = :Windows)
+deps = [qmlwrap]
+provides(Binaries, Dict(URI("https://github.com/barche/QML.jl/releases/download/v0.1.0/QML-julia-$(VERSION.major).$(VERSION.minor)-win$(WORD_SIZE).zip") => deps), os = :Windows)
 
 @BinDeps.install
 
