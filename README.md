@@ -1,6 +1,8 @@
 # QML
 This package provides an interface to [Qt5 QML](http://qt.io/). It uses the [`CxxWrap`](https://github.com/barche/CxxWrap.jl) package to expose C++ classes. Current functionality allows interaction between QML and Julia using basic numerical and string types.
 
+![QML plots example](example/plot.png?raw=true "Plots example")
+
 ## Installation
 This was tested on Linux and OS X. You need `cmake` in your path for installation to work. Building on Windows should also work, see CxxWrap docs for compiler requirements.
 
@@ -18,18 +20,15 @@ You can check that the correct Qt version is used using the `qt_prefix_path()` f
 ### Loading a QML file
 We support three methods of loading a QML file: `QQmlApplicationEngine`, `QQuickView` and `QQmlComponent`. These behave equivalently to the corresponding Qt classes.
 #### QQmlApplicationEngine
-To run the QML file `main.qml` from the current directory, execute:
+The easiest way to run the QML file `main.qml` from the current directory is using the `@qmlapp` macro:
 ```julia
 using QML
-
-app = QML.application()
-e = QQmlApplicationEngine("main.qml")
-QML.exec()
-finalize(app)
+@qmlapp "main.qml"
+exec()
 ```
 The QML must have an `ApplicationWindow` as top component. It is also possible to default-construct the `QQmlApplicationEngine` and call `load` to load the QML separately:
 ```julia
-qml_engine = QQmlApplicationEngine()
+qml_engine = init_qmlapplicationengine()
 # ...
 # set properties, ...
 # ...
@@ -38,17 +37,16 @@ load(qml_engine, "main.qml")
 
 This is useful to set context properties before loading the QML, for example.
 
-To prevent a crash when exiting the program, the app object must be deleted manually, hence the call to `finalize(app)` in the above example.
+Note we use `init_` functions rather than calling the constructor for the Qt type directly. The init methods have the advantage that cleanup (calling delete etc.) happens in C++ automatically. Calling the constructor directly requires manually finalizing the corresponding components in the correct order and has a high risk of causing crashes on exit.
 
 #### QQuickView
 The `QQuickView` creates a window, so it's not necessary to wrap the QML in `ApplicationWindow`. A QML file is loaded as follows:
 
 ```julia
-app = QML.application()
-qview = QQuickView()
+qview = init_qquickview()
 set_source(qview, "main.qml")
 QML.show(qview)
-QML.exec()
+exec()
 ```
 
 #### QQmlComponent
@@ -63,15 +61,13 @@ ApplicationWindow {
 }
 """)
 
-app = QML.application()
-qengine = QQmlEngine()
-root_ctx = root_context(qengine)
+qengine = init_qmlengine()
 qcomp = QQmlComponent(qengine)
 set_data(qcomp, qml_data, "")
-create(qcomp, root_ctx);
+create(qcomp, qmlcontext());
 
 # Run the application
-QML.exec()
+exec()
 ```
 
 ## Interacting with Julia
@@ -105,18 +101,24 @@ Julia.my_other_function(arg1, arg2)
 ```
 
 ### Context properties
-The entry point for setting context properties is the root context of the engine:
+The entry point for setting context properties is the root context of the engine, available using the `qmlcontext()` function. It is defined once the `@qmlapp` macro or one of the init functions has been called.
 ```julia
-root_ctx = root_context(qml_engine)
-@qmlset root_ctx.property_name = property_value
+@qmlset qmlcontext().property_name = property_value
 ```
 
 This sets the QML context property named `property_name` to value `julia_value`. Any time the `@qmlset` macro is called on such a property, QML is notified of the change and updates any dependent values.
 
 The value of a property can be queried from Julia like this:
 ```julia
-@qmlget root_ctx.property_name
+@qmlget qmlcontext().property_name
 ```
+
+At application initialization, it is also possible to pass context properties as additional arguments to the `@qmlapp` macro:
+```julia
+my_prop = 2.
+@qmlapp "main.qml" my_prop
+```
+This will initialize a context property named `my_prop` with the value 2.
 
 #### Type conversion
 Most fundamental types are converted implicitly. Mind that the default integer type in QML corresponds to `Int32` in Julia
@@ -229,3 +231,34 @@ ApplicationWindow {
 ```
 
 Note that QML provides the infrastructure to connect to the `QTimer` signal through the `Connections` item.
+
+## JuliaDisplay
+QML.jl provides a custom QML type named `JuliaDisplay` that acts as a standard Julia multimedia `Display`. Currently, only the `image/png` mime type is supported. Example use in QML from the `plot` example:
+ ```qml
+ JuliaDisplay {
+   id: jdisp
+   Layout.fillWidth: true
+   Layout.fillHeight: true
+   onHeightChanged: root.do_plot()
+   onWidthChanged: root.do_plot()
+ }
+ ```
+ The function `do_plot` is defined in the parent QML component and calls the Julia plotting routine, passing the display as an argument:
+ ```qml
+ function do_plot()
+ {
+   if(jdisp === null)
+     return;
+
+   Julia.plotsin(jdisp, jdisp.width, jdisp.height, amplitude.value, frequency.value);
+ }
+ ```
+ Of course the display can also be added using `pushdisplay!`, but passing by value can be more convenient when defining multiple displays in QML.
+
+## Combination with the REPL
+When launching the application using `exec`, execution in the REPL will block until the GUI is closed. If you want to continue using the REPL with an active QML gui, `exec_async` provides an alternative. This method keeps the REPL active and polls the QML interface periodically for events, using a timer in the Julia event loop. An example (requiring packages Plots.jl and PyPlot.jl) can be found in `example/repl-background.jl`, to be used as:
+```julia
+include("example/repl-background.jl")
+plot([1,2],[3,4])
+```
+This should display the result of the plotting command in the QML window.

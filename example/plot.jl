@@ -32,9 +32,9 @@ end
 
 @qmlfunction plotsin
 
-qml_file = Pkg.dir("QML", "example", "qml", "plot.qml")
+qml_file = joinpath(dirname(@__FILE__), "qml", "plot.qml")
 
 @qmlapp qml_file
 
 # Run the application
-QML.exec()
+exec()

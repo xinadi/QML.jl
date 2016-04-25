@@ -27,7 +27,7 @@ end
 @qmlfunction counter_slot hello increment_counter uppercase string
 
 # absolute path in case working dir is overridden
-qml_file = joinpath(Pkg.dir("QML"), "test", "qml", "main.qml")
+qml_file = joinpath(dirname(@__FILE__), "qml", "gui.qml")
 
 # Initialize app and engine. Lifetime managed by C++
 qml_engine = init_qmlapplicationengine()
@@ -44,7 +44,7 @@ timer = QTimer()
 load(qml_engine, qml_file)
 
 # Run the application
-QML.exec()
+exec()
 
 println("Button was pressed $counter times")
 println("Background counter now at $bg_counter")

@@ -31,6 +31,6 @@ end
 @qmlfunction plot_diagram
 
 @qmlapp joinpath(dirname(Base.source_path()), "qml", "main.qml")
-QML.exec()
+exec()
 
 return

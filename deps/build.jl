@@ -1,10 +1,38 @@
 using BinDeps
 using CxxWrap
 
+libdir_opt = ""
+@windows_only libdir_opt = WORD_SIZE==32 ? "32" : ""
+
+base_lib_dir = joinpath(dirname(@__FILE__),"usr","lib"*libdir_opt)
+@windows_only begin
+	for libpath in [joinpath(base_lib_dir,"qmlwrap.dll")]
+		if isfile(libpath)
+			rm(libpath)
+		end
+	end
+end
+
+@linux_only begin
+	for libpath in [joinpath(base_lib_dir,"libqmlwrap.so")]
+		if isfile(libpath)
+			rm(libpath)
+		end
+	end
+end
+
+@osx_only begin
+	for libpath in [joinpath(base_lib_dir,"libqmlwrap.dylib")]
+		if isfile(libpath)
+			rm(libpath)
+		end
+	end
+end
+
 @windows_only push!(BinDeps.defaults, SimpleBuild)
 @BinDeps.setup
 
-cxx_wrap_dir = joinpath(Pkg.dir("CxxWrap"),"deps","usr","lib","cmake")
+cxx_wrap_dir = Pkg.dir("CxxWrap","deps","usr","lib","cmake")
 
 qmlwrap = library_dependency("qmlwrap", aliases=["libqmlwrap"])
 prefix=joinpath(BinDeps.depsdir(qmlwrap),"usr")
@@ -35,8 +63,8 @@ provides(BuildProcess,
     end
   end),qmlwrap)
 
-deps = [qmlwrap]
-provides(Binaries, Dict(URI("https://github.com/barche/QML.jl/releases/download/v0.1.0/QML.zip") => deps), os = :Windows)
+#deps = [qmlwrap]
+#provides(Binaries, Dict(URI("https://github.com/barche/QML.jl/releases/download/v0.1.0/QML.zip") => deps), os = :Windows)
 
 @BinDeps.install
 

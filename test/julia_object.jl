@@ -7,7 +7,7 @@ type JuliaTestType
 end
 
 # absolute path in case working dir is overridden
-qml_file = joinpath(Pkg.dir("QML"), "test", "qml", "julia_object.qml")
+qml_file = joinpath(dirname(@__FILE__), "qml", "julia_object.qml")
 
 julia_object = JuliaTestType(0.)
 
@@ -15,6 +15,6 @@ julia_object = JuliaTestType(0.)
 @qmlapp qml_file julia_object
 
 # Run the application
-QML.exec()
+exec()
 
 @test julia_object.a == 1

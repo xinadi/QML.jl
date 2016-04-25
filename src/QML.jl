@@ -1,8 +1,8 @@
 module QML
 
-@windows_only ENV["QML_PREFIX_PATH"] = joinpath(Pkg.dir("QML"),"deps","usr")
+@windows_only ENV["QML_PREFIX_PATH"] = joinpath(dirname(dirname(@__FILE__)),"deps","usr")
 using CxxWrap
-wrap_module(CxxWrap.lib_path(joinpath(Pkg.dir("QML"),"deps","usr","lib","libqmlwrap")))
+wrap_module(CxxWrap.lib_path(joinpath(dirname(dirname(@__FILE__)),"deps","usr","lib","libqmlwrap")))
 
 function __init__()
   # Make sure we have an application at module load, so any QObject is created after this

@@ -33,4 +33,4 @@ set_data(qcomp, qml_data, "")
 create(qcomp, qmlcontext());
 
 # Run the application
-QML.exec()
+exec()

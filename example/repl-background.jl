@@ -1,10 +1,10 @@
 using QML
 
-qml_file = Pkg.dir("QML", "example", "qml", "repl-background.qml")
+qml_file = joinpath(dirname(@__FILE__), "qml", "repl-background.qml")
 
 @qmlfunction pushdisplay
 @qmlapp qml_file
-QML.exec_async()
+exec_async()
 
 ENV["MPLBACKEND"] = "Agg"
 using Plots

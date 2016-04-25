@@ -25,9 +25,9 @@ end
 @qmlfunction check1 check2
 
 # absolute path in case working dir is overridden
-qml_file = Pkg.dir("QML", "test", "qml", "julia_signal.qml")
+qml_file = joinpath(dirname(@__FILE__), "qml", "julia_signal.qml")
 
 @qmlapp qml_file
 
 # Run the application
-QML.exec()
+exec()

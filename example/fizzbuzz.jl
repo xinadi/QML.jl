@@ -37,4 +37,4 @@ fizzbuzz = FizzBuzz("")
 
 @qmlfunction do_fizzbuzz
 
-QML.exec()
+exec()
