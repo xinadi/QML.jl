@@ -56,15 +56,15 @@ provides(BuildProcess,
     CreateDirectory(qmlwrap_builddir)
     @build_steps begin
       ChangeDirectory(qmlwrap_builddir)
-      FileRule(joinpath(prefix,"lib", "$(lib_prefix)qmlwrap.$lib_suffix"),@build_steps begin
-        `cmake -G "$genopt" -DCMAKE_INSTALL_PREFIX="$prefix" -DCMAKE_BUILD_TYPE="Release" -DCxxWrap_DIR="$cxx_wrap_dir" $qmlwrap_srcdir`
+      FileRule(joinpath(prefix,"lib$libdir_opt", "$(lib_prefix)qmlwrap.$lib_suffix"),@build_steps begin
+        `cmake -G "$genopt" -DCMAKE_INSTALL_PREFIX="$prefix" -DCMAKE_BUILD_TYPE="Release" -DCxxWrap_DIR="$cxx_wrap_dir" -DLIBDIR_SUFFIX=$libdir_opt $qmlwrap_srcdir`
         `cmake --build . --config Release --target install`
       end)
     end
   end),qmlwrap)
 
 #deps = [qmlwrap]
-#provides(Binaries, Dict(URI("https://github.com/barche/QML.jl/releases/download/v0.1.0/QML.zip") => deps), os = :Windows)
+#provides(Binaries, Dict(URI("https://github.com/barche/QML.jl/releases/download/v0.1.0/QML-julia-$(VERSION.major).$(VERSION.minor)-win$(WORD_SIZE).zip") => deps), os = :Windows)
 
 @BinDeps.install
 

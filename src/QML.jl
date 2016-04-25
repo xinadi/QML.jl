@@ -6,6 +6,15 @@ wrap_module(CxxWrap.lib_path(joinpath(dirname(dirname(@__FILE__)),"deps","usr","
 
 function __init__()
   # Make sure we have an application at module load, so any QObject is created after this
+  @windows_only begin
+    suff = WORD_SIZE == 32 ? "32" : ""
+    libdir = joinpath(dirname(dirname(@__FILE__)),"deps","usr","lib$suff")
+    for fname in readdir(libdir)
+      if endswith(fname, ".dll")
+        Libdl.dlopen(joinpath(libdir,fname), Libdl.RTLD_GLOBAL)
+      end
+    end
+  end
   global __appmanager = ApplicationManager()
   init_application()
 end
