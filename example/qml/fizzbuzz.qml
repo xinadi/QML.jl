@@ -13,7 +13,8 @@ ApplicationWindow {
         anchors.fill: parent
         anchors.margins: 10
         TextField {
-            placeholderText: "Input"
+            Layout.fillWidth: true
+            placeholderText: "Input a number..."
             text: ""
             id: textField
             onTextChanged: Julia.do_fizzbuzz(textField.text)
@@ -34,6 +35,8 @@ ApplicationWindow {
 
     JuliaSignals {
       signal fizzBuzzFound(int fizzbuzzvalue)
+      signal fizzBuzzFail()
       onFizzBuzzFound: lastFizzBuzz.text = fizzbuzzvalue
+      onFizzBuzzFail: textField.placeholderText = "3*5 = ..."
     }
 }
