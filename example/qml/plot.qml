@@ -5,8 +5,8 @@ import org.julialang 1.0
 
 ApplicationWindow {
   title: "My Application"
-  width: 640
-  height: 480
+  width: 800
+  height: 600
   visible: true
 
   ColumnLayout {
@@ -19,7 +19,16 @@ ApplicationWindow {
       if(jdisp === null)
         return;
 
-      Julia.plotsin(jdisp, jdisp.width, jdisp.height, amplitude.value, frequency.value);
+      Julia.plotsin(jdisp, amplitude.value, frequency.value);
+    }
+
+    function init_and_plot()
+    {
+      if(jdisp === null || backendBox.currentIndex < 0)
+        return;
+
+      Julia.init_backend(jdisp.width, jdisp.height, backendBox.model[backendBox.currentIndex]);
+      do_plot();
     }
 
     RowLayout {
@@ -32,6 +41,7 @@ ApplicationWindow {
 
       Slider {
         id: amplitude
+        width: 100
         value: 1.
         minimumValue: 0.1
         maximumValue: 5.
@@ -44,10 +54,24 @@ ApplicationWindow {
 
       Slider {
         id: frequency
+        width: 100
         value: 1.
         minimumValue: 1.
         maximumValue: 50.
         onValueChanged: root.do_plot()
+      }
+
+      Text {
+        text: "Backend"
+      }
+
+      ComboBox
+      {
+        id: backendBox
+        model: ["PyPlot", "GR"]
+        onCurrentIndexChanged: {
+          root.init_and_plot()
+        }
       }
     }
 
@@ -55,8 +79,8 @@ ApplicationWindow {
       id: jdisp
       Layout.fillWidth: true
       Layout.fillHeight: true
-      onHeightChanged: root.do_plot()
-      onWidthChanged: root.do_plot()
+      onHeightChanged: root.init_and_plot()
+      onWidthChanged: root.init_and_plot()
     }
   }
 }
