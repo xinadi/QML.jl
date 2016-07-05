@@ -1,8 +1,16 @@
 module QML
 
 @windows_only ENV["QML_PREFIX_PATH"] = joinpath(dirname(dirname(@__FILE__)),"deps","usr")
+
 using CxxWrap
-wrap_module(CxxWrap.lib_path(joinpath(dirname(dirname(@__FILE__)),"deps","usr","lib","libqmlwrap")))
+
+const depsfile = joinpath(dirname(dirname(@__FILE__)), "deps", "deps.jl")
+if !isfile(depsfile)
+  error("$depsfile not found, package QML did not build properly")
+end
+include(depsfile)
+
+wrap_module(_l_qml_wrap)
 
 function __init__()
   # Make sure we have an application at module load, so any QObject is created after this

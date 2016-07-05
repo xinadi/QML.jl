@@ -1,36 +1,20 @@
 using BinDeps
 using CxxWrap
-
+using Compat
 libdir_opt = ""
-@windows_only libdir_opt = WORD_SIZE==32 ? "32" : ""
-
-base_lib_dir = joinpath(dirname(@__FILE__),"usr","lib"*libdir_opt)
-@windows_only begin
-	for libpath in [joinpath(base_lib_dir,"qmlwrap.dll")]
-		if isfile(libpath)
-			rm(libpath)
-		end
-	end
+@static if is_windows()
+  libdir_opt = Sys.WORD_SIZE==32 ? "32" : ""
 end
 
-@linux_only begin
-	for libpath in [joinpath(base_lib_dir,"libqmlwrap.so")]
-		if isfile(libpath)
-			rm(libpath)
-		end
-	end
+@static if is_windows()
+  # prefer building if requested
+  if haskey(ENV, "BUILD_ON_WINDOWS") && ENV["BUILD_ON_WINDOWS"] == "1"
+    saved_defaults = deepcopy(BinDeps.defaults)
+    empty!(BinDeps.defaults)
+    append!(BinDeps.defaults, [BuildProcess])
+  end
 end
 
-@osx_only begin
-	for libpath in [joinpath(base_lib_dir,"libqmlwrap.dylib")]
-		if isfile(libpath)
-			rm(libpath)
-		end
-	end
-end
-
-#@windows_only push!(BinDeps.defaults, SimpleBuild)
-@windows_only push!(BinDeps.defaults, Binaries)
 @BinDeps.setup
 
 cxx_wrap_dir = Pkg.dir("CxxWrap","deps","usr","lib","cmake")
@@ -52,21 +36,36 @@ genopt = "Unix Makefiles"
   end
 end
 
+qml_steps = @build_steps begin
+	`cmake -G "$genopt" -DCMAKE_INSTALL_PREFIX="$prefix" -DCMAKE_BUILD_TYPE="Release" -DCxxWrap_DIR="$cxx_wrap_dir" -DLIBDIR_SUFFIX=$libdir_opt $qmlwrap_srcdir`
+	`cmake --build . --config Release --target install`
+end
+
+# If built, always run cmake, in case the code changed
+if isdir(qmlwrap_builddir)
+  BinDeps.run(@build_steps begin
+    ChangeDirectory(qmlwrap_builddir)
+    qml_steps
+  end)
+end
+
 provides(BuildProcess,
   (@build_steps begin
     CreateDirectory(qmlwrap_builddir)
     @build_steps begin
       ChangeDirectory(qmlwrap_builddir)
-      FileRule(joinpath(prefix,"lib$libdir_opt", "$(lib_prefix)qmlwrap.$lib_suffix"),@build_steps begin
-        `cmake -G "$genopt" -DCMAKE_INSTALL_PREFIX="$prefix" -DCMAKE_BUILD_TYPE="Release" -DCxxWrap_DIR="$cxx_wrap_dir" -DLIBDIR_SUFFIX=$libdir_opt $qmlwrap_srcdir`
-        `cmake --build . --config Release --target install`
-      end)
+      FileRule(joinpath(prefix,"lib$libdir_opt", "$(lib_prefix)qmlwrap.$lib_suffix"),qml_steps)
     end
   end),qmlwrap)
 
 deps = [qmlwrap]
 provides(Binaries, Dict(URI("https://github.com/barche/QML.jl/releases/download/v0.1.0/QML-julia-$(VERSION.major).$(VERSION.minor)-win$(WORD_SIZE).zip") => deps), os = :Windows)
 
-@BinDeps.install
+@BinDeps.install Dict([(:qmlwrap, :_l_qml_wrap)])
 
-@windows_only pop!(BinDeps.defaults)
+@static if is_windows()
+  if haskey(ENV, "BUILD_ON_WINDOWS") && ENV["BUILD_ON_WINDOWS"] == "1"
+    empty!(BinDeps.defaults)
+    append!(BinDeps.defaults, saved_defaults)
+  end
+end
