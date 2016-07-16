@@ -68,7 +68,7 @@ ApplicationWindow {
       ComboBox
       {
         id: backendBox
-        model: ["PyPlot", "GR"]
+        model: ["None", "PyPlot", "GR"]
         onCurrentIndexChanged: {
           root.init_and_plot()
         }

@@ -28,7 +28,7 @@ function plotsin(d::JuliaDisplay, amplitude::Float64, frequency::Float64)
   x = 0:π/100:π
   f = amplitude*sin(frequency*x)
 
-  plt = plot(x,f,ylims=(-5.,5.),show=false)
+  plt = plot(x,f,ylims=(-5,5),show=false)
   display(d, plt)
   #close()
 
