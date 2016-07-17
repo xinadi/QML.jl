@@ -5,11 +5,7 @@ using QML
 using ModernGL, GeometryTypes, GLAbstraction
 
 function render(xmin, xmax)
-  # Create the Vertex Array Object (VAO) and make it current
-  # Note that while the tutorial describes this after the attributes (below),
-  # we need to make vao current before calling glVertexAttribPointer.
-  # You should also do this before creating any element arrays (see
-  # drawing_polygons4.jl)
+  # Draw a triangle. Code mostly from the tutorials in GLAbstraction.
   vao = Ref(GLuint(0))
   glGenVertexArrays(1, vao)
   glBindVertexArray(vao[])
@@ -22,10 +18,6 @@ function render(xmin, xmax)
   glGenBuffers(1, vbo)
   glBindBuffer(GL_ARRAY_BUFFER, vbo[])
   glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW)
-
-  # The shaders. Here we do everything manually, but life will get
-  # easier with GLAbstraction. See drawing_polygons5.jl for such an
-  # implementation.
 
   # The vertex shader
   vertex_source = """
@@ -53,7 +45,7 @@ function render(xmin, xmax)
 
   # Compile the vertex shader
   vertex_shader = glCreateShader(GL_VERTEX_SHADER)
-  glShaderSource(vertex_shader, vertex_source)  # nicer thanks to GLAbstraction
+  glShaderSource(vertex_shader, UTF8String(vertex_source))  # nicer thanks to GLAbstraction
   glCompileShader(vertex_shader)
   # Check that it compiled correctly
   status = Ref(GLint(0))
@@ -66,7 +58,7 @@ function render(xmin, xmax)
 
   # Compile the fragment shader
   fragment_shader = glCreateShader(GL_FRAGMENT_SHADER)
-  glShaderSource(fragment_shader, fragment_source)
+  glShaderSource(fragment_shader, UTF8String(fragment_source))
   glCompileShader(fragment_shader)
   # Check that it compiled correctly
   status = Ref(GLint(0))
@@ -104,3 +96,13 @@ end
 
 @qmlapp joinpath(dirname(@__FILE__), "qml", "gltriangle.qml")
 exec()
+
+# Uncomment to test without QML
+# using GLWindow, GLFW
+# window = GLWindow.create_glcontext("Example", resolution=(512, 512), debugging=true)
+# while isopen(window)
+#   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+#   render(-0.5,0.5)
+#   swapbuffers(window)
+#   pollevents()
+# end
