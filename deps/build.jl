@@ -23,13 +23,13 @@ qmlwrap = library_dependency("qmlwrap", aliases=["libqmlwrap"])
 prefix=joinpath(BinDeps.depsdir(qmlwrap),"usr")
 qmlwrap_srcdir = joinpath(BinDeps.depsdir(qmlwrap),"src","qmlwrap")
 qmlwrap_builddir = joinpath(BinDeps.depsdir(qmlwrap),"builds","qmlwrap")
-lib_prefix = @windows ? "" : "lib"
-lib_suffix = @windows? "dll" : (@osx? "dylib" : "so")
+lib_prefix = @static is_windows() ? "" : "lib"
+lib_suffix = @static is_windows() ? "dll" : (@static is_apple() ? "dylib" : "so")
 
 # Set generator if on windows
 genopt = "Unix Makefiles"
-@windows_only begin
-  if WORD_SIZE == 64
+@static if is_windows()
+  if Sys.WORD_SIZE == 64
     genopt = "Visual Studio 14 2015 Win64"
   else
     genopt = "Visual Studio 14 2015"
@@ -59,7 +59,7 @@ provides(BuildProcess,
   end),qmlwrap)
 
 deps = [qmlwrap]
-provides(Binaries, Dict(URI("https://github.com/barche/QML.jl/releases/download/v0.1.0/QML-julia-$(VERSION.major).$(VERSION.minor)-win$(WORD_SIZE).zip") => deps), os = :Windows)
+provides(Binaries, Dict(URI("https://github.com/barche/QML.jl/releases/download/v0.1.0/QML-julia-$(VERSION.major).$(VERSION.minor)-win$(Sys.WORD_SIZE).zip") => deps), os = :Windows)
 
 @BinDeps.install Dict([(:qmlwrap, :_l_qml_wrap)])
 

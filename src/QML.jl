@@ -1,6 +1,8 @@
 module QML
 
-@windows_only ENV["QML_PREFIX_PATH"] = joinpath(dirname(dirname(@__FILE__)),"deps","usr")
+@static if is_windows()
+  ENV["QML_PREFIX_PATH"] = joinpath(dirname(dirname(@__FILE__)),"deps","usr")
+end
 
 using CxxWrap
 
@@ -14,7 +16,7 @@ wrap_module(_l_qml_wrap)
 
 function __init__()
   # Make sure we have an application at module load, so any QObject is created after this
-  @windows_only begin
+  @static if is_windows()
     suff = WORD_SIZE == 32 ? "32" : ""
     libdir = joinpath(dirname(dirname(@__FILE__)),"deps","usr","lib$suff")
     for fname in readdir(libdir)
