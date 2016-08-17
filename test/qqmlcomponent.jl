@@ -21,6 +21,11 @@ ApplicationWindow {
       anchors.centerIn: parent
       text: hi // Context property set from Julia
     }
+    
+    Timer {
+      interval: 500; running: true; repeat: false
+      onTriggered: Qt.quit()
+    }
   }
 }
 """)

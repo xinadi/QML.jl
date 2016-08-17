@@ -1,7 +1,5 @@
-include("gui.jl")
 include("libinfo.jl")
 include("qquickview.jl")
 include("qqmlcomponent.jl")
 include("julia_object.jl")
 include("julia_signal.jl")
-include("image.jl")

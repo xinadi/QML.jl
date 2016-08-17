@@ -1,36 +1,50 @@
+using Base.Test
 using QML
-#=
-A simple gui. A set of diagrams can be selected with check boxes.
-They should be displayed, when the button "Plot" is clicked.
-Currently only an array with the numbers of the selected diagrams
-will be printed.
-=#
 
-"""
-Convert a floating point number with values of the checkboxes, encoded
-as sum of potences of two into an array that contains the numbers of the
-checkboxes, that are checked.
-"""
-function plot_diagram(param)
-    plot_set = round(Int, param)
-    a = Int64[]
-    if plot_set >= 256; push!(a,8); plot_set-=256; end
-    if plot_set >= 128; push!(a,8); plot_set-=128; end
-    if plot_set >=  64; push!(a,7); plot_set-= 64; end
-    if plot_set >=  32; push!(a,6); plot_set-= 32; end
-    if plot_set >=  16; push!(a,5); plot_set-= 16; end
-    if plot_set >=   8; push!(a,4); plot_set-=  8; end
-    if plot_set >=   4; push!(a,3); plot_set-=  4; end
-    if plot_set >=   2; push!(a,2); plot_set-=  2; end
-    if plot_set >=   1; push!(a,1); plot_set-=  1; end
-    # In the real application you would here call the plotting routine
-    println(a)
-    return 0
+hello() = "Hello from Julia"
+
+counter = 0
+
+function increment_counter()
+  global counter
+  @qmlset qmlcontext().oldcounter = counter
+  counter += 1
 end
 
-@qmlfunction plot_diagram
+function counter_value()
+  global counter
+  return counter
+end
 
-@qmlapp joinpath(dirname(Base.source_path()), "qml", "main.qml")
+bg_counter = 0
+
+function counter_slot()
+  global bg_counter
+  bg_counter += 1
+  @qmlset qmlcontext().bg_counter = bg_counter
+end
+
+@qmlfunction counter_slot hello increment_counter uppercase string
+
+# absolute path in case working dir is overridden
+qml_file = joinpath(dirname(@__FILE__), "qml", "gui.qml")
+
+# Initialize app and engine. Lifetime managed by C++
+qml_engine = init_qmlapplicationengine()
+
+# Set up a timer
+timer = QTimer()
+
+# Set context properties
+@qmlset qmlcontext().oldcounter = counter
+@qmlset qmlcontext().bg_counter = bg_counter
+@qmlset qmlcontext().timer = timer
+
+# Load the QML file
+load(qml_engine, qml_file)
+
+# Run the application
 exec()
 
-return
+println("Button was pressed $counter times")
+println("Background counter now at $bg_counter")
