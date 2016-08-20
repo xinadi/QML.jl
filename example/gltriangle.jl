@@ -43,9 +43,14 @@ function render(xmin, xmax)
   }
   """
 
+  if VERSION < v"0.5-dev"
+    vertex_source = UTF8String(vertex_source)
+    fragment_source = UTF8String(fragment_source)
+  end
+
   # Compile the vertex shader
   vertex_shader = glCreateShader(GL_VERTEX_SHADER)
-  glShaderSource(vertex_shader, UTF8String(vertex_source))  # nicer thanks to GLAbstraction
+  glShaderSource(vertex_shader, vertex_source)  # nicer thanks to GLAbstraction
   glCompileShader(vertex_shader)
   # Check that it compiled correctly
   status = Ref(GLint(0))
@@ -58,7 +63,7 @@ function render(xmin, xmax)
 
   # Compile the fragment shader
   fragment_shader = glCreateShader(GL_FRAGMENT_SHADER)
-  glShaderSource(fragment_shader, UTF8String(fragment_source))
+  glShaderSource(fragment_shader, fragment_source)
   glCompileShader(fragment_shader)
   # Check that it compiled correctly
   status = Ref(GLint(0))

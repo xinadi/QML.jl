@@ -177,16 +177,15 @@ bg_counter = 0
 
 function counter_slot()
   global bg_counter
-  global root_ctx
   bg_counter += 1
-  @qmlset root_ctx.bg_counter = bg_counter
+  @qmlset qmlcontext().bg_counter = bg_counter
 end
 
 @qmlfunction counter_slot
 
 timer = QTimer()
-@qmlset root_ctx.timer = timer
-@qmlset root_ctx.bg_counter = bg_counter
+@qmlset qmlcontext().bg_counter = bg_counter
+@qmlset qmlcontext().timer = timer
 ```
 
 Use in QML like this:

@@ -104,7 +104,7 @@ end
 
 function Base.display(d::JuliaDisplay, x)
   buf = IOBuffer()
-  @compat show(buf, MIME"image/png"(), x)
+  @compat Base.show(buf, MIME"image/png"(), x)
   load_png(d, takebuf_array(buf))
 end
 
