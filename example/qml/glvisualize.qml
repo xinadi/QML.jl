@@ -30,7 +30,7 @@ ApplicationWindow {
       }
     }
 
-    JuliaViewport {
+    OpenGLViewport {
       id: jvp
       Layout.fillWidth: true
       Layout.fillHeight: true
