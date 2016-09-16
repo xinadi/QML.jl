@@ -26,9 +26,12 @@ qmlwrap_builddir = joinpath(BinDeps.depsdir(qmlwrap),"builds","qmlwrap")
 lib_prefix = @static is_windows() ? "" : "lib"
 lib_suffix = @static is_windows() ? "dll" : (@static is_apple() ? "dylib" : "so")
 
+makeopts = ["--", "-j", "$(Sys.CPU_CORES+2)"]
+
 # Set generator if on windows
 genopt = "Unix Makefiles"
 @static if is_windows()
+  makeopts = "--"
   if Sys.WORD_SIZE == 64
     genopt = "Visual Studio 14 2015 Win64"
   else
@@ -38,7 +41,7 @@ end
 
 qml_steps = @build_steps begin
 	`cmake -G "$genopt" -DCMAKE_INSTALL_PREFIX="$prefix" -DCMAKE_BUILD_TYPE="Release" -DCxxWrap_DIR="$cxx_wrap_dir" -DLIBDIR_SUFFIX=$libdir_opt $qmlwrap_srcdir`
-	`cmake --build . --config Release --target install`
+	`cmake --build . --config Release --target install $makeopts`
 end
 
 # If built, always run cmake, in case the code changed
