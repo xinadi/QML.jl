@@ -19,7 +19,7 @@ wrap_module(_l_qml_wrap)
 function __init__()
   # Make sure we have an application at module load, so any QObject is created after this
   @static if is_windows()
-    suff = WORD_SIZE == 32 ? "32" : ""
+    suff = Sys.WORD_SIZE == 32 ? "32" : ""
     libdir = joinpath(dirname(dirname(@__FILE__)),"deps","usr","lib$suff")
     for fname in readdir(libdir)
       if endswith(fname, ".dll")
