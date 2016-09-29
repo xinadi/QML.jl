@@ -26,11 +26,11 @@ ApplicationWindow {
         id: time
         value: 0.
         minimumValue: 0.
-        maximumValue: 360.
+        maximumValue: 1.
       }
     }
 
-    OpenGLViewport {
+    GLVisualizeViewport {
       id: jvp
       Layout.fillWidth: true
       Layout.fillHeight: true
