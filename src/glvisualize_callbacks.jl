@@ -113,33 +113,22 @@ end
 
 # Copy of the render function from GLWindow, Screen should be abstract so isopen and ishidden can be overridden
 function qml_render(x::Screen, parent::Screen=x, context=x.area.value)
-    sa    = value(x.area)
-    sa    = SimpleRectangle(context.x+sa.x, context.y+sa.y, sa.w, sa.h) # bring back to absolute values
-    pa    = context
-    sa_pa = intersect(pa, sa) # intersection with parent
-    if sa_pa != SimpleRectangle{Int}(0,0,0,0) # if it is in the parent area
-        #glEnable(GL_SCISSOR_TEST)
-        #glScissor(sa_pa)
-        #glViewport(sa)
-        colorbits = GL_DEPTH_BUFFER_BIT
-        if alpha(x.color) > 0
-            glClearColor(red(x.color), green(x.color), blue(x.color), alpha(x.color))
-            colorbits = colorbits | GL_COLOR_BUFFER_BIT
-        end
-        glClear(colorbits)
+  colorbits = GL_DEPTH_BUFFER_BIT
+  if alpha(x.color) > 0
+      glClearColor(red(x.color), green(x.color), blue(x.color), alpha(x.color))
+      colorbits = colorbits | GL_COLOR_BUFFER_BIT
+  end
+  glClear(colorbits)
 
-        render(x.renderlist)
-        for window in x.children
-            render(window, x, sa)
-        end
-    end
+  render(x.renderlist)
+  if !isempty(x.children)
+    println("warning: screen used in QML has children, but they are ignored")
+  end
 end
 
 function render_glvisualize_scene(state)
   fb = GLWindow.framebuffer(state.screen)
-  GLWindow.prepare(fb)
   qml_render(state.screen)
   GLWindow.push_selectionqueries!(state.screen)
-  GLWindow.display(fb, state.screen)
-  #GLWindow.swapbuffers(state.screen)
+  GLWindow.render(fb.postprocess)
 end

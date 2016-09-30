@@ -19,14 +19,22 @@ ApplicationWindow {
       Layout.alignment: Qt.AlignCenter
 
       Text {
-        text: "t:"
+        text: "Angle:"
       }
 
       Slider {
-        id: time
+        id: angle
         value: 0.
         minimumValue: 0.
-        maximumValue: 1.
+        maximumValue: 360.
+      }
+    }
+
+    RowLayout {
+      Layout.fillWidth: true
+      Layout.alignment: Qt.AlignCenter
+      Text {
+        text: (Math.round(angle.value * 100) / 100).toString() + "°"
       }
     }
 
@@ -35,7 +43,7 @@ ApplicationWindow {
       Layout.fillWidth: true
       Layout.fillHeight: true
       renderFunction: "render"
-      renderArguments: [time.value]
+      renderArguments: [angle.value]
     }
   }
 
