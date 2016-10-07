@@ -42,7 +42,7 @@ ApplicationWindow {
       id: jvp
       Layout.fillWidth: true
       Layout.fillHeight: true
-      renderFunction: "render"
+      renderFunction: "render_callback"
       renderArguments: [angle.value]
     }
   }

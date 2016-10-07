@@ -22,6 +22,7 @@ type GLVisualizeState
   scroll::Signal{Vec{2, Float64}}
   hasfocus::Signal{Bool}
   entered_window::Signal{Bool}
+  mouseinside::Signal{Bool}
 
   screen::Screen
 
@@ -36,6 +37,7 @@ type GLVisualizeState
     Signal(Char[]),
     Signal(Vec(0.,0.)),
     Signal(Vec(0.,0.)),
+    Signal(false),
     Signal(false),
     Signal(false)
   )
@@ -98,7 +100,7 @@ function on_framebuffer_setup(state, handle, width, height)
     state.screen.glcontext = GLWindow.GLContext(window, fb)
   end
 
-  GLVisualize.set_root_screen(state.screen)
+  GLVisualize.add_screen(state.screen)
   GLWindow.add_complex_signals!(state.screen)
 end
 
@@ -115,8 +117,8 @@ end
 function qml_render(x::Screen, parent::Screen=x, context=x.area.value)
   colorbits = GL_DEPTH_BUFFER_BIT
   if alpha(x.color) > 0
-      glClearColor(red(x.color), green(x.color), blue(x.color), alpha(x.color))
-      colorbits = colorbits | GL_COLOR_BUFFER_BIT
+    glClearColor(red(x.color), green(x.color), blue(x.color), alpha(x.color))
+    colorbits = colorbits | GL_COLOR_BUFFER_BIT
   end
   glClear(colorbits)
 
@@ -129,6 +131,6 @@ end
 function render_glvisualize_scene(state)
   fb = GLWindow.framebuffer(state.screen)
   qml_render(state.screen)
-  GLWindow.push_selectionqueries!(state.screen)
-  GLWindow.render(fb.postprocess)
+  # GLWindow.push_selectionqueries!(state.screen)
+  #GLWindow.render(fb.postprocess)
 end

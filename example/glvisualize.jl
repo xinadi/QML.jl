@@ -3,26 +3,23 @@ ENV["QSG_RENDER_LOOP"] = "basic"
 
 using QML
 using GLVisualize, GeometryTypes, GLAbstraction, Colors
-using Reactive
 
 # Cat example from GLVisualize
 mesh 	= loadasset("cat.obj")
-timesignal = Signal(0f0)
-rotation_angle  = const_lift(*, timesignal, 1f0*pi/180f0)
-start_rotation  = Signal(rotationmatrix_x(deg2rad(90f0)))
-rotation 		= map(rotationmatrix_y, rotation_angle)
-final_rotation 	= map(*, start_rotation, rotation)
 
 # Render function that takes a parameter t from a QML slider
-function render(t)
+function render_callback(degrees)
+  rotation_angle = Float32(degrees)*pi/180f0
+  rotation  = rotationmatrix_x(deg2rad(90f0)) * rotationmatrix_y(rotation_angle)
+
   global robj
   if(!isdefined(:robj))
-    robj = visualize(mesh, model=final_rotation)
+    robj = visualize(mesh, model=rotation)
+    _view(robj)
   end
 
-  push!(timesignal, Float32(t))
-
-  view(robj)
+  set_arg!(robj, :model, rotation)
+  #yield() # without this yield the rotation matrix is never updated
 end
 
 @qmlapp joinpath(dirname(@__FILE__), "qml", "glvisualize.qml")
