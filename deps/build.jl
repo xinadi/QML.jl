@@ -72,3 +72,20 @@ provides(Binaries, Dict(URI("https://github.com/barche/QML.jl/releases/download/
     append!(BinDeps.defaults, saved_defaults)
   end
 end
+
+import QML
+if !QML.has_glvisualize
+  println(
+  """
+  GLVisualize support disabled. To use  GLVisualize,  install the following modules:
+    Colors
+    FixedPointNumbers
+    FixedSizeArrays
+    GeometryTypes
+    GLAbstraction
+    GLFW
+    GLVisualize
+    GLWindow
+    ModernGL
+    Reactive""")
+end

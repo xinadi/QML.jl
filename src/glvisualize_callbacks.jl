@@ -1,4 +1,7 @@
+module GLVisualizeSupport
+
 using Colors
+using Compat
 using FixedPointNumbers
 using FixedSizeArrays
 using GeometryTypes
@@ -133,4 +136,6 @@ function render_glvisualize_scene(state)
   qml_render(state.screen)
   # GLWindow.push_selectionqueries!(state.screen)
   #GLWindow.render(fb.postprocess)
+end
+
 end

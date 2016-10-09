@@ -2,6 +2,7 @@
 ENV["QSG_RENDER_LOOP"] = "basic"
 
 using QML
+using QML.GLVisualizeSupport
 using GLVisualize, GeometryTypes, GLAbstraction, Colors
 
 # Cat example from GLVisualize
@@ -19,7 +20,7 @@ function render_callback(degrees)
   end
 
   set_arg!(robj, :model, rotation)
-  #yield() # without this yield the rotation matrix is never updated
+  yield() # without this yield the rotation matrix is never updated
 end
 
 @qmlapp joinpath(dirname(@__FILE__), "qml", "glvisualize.qml")

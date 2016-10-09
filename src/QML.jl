@@ -117,7 +117,12 @@ end
 
 export @qmlget, @qmlset, @emit, @qmlfunction, @qmlapp
 
-include("glvisualize_callbacks.jl")
+has_glvisualize = false
+
+try
+  include("glvisualize_callbacks.jl")
+  has_glvisualize = true
+end
 
 @doc """
 Module for building [Qt5 QML](http://doc.qt.io/qt-5/qtqml-index.html) graphical user interfaces for Julia programs.
