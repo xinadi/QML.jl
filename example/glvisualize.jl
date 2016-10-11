@@ -13,14 +13,17 @@ function render_callback(degrees)
   rotation_angle = Float32(degrees)*pi/180f0
   rotation  = rotationmatrix_x(deg2rad(90f0)) * rotationmatrix_y(rotation_angle)
 
-  global robj
-  if(!isdefined(:robj))
-    robj = visualize(mesh, model=rotation)
-    _view(robj)
+  global context
+  if(!isdefined(:context))
+    context = visualize(mesh, model=rotation)
+    _view(context)
   end
 
-  set_arg!(robj, :model, rotation)
-  yield() # without this yield the rotation matrix is never updated
+  robj = context.children[1]
+  robj.uniforms[:model] = rotation
+  
+  # The return here avoids a warning about the conversion of the rotation matrix to QML
+  return
 end
 
 @qmlapp joinpath(dirname(@__FILE__), "qml", "glvisualize.qml")
