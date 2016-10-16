@@ -1,23 +1,16 @@
 # Documentation: http://docs.travis-ci.com/user/languages/julia/
 language: julia
+sudo: required
+dist: trusty
 matrix:
   include:
     - os: linux
-      compiler: "g++-4.9"
       addons:
         apt:
-          sources:
-            - ubuntu-toolchain-r-test
-            - george-edison55-precise-backports # cmake 3.2.3 / doxygen 1.8.3
-            - debian-sid
           packages:
-            - g++-4.9
             - cmake
             - cmake-data
             - qtdeclarative5-dev
-      env:
-        - CC=gcc-4.9
-        - CXX=g++-4.9
       julia: release
     - os: osx
       env:
