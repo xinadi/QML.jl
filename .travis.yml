@@ -9,15 +9,20 @@ matrix:
           sources:
             - ubuntu-toolchain-r-test
             - george-edison55-precise-backports # cmake 3.2.3 / doxygen 1.8.3
+            - sourceline: 'ppa:canonical-qt5-edgers/ubuntu1204-qt5'
           packages:
             - g++-4.9
             - cmake
             - cmake-data
+            - qtdeclarative5-dev
       env:
         - CC=gcc-4.9
         - CXX=g++-4.9
       julia: release
     - os: osx
+      before_install:
+        - brew update
+        - brew install qt5
       compiler: "clang"
       julia: nightly
 notifications:
