@@ -124,6 +124,21 @@ try
   has_glvisualize = true
 end
 
+"""
+Constructor for ListModel that automatically copies a typed array into an Array{Any,1}
+"""
+function ListModel(a::Array)
+  any_array = Array{Any,1}(a)
+  function update_array()
+    n = length(any_array)
+    resize!(a,n)
+    for i = 1:n
+      a[i] = any_array[i]
+    end
+  end
+  return ListModel(any_array, update_array)
+end
+
 @doc """
 Module for building [Qt5 QML](http://doc.qt.io/qt-5/qtqml-index.html) graphical user interfaces for Julia programs.
 Types starting with `Q` are equivalent of their Qt C++ counterpart, so they have no Julia docstring and we refer to
