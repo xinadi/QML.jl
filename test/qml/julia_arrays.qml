@@ -75,6 +75,8 @@ ApplicationWindow {
 
       clear_model.clear()
 
+      Julia.verify_custom_element(custom_model.data(custom_model.index(0,0), 0))
+
       Qt.quit()
     }
   }

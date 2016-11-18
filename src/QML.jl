@@ -125,9 +125,9 @@ try
 end
 
 """
-Constructor for ListModel that automatically copies a typed array into an Array{Any,1}
+Constructor for ListModel that automatically copies a typed array into an Array{Any,1} and creates setter and getter functions for each field if addroles == true
 """
-function ListModel(a::Array)
+function ListModel{T}(a::Array{T}, addroles=true)
   any_array = Array{Any,1}(a)
   function update_array()
     n = length(any_array)
@@ -136,7 +136,16 @@ function ListModel(a::Array)
       a[i] = any_array[i]
     end
   end
-  return ListModel(any_array, update_array)
+
+  listmodel = ListModel(any_array, update_array)
+
+  if nfields(T) > 0 && addroles
+    for fname in fieldnames(T)
+      addrole(listmodel, string(fname), (x) -> getfield(x, fname), (array, value, index) -> setfield!(array[index], fname, value))
+    end
+  end
+
+  return listmodel
 end
 
 @doc """

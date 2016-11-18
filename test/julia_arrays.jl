@@ -35,12 +35,26 @@ resize_typed_model = ListModel(resize_typed_array)
 insert_model = ListModel(insert_array)
 clear_model = ListModel(clear_array)
 
-setrolenames(array_model2, ["myrole", "decorated"])
+addrole(array_model2, "myrole", myrole, setindex!)
+addrole(array_model2, "decorated", decorated)
 setconstructor(array_model2, "identity")
 setconstructor(insert_model, "identity")
 
-@qmlfunction get_array verify_array testfail
-@qmlapp qml_file julia_array array_model array_model2 move_model resize_typed_model insert_model clear_model
+type ListElem
+  a::String
+  b::Int32
+end
+
+custom_list = [ListElem("a",1), ListElem("b", 2)]
+custom_model = ListModel(custom_list)
+
+function verify_custom_element(x)
+  @test x == "a"
+  return
+end
+
+@qmlfunction get_array verify_array testfail verify_custom_element
+@qmlapp qml_file julia_array array_model array_model2 move_model resize_typed_model insert_model clear_model custom_model
 
 # Run the application
 exec()
@@ -49,13 +63,13 @@ exec()
 @show move_array
 
 @test length(julia_array) == 5
-@test julia_array[1] == "test"
-@test julia_array[2] == "test2"
+@test julia_array[1] == "TEST"
+@test julia_array[2] == "TEST2"
 @test julia_array[3] == "Added"
 @test julia_array[4] == 2
 @test typeof(julia_array[4]) == Int32
 @test julia_array[5] == 3
-@test typeof(julia_array[5]) == Int # Due to passing through the myrole function
+@test typeof(julia_array[5]) == Int32
 @test move_array == [0,1,5,6,7,2,3,4,8,9]
 @test typeof(move_array) == Array{Int,1}
 @test resize_typed_array == [5,1,2,4]
