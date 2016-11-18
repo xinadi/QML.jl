@@ -76,6 +76,8 @@ ApplicationWindow {
       clear_model.clear()
 
       Julia.verify_custom_element(custom_model.data(custom_model.index(0,0), 0))
+      custom_model.setProperty(1, "b", 5)
+      custom_model.append({"b":10, "a":"ten"})
 
       Qt.quit()
     }

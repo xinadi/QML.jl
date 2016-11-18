@@ -37,8 +37,8 @@ clear_model = ListModel(clear_array)
 
 addrole(array_model2, "myrole", myrole, setindex!)
 addrole(array_model2, "decorated", decorated)
-setconstructor(array_model2, "identity")
-setconstructor(insert_model, "identity")
+setconstructor(array_model2, identity)
+setconstructor(insert_model, identity)
 
 type ListElem
   a::String
@@ -76,3 +76,9 @@ exec()
 @test typeof(resize_typed_array) == Array{Int,1}
 @test insert_array == [1,2,3,4]
 @test isempty(clear_array)
+
+@test custom_list[2].b == 5
+@test length(custom_list) == 3
+@show custom_list
+@test custom_list[3].a == "ten"
+@test custom_list[3].b == 10
