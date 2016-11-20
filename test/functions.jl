@@ -27,7 +27,12 @@ function check_return_callback(x::Int32)
   nothing
 end
 
-@qmlfunction julia_callback1 julia_callback2 return_callback check_return_callback
+function test_qvariant_map(m::QVariantMap)
+  @test m["somekey"] == "somevalue"
+  nothing
+end
+
+@qmlfunction julia_callback1 julia_callback2 return_callback check_return_callback test_qvariant_map
 @qmlapp joinpath(dirname(@__FILE__), "qml", "functions.qml")
 exec()
 

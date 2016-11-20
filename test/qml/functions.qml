@@ -22,6 +22,8 @@ Item {
 
       Julia.check_return_callback(Julia.return_callback())
 
+      Julia.test_qvariant_map({"somekey": "somevalue"})
+
       Qt.quit()
     }
   }
