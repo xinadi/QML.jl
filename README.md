@@ -77,6 +77,7 @@ Interaction with Julia happens through the following mechanisms:
 * Call Julia functions from QML
 * Read and set context properties from Julia and QML
 * Emit signals from Julia to QML
+* Use data models
 
 Note that Julia slots appear missing, but they are not needed since it is possible to directly connect a Julia function to a QML signal in the QML code (see the QTimer example below).
 
@@ -123,7 +124,9 @@ my_prop = 2.
 This will initialize a context property named `my_prop` with the value 2.
 
 #### Type conversion
-Most fundamental types are converted implicitly. Mind that the default integer type in QML corresponds to `Int32` in Julia
+Most fundamental types are converted implicitly. Mind that the default integer type in QML corresponds to `Int32` in Julia.
+
+We also convert `QVariantMap`, exposing the indexing operator `[]` to access element by a string key. This mostly to deal with arguments passed to the QML `append` function in list models.
 
 #### Composite types
 Setting a composite type as a context property maps the type fields into a `JuliaObject`, which derives from `QQmlPropertyMap`. Example:
@@ -168,6 +171,66 @@ The above signal is emitted from Julia using simply:
 ```
 
 **There must never be more than one JuliaSignals block in QML**
+
+### Using data models
+#### ListModel
+The `ListModel` type allows using data in QML views such as `ListView` and `Repeater`, providing a two-way synchronization of the data. The [dynamiclist](http://doc.qt.io/qt-5/qtquick-views-listview-dynamiclist-qml.html) example from Qt has been translated to Julia in `example/dynamiclist.jl`. As can be seen from [this commit](https://github.com/barche/QML.jl/commit/5f3e64579180fb913c47d92a438466b67098ee52), the only required change was moving the model data from QML to Julia, otherwise the Qt-provided QML file is left unchanged.
+
+A ListModel is constructed from a 1D Julia array. In Qt, each of the elements of a model has a series of roles, available as properties in the delegate that is used to display each item. The roles can be added using the `addrole` function, for example:
+```julia
+julia_array = ["A", 1, 2.2]
+myrole(x::AbstractString) = lowercase(x)
+myrole(x::Number) = Int(round(x))
+
+array_model = ListModel(julia_array)
+addrole(array_model, "myrole", myrole, setindex!)
+```
+adds the role named `myrole` to `array_model`, using the function `myrole` to access the value. The `setindex!` argument is a function used to set the value for that role from QML. This argument is optional, if it is not provided the role will be read-only. The arguments of this setter are `collection, new_value, key` as in the standard `setindex!` function.
+
+To use the model from QML, it can be exposed as a context attribute, e.g:
+```julia
+@qmlapp qml_file array_model
+```
+
+And then in QML:
+```qml
+ListView {
+  width: 200
+  height: 125
+  model: array_model
+  delegate: Text { text: myrole }
+}
+```
+
+If no roles are added, one default role named `string` is exposed, calling the Julia function `string` to convert whatever value in the array to a string.
+
+If new elements need to be constructed from QML, a constructor can also be provided, using the `setconstructor` method, taking a `ListModel` and a Julia function as arguments, e.g. just setting identity to return the constructor argument:
+```julia
+setconstructor(array_model, identity)
+```
+
+In the dynamiclist example, the entries in the model are all "fruits", having the roles name, cost and attributes. In Julia, this can be encapsulated in a composite type:
+```julia
+type Fruit
+  name::String
+  cost::Float64
+  attributes::ListModel
+end
+```
+
+When an array composed only of `Fruit` elements is passed to a listmodel, setters and getters for the roles and the constructor are all passed to QML automatically, i.e. this will automatically expose the roles `name`, `cost` and `attributes`:
+```julia
+# Our initial data
+fruitlist = [
+  Fruit("Apple", 2.45, ListModel([Attribute("Core"), Attribute("Deciduous")])),
+  Fruit("Banana", 1.95, ListModel([Attribute("Tropical"), Attribute("Seedless")])),
+  Fruit("Cumquat", 3.25, ListModel([Attribute("Citrus")])),
+  Fruit("Durian", 9.95, ListModel([Attribute("Tropical"), Attribute("Smelly")]))]
+
+# Set a context property with our listmodel
+@qmlset qmlcontext().fruitModel = ListModel(fruitlist)
+```
+See the full example for more details, including the addition of an extra constructor to deal with the nested `ListModel` for the attributes.
 
 ## Using QTimer
 `QTimer` can be used to simulate running Julia code in the background. Excerpts from [`test/gui.jl`](test/gui.jl):
