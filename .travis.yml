@@ -15,10 +15,10 @@ matrix:
             - cmake
             - cmake-data
             - qtdeclarative5-dev
-            - qml-module-qtquick-controls
-            - qml-module-qtquick-dialogs
-            - qml-module-qtquick-layouts
-            - qml-module-qtgraphicaleffects
+            - qtdeclarative5-qtquick2-plugin
+            - qtdeclarative5-dialogs-plugin
+            - qtdeclarative5-controls-plugin
+            - qtdeclarative5-quicklayouts-plugin
       julia: release
     - os: osx
       env:
