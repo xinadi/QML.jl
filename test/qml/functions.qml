@@ -8,8 +8,9 @@ Item {
   }
 
   Timer {
-    interval: 0; running: true; repeat: false
+    interval: 200; running: true; repeat: false
     onTriggered: {
+      console.log("timer triggered")
       Julia.julia_callback1(false)
       Julia.julia_callback1(1)
       Julia.julia_callback1(1.5)
