@@ -34,7 +34,6 @@ end
 
 @qmlfunction julia_callback1 julia_callback2 return_callback check_return_callback test_qvariant_map
 @qmlapp joinpath(dirname(@__FILE__), "qml", "functions.qml")
-println("executing app")
 exec()
 
 stringresult = VERSION < v"0.5-dev" ? ASCIIString : String

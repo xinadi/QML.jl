@@ -44,7 +44,7 @@ ApplicationWindow {
   }
 
   Timer {
-    interval: 1500; running: true; repeat: false
+    interval: 500; running: true; repeat: false
     onTriggered: {
       var a = Julia.get_array()
       Julia.verify_array(a)

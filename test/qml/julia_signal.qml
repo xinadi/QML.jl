@@ -12,7 +12,7 @@ Item {
   }
 
   Timer {
-       interval: 0; running: true; repeat: false
+       interval: 200; running: true; repeat: false
        onTriggered: {
          Julia.emit_signal1()
          Julia.emit_signal2()
