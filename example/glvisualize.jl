@@ -17,11 +17,12 @@ function render_callback(degrees)
   if(!isdefined(:context))
     context = visualize(mesh, model=rotation)
     _view(context)
+    yield()
   end
 
   robj = context.children[1]
   robj.uniforms[:model] = rotation
-  
+
   # The return here avoids a warning about the conversion of the rotation matrix to QML
   return
 end

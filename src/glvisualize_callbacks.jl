@@ -6,7 +6,6 @@ using FixedPointNumbers
 using FixedSizeArrays
 using GeometryTypes
 using GLAbstraction
-using GLFW
 using GLVisualize
 using GLWindow
 using ModernGL
@@ -46,6 +45,11 @@ type GLVisualizeState
   )
 end
 
+type QMLWindow
+end
+
+Base.isopen(w::QMLWindow) = true
+
 function initialize_signals()
   state = GLVisualizeState()
   return state
@@ -54,7 +58,7 @@ end
 function on_framebuffer_setup(state, handle, width, height)
   signal_dict = Dict{Symbol, Any}()
 
-  window = GLFW.Window(C_NULL)
+  window = QMLWindow()
 
   push!(state.framebuffer_size, Vec2(width, height))
 
@@ -78,6 +82,7 @@ function on_framebuffer_setup(state, handle, width, height)
 
   buffersize = tuple(width, height)
   color_buffer = GLAbstraction.Texture(RGBA{UFixed8}, buffersize, minfilter=:nearest, x_repeat=:clamp_to_edge)
+  color_luma = GLAbstraction.Texture(RGBA{UFixed8}, buffersize, minfilter=:linear, x_repeat=:clamp_to_edge)
   objectid_buffer = Texture(Vec{2, GLushort}, buffersize, minfilter=:nearest, x_repeat=:clamp_to_edge)
   depth_buffer = Texture(Float32, buffersize,
     internalformat = GL_DEPTH_COMPONENT32F,
@@ -85,22 +90,22 @@ function on_framebuffer_setup(state, handle, width, height)
     minfilter=:nearest, x_repeat=:clamp_to_edge
   )
 
-  # GLWindow.attach_framebuffer(color_buffer, GL_COLOR_ATTACHMENT0)
-  # GLWindow.attach_framebuffer(objectid_buffer, GL_COLOR_ATTACHMENT1)
-  # GLWindow.attach_framebuffer(depth_buffer, GL_DEPTH_ATTACHMENT)
+  p  = GLWindow.postprocess(color_buffer, color_luma, state.framebuffer_size)
+  fb = GLWindow.GLFramebuffer((handle, GLuint(0)), color_buffer, objectid_buffer, GLuint(0), color_luma, p)
 
-  p  = GLWindow.postprocess(color_buffer, state.framebuffer_size)
-  fb = GLWindow.GLFramebuffer(handle, color_buffer, objectid_buffer, depth_buffer, p)
+  clear = true
+  stroke = (0f0, color)
 
+  glctx = GLWindow.GLContext(window, fb, true)
   if !isdefined(state, :screen)
     state.screen = Screen(Symbol("QMLWindow"),
-        window_area, Screen[], signal_dict,
-        (), false, color,
+        window_area, nothing, Screen[], signal_dict,
+        (), false, clear, color, stroke,
         Dict{Symbol, Any}(),
-        GLWindow.GLContext(window, fb)
+        glctx
     )
   else
-    state.screen.glcontext = GLWindow.GLContext(window, fb)
+    state.screen.glcontext = glctx
   end
 
   GLVisualize.add_screen(state.screen)
@@ -125,7 +130,8 @@ function qml_render(x::Screen, parent::Screen=x, context=x.area.value)
   end
   glClear(colorbits)
 
-  render(x.renderlist)
+  # TODO: actually do the fxaa stuff
+  render(x.renderlist_fxaa)
   if !isempty(x.children)
     println("warning: screen used in QML has children, but they are ignored")
   end
@@ -134,7 +140,7 @@ end
 function render_glvisualize_scene(state)
   fb = GLWindow.framebuffer(state.screen)
   qml_render(state.screen)
-  # GLWindow.push_selectionqueries!(state.screen)
+  #GLWindow.push_selectionqueries!(state.screen)
   #GLWindow.render(fb.postprocess)
 end
 

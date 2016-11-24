@@ -75,17 +75,5 @@ end
 
 import QML
 if !QML.has_glvisualize
-  println(
-  """
-  GLVisualize support disabled. To use  GLVisualize,  install the following modules:
-    Colors
-    FixedPointNumbers
-    FixedSizeArrays
-    GeometryTypes
-    GLAbstraction
-    GLFW
-    GLVisualize
-    GLWindow
-    ModernGL
-    Reactive""")
+  println("GLVisualize support disabled. To use it, install the GLVisualize package.")
 end
