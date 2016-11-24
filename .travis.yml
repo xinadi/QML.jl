@@ -23,8 +23,7 @@ matrix:
             - qtdeclarative5-quicklayouts-plugin
             - qtdeclarative5-window-plugin
             - mesa-utils
-            - libgl1-mesa-swx11
-            - libgl1-mesa-swx11-dev
+            - libosmesa6
       julia: release
     - os: osx
       env:
