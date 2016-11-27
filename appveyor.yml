@@ -1,5 +1,6 @@
 environment:
   QT_ROOT: C:\Qt\5.7
+  BUILD_ON_WINDOWS: 1
   matrix:
   - JULIAVERSION: "julialang/bin/winnt/x86/0.5/julia-0.5-latest-win32.exe"
   - JULIAVERSION: "julialang/bin/winnt/x64/0.5/julia-0.5-latest-win64.exe"
