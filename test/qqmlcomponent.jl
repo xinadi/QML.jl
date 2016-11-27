@@ -37,8 +37,4 @@ qcomp = QQmlComponent(qengine)
 set_data(qcomp, qml_data, "")
 create(qcomp, qmlcontext());
 
-# Run the application, except on linux travis due to OpenGL from the middle ages
-if !(get(ENV, "TRAVIS", "") == "true" && is_linux())
 exec()
-println("GUI displayed")
-end

@@ -24,11 +24,7 @@ setconstructor(array_model2, identity)
 @qmlfunction testfail
 @qmlapp qml_file array_model array_model2
 
-# Run the application, except on linux travis due to OpenGL from the middle ages
-if !(get(ENV, "TRAVIS", "") == "true" && is_linux())
 exec()
-println("GUI displayed")
-end
 
 @show julia_array
 
