@@ -20,7 +20,7 @@ Item {
       verify_array(a)
       verify_array(julia_array)
 
-      array_model2.setData(array_model2.index(2,0),"TEST2", array_model2.myrole)
+      array_model2.setProperty(2, "myrole", "TEST2")
       array_model2.append({"myrole":"Added"})
       array_model2.append({"myrole":2})
       array_model2.append({"myrole":2})
@@ -37,7 +37,6 @@ Item {
 
       clear_model.clear()
 
-      Julia.verify_custom_element(custom_model.data(custom_model.index(0,0), 0))
       custom_model.setProperty(1, "b", 5)
       custom_model.append({"b":10, "a":"ten"})
 
