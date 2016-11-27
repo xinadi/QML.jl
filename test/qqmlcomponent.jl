@@ -21,7 +21,7 @@ ApplicationWindow {
       anchors.centerIn: parent
       text: hi // Context property set from Julia
     }
-    
+
     Timer {
       interval: 500; running: true; repeat: false
       onTriggered: Qt.quit()
@@ -37,5 +37,8 @@ qcomp = QQmlComponent(qengine)
 set_data(qcomp, qml_data, "")
 create(qcomp, qmlcontext());
 
-# Run the application
+# Run the application, except on linux travis due to OpenGL from the middle ages
+if !(get(ENV, "TRAVIS", "") == "true" && is_linux())
 exec()
+println("GUI displayed")
+end

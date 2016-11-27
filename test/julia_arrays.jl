@@ -10,18 +10,6 @@ resize_typed_array = collect(1:5)
 insert_array = [1,2,4]
 clear_array = [1.,2.]
 
-function verify_array(a)
-  @test a[1] == "A"
-  @test a[2] == 1
-  @test a[3] == 2.2
-  return
-end
-
-function testfail(message)
-  println(message)
-  exit(1)
-end
-
 get_array() = julia_array
 
 myrole(x::AbstractString) = lowercase(x)
@@ -53,7 +41,7 @@ function verify_custom_element(x)
   return
 end
 
-@qmlfunction get_array verify_array testfail verify_custom_element
+@qmlfunction get_array testfail verify_custom_element
 @qmlapp qml_file julia_array array_model array_model2 move_model resize_typed_model insert_model clear_model custom_model
 
 # Run the application
@@ -63,7 +51,7 @@ exec()
 @show move_array
 
 @test length(julia_array) == 5
-@test julia_array[1] == "TEST"
+@test julia_array[1] == "A"
 @test julia_array[2] == "TEST2"
 @test julia_array[3] == "Added"
 @test julia_array[4] == 2

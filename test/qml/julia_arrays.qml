@@ -3,60 +3,22 @@ import QtQuick.Controls 1.0
 import QtQuick.Layouts 1.0
 import org.julialang 1.0
 
-ApplicationWindow {
-  title: "Arrays"
-  width: 200
-  height: 375
-  visible: true
+Item {
 
-  ColumnLayout {
-    id: root
-    spacing: 6
-    anchors.fill: parent
-
-    ListView {
-      width: 200
-      height: 125
-      model: array_model
-      delegate: Text { text: string }
-    }
-
-    ListView {
-      id: decoratedlv
-      width: 200
-      height: 125
-      model: array_model2
-      delegate: Text {
-        text: decorated
-      }
-    }
-
-    ListView {
-      id: lv
-      width: 200
-      height: 125
-      model: array_model2
-      delegate: TextField {
-        placeholderText: myrole.toString()
-        onTextChanged: myrole = text
-      }
+  function verify_array(a) {
+    if(a[0] != "A" || a[1] != 1 || a[2] != 2.2)
+    {
+      console.log("Bad array: ", a)
+      throw "Error verifying array"
     }
   }
 
   Timer {
-    interval: 500; running: true; repeat: false
+    interval: 200; running: true; repeat: false
     onTriggered: {
       var a = Julia.get_array()
-      Julia.verify_array(a)
-      Julia.verify_array(julia_array)
-
-      decoratedlv.currentIndex = 0
-      if(decoratedlv.currentItem.text != "---A---") {
-        Julia.testfail("wrong value in decorated list: " + decoratedlv.currentItem.text)
-      }
-
-      lv.currentIndex = 0
-      lv.currentItem.text = "TEST"
+      verify_array(a)
+      verify_array(julia_array)
 
       array_model2.setData(array_model2.index(2,0),"TEST2", array_model2.myrole)
       array_model2.append({"myrole":"Added"})
