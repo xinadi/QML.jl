@@ -1,17 +1,16 @@
 using BinDeps
 using CxxWrap
 using Compat
-libdir_opt = ""
-@static if is_windows()
-  libdir_opt = Sys.WORD_SIZE==32 ? "32" : ""
-end
 
 @static if is_windows()
   # prefer building if requested
-  if haskey(ENV, "BUILD_ON_WINDOWS") && ENV["BUILD_ON_WINDOWS"] == "1"
+  QT_ROOT = get(ENV, "QT_ROOT", "")
+  if QT_ROOT != ""
+    build_on_windows = true
     saved_defaults = deepcopy(BinDeps.defaults)
     empty!(BinDeps.defaults)
     append!(BinDeps.defaults, [BuildProcess])
+    println("Doing Windows build using QT_ROOT $(QT_ROOT)")
   end
 end
 
@@ -34,13 +33,15 @@ genopt = "Unix Makefiles"
   makeopts = "--"
   if Sys.WORD_SIZE == 64
     genopt = "Visual Studio 14 2015 Win64"
+    ENV["CMAKE_PREFIX_PATH"] = joinpath(QT_ROOT, "msvc2015_64")
   else
     genopt = "Visual Studio 14 2015"
+    ENV["CMAKE_PREFIX_PATH"] = joinpath(QT_ROOT, "msvc2015")
   end
 end
 
 qml_steps = @build_steps begin
-	`cmake -G "$genopt" -DCMAKE_INSTALL_PREFIX="$prefix" -DCMAKE_BUILD_TYPE="Release" -DCxxWrap_DIR="$cxx_wrap_dir" -DLIBDIR_SUFFIX=$libdir_opt $qmlwrap_srcdir`
+	`cmake -G "$genopt" -DCMAKE_INSTALL_PREFIX="$prefix" -DCMAKE_BUILD_TYPE="Release" -DCxxWrap_DIR="$cxx_wrap_dir" $qmlwrap_srcdir`
 	`cmake --build . --config Release --target install $makeopts`
 end
 
@@ -57,7 +58,7 @@ provides(BuildProcess,
     CreateDirectory(qmlwrap_builddir)
     @build_steps begin
       ChangeDirectory(qmlwrap_builddir)
-      FileRule(joinpath(prefix,"lib$libdir_opt", "$(lib_prefix)qmlwrap.$lib_suffix"),qml_steps)
+      FileRule(joinpath(prefix,"lib", "$(lib_prefix)qmlwrap.$lib_suffix"),qml_steps)
     end
   end),qmlwrap)
 
@@ -67,7 +68,7 @@ provides(Binaries, Dict(URI("https://github.com/barche/QML.jl/releases/download/
 @BinDeps.install Dict([(:qmlwrap, :_l_qml_wrap)])
 
 @static if is_windows()
-  if haskey(ENV, "BUILD_ON_WINDOWS") && ENV["BUILD_ON_WINDOWS"] == "1"
+  if build_on_windows
     empty!(BinDeps.defaults)
     append!(BinDeps.defaults, saved_defaults)
   end
