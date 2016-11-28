@@ -14,6 +14,11 @@ if !isfile(depsfile)
 end
 include(depsfile)
 
+const envfile = joinpath(dirname(dirname(@__FILE__)), "deps", "env.jl")
+if isfile(envfile)
+  include(envfile)
+end
+
 wrap_module(_l_qml_wrap)
 
 function __init__()

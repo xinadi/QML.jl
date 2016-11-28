@@ -24,11 +24,6 @@ matrix:
             - qtdeclarative5-window-plugin
       julia: release
     - os: osx
-      env:
-        - CMAKE_PREFIX_PATH=/usr/local/opt/qt5
-      before_install:
-        - brew update
-        - brew install qt5
       compiler: "clang"
       julia: nightly
 notifications:

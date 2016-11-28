@@ -2,15 +2,15 @@ using BinDeps
 using CxxWrap
 using Compat
 
+QT_ROOT = get(ENV, "QT_ROOT", "")
+
 @static if is_windows()
   # prefer building if requested
-  QT_ROOT = get(ENV, "QT_ROOT", "")
   if QT_ROOT != ""
     build_on_windows = true
     saved_defaults = deepcopy(BinDeps.defaults)
     empty!(BinDeps.defaults)
     append!(BinDeps.defaults, [BuildProcess])
-    println("Doing Windows build using QT_ROOT $(QT_ROOT)")
   end
 end
 
@@ -19,6 +19,27 @@ end
 cxx_wrap_dir = Pkg.dir("CxxWrap","deps","usr","lib","cmake")
 
 qmlwrap = library_dependency("qmlwrap", aliases=["libqmlwrap"])
+
+used_homebrew = false
+if QT_ROOT == ""
+  if is_apple()
+    std_hb_root = "/usr/local/opt/qt5"
+    if(!isdir(std_hb_root))
+      if Pkg.installed("Homebrew") === nothing
+        error("Homebrew package not installed, please run Pkg.add(\"Homebrew\")")
+      end
+      using Homebrew
+      Homebrew.add("qt5")
+      used_homebrew = true
+      QT_ROOT = joinpath(Homebrew.prefix(), "opt", "qt5")
+    else
+      QT_ROOT = std_hb_root
+    end
+  end
+end
+
+cmake_prefix = QT_ROOT
+
 prefix=joinpath(BinDeps.depsdir(qmlwrap),"usr")
 qmlwrap_srcdir = joinpath(BinDeps.depsdir(qmlwrap),"src","qmlwrap")
 qmlwrap_builddir = joinpath(BinDeps.depsdir(qmlwrap),"builds","qmlwrap")
@@ -33,15 +54,17 @@ genopt = "Unix Makefiles"
   makeopts = "--"
   if Sys.WORD_SIZE == 64
     genopt = "Visual Studio 14 2015 Win64"
-    ENV["CMAKE_PREFIX_PATH"] = joinpath(QT_ROOT, "msvc2015_64")
+    cmake_prefix = joinpath(QT_ROOT, "msvc2015_64")
   else
     genopt = "Visual Studio 14 2015"
-    ENV["CMAKE_PREFIX_PATH"] = joinpath(QT_ROOT, "msvc2015")
+    cmake_prefix = joinpath(QT_ROOT, "msvc2015")
   end
 end
 
+println("Using Qt from $cmake_prefix")
+
 qml_steps = @build_steps begin
-	`cmake -G "$genopt" -DCMAKE_INSTALL_PREFIX="$prefix" -DCMAKE_BUILD_TYPE="Release" -DCxxWrap_DIR="$cxx_wrap_dir" $qmlwrap_srcdir`
+	`cmake -G "$genopt" -DCMAKE_INSTALL_PREFIX="$prefix" -DCMAKE_BUILD_TYPE="Release" -DCMAKE_PREFIX_PATH="$cmake_prefix" -DCxxWrap_DIR="$cxx_wrap_dir" $qmlwrap_srcdir`
 	`cmake --build . --config Release --target install $makeopts`
 end
 
@@ -71,6 +94,17 @@ provides(Binaries, Dict(URI("https://github.com/barche/QML.jl/releases/download/
   if build_on_windows
     empty!(BinDeps.defaults)
     append!(BinDeps.defaults, saved_defaults)
+  end
+end
+
+if used_homebrew
+  # Not sure why this is needed on homebrew Qt, but here goes:
+  envfile_path = joinpath(dirname(@__FILE__), "env.jl")
+  plugins_path = joinpath(QT_ROOT, "plugins")
+  qml_path = joinpath(QT_ROOT, "qml")
+  open(envfile_path, "w") do envfile
+    println(envfile, "ENV[\"QT_PLUGIN_PATH\"] = \"$plugins_path\"")
+    println(envfile, "ENV[\"QML2_IMPORT_PATH\"] = \"$qml_path\"")
   end
 end
 

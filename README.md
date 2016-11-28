@@ -8,7 +8,7 @@ This package provides an interface to [Qt5 QML](http://qt.io/). It uses the [`Cx
 ## Installation
 This was tested on Linux and OS X. You need `cmake` in your path for installation to work. Building on Windows should also work, see CxxWrap docs for compiler requirements.
 
-First install [`CxxWrap`](https://github.com/barche/CxxWrap.jl) using `Pkg.add`. Compilation of `QML.jl` requires Qt to be reachable by CMake. If it is in a non-standard location, set the environment variable `CMAKE_PREFIX_PATH` to the base Qt directory (the one containing `lib` and `bin`) before executing the following commands:
+First install [`CxxWrap`](https://github.com/barche/CxxWrap.jl) using `Pkg.add`. Compilation of `QML.jl` requires Qt to be reachable by CMake. If it is in a non-standard location, set the environment variable `QT_ROOT` to the base Qt directory (the one containing `lib` and `bin` on macOS and linux, or the directory containing `msvc2015_64` or `msvc2015` on Windows) before executing the following commands:
 
 ```julia
 Pkg.clone("https://github.com/barche/QML.jl.git")
