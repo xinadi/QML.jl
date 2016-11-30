@@ -1,4 +1,8 @@
 # QML
+
+[![Build Status](https://travis-ci.org/barche/QML.jl.svg?branch=master)](https://travis-ci.org/barche/QML.jl)
+[![Build status](https://ci.appveyor.com/api/projects/status/7edud4w38g8m17yw?svg=true)](https://ci.appveyor.com/project/barche/qml-jl)
+
 This package provides an interface to [Qt5 QML](http://qt.io/). It uses the [`CxxWrap`](https://github.com/barche/CxxWrap.jl) package to expose C++ classes. Current functionality allows interaction between QML and Julia using basic numerical and string types, as well as display of PNG images and a very experimental OpenGL rendering element (see `example/gltriangle.jl`).
 
 ![QML plots example](example/plot.png?raw=true "Plots example")
@@ -6,15 +10,12 @@ This package provides an interface to [Qt5 QML](http://qt.io/). It uses the [`Cx
 ![OpenGL example](example/gltriangle.gif?raw=true "OpenGL example, using GLAbstraction.jl")
 
 ## Installation
-This was tested on Linux and OS X. You need `cmake` in your path for installation to work. Building on Windows should also work, see CxxWrap docs for compiler requirements.
-
-First install [`CxxWrap`](https://github.com/barche/CxxWrap.jl) using `Pkg.add`. Compilation of `QML.jl` requires Qt to be reachable by CMake. If it is in a non-standard location, set the environment variable `QT_ROOT` to the base Qt directory (the one containing `lib` and `bin` on macOS and linux, or the directory containing `msvc2015_64` or `msvc2015` on Windows) before executing the following commands:
-
+To install, type:
 ```julia
-Pkg.clone("https://github.com/barche/QML.jl.git")
-Pkg.build("QML")
-Pkg.test("QML")
+Pkg.add("QML")
 ```
+
+On Linux and macOS, compilation should be automatic, with dependencies installed by the packagemanager or Homebrew.jl. On Windows, binaries are downloaded. To use a non-standard Qt, set the environment variable `QT_ROOT` to the base Qt directory (the one containing `lib` and `bin` on macOS and linux, or the directory containing `msvc2015_64` or `msvc2015` on Windows).
 
 You can check that the correct Qt version is used using the `qt_prefix_path()` function.
 
