@@ -29,11 +29,27 @@ if QT_ROOT == ""
         error("Homebrew package not installed, please run Pkg.add(\"Homebrew\")")
       end
       using Homebrew
-      Homebrew.add("qt5")
+      if !Homebrew.installed("qt5")
+        Homebrew.add("qt5")
+      end
+      if !Homebrew.installed("cmake")
+        Homebrew.add("cmake")
+      end
       used_homebrew = true
       QT_ROOT = joinpath(Homebrew.prefix(), "opt", "qt5")
     else
       QT_ROOT = std_hb_root
+    end
+  end
+
+  if(is_linux() && (!isfile("/usr/lib/qt/qml/QtQuick/Controls.2/Universal/ApplicationWindow.qml") || !isdir("/usr/include/qt/QtCore")))
+    println("Installing Qt and cmake...")
+    if BinDeps.can_use(AptGet)
+      run(`sudo apt-get install cmake cmake-data qtdeclarative5-dev qtdeclarative5-qtquick2-plugin qtdeclarative5-dialogs-plugin qtdeclarative5-controls-plugin qtdeclarative5-quicklayouts-plugin qtdeclarative5-window-plugin`)
+    elseif BinDeps.can_use(Pacman)
+      run(`sudo pacman -S --needed qt5-quickcontrols2`)
+    elseif BinDeps.can_use(Yum)
+      run(`sudo yum install cmake qt5-devel qt5-qtquickcontrols2-devel`)
     end
   end
 end
