@@ -48,12 +48,18 @@ if QT_ROOT == ""
       run(`qmlscene $(joinpath(dirname(@__FILE__), "imports.qml"))`)
     catch
       println("Installing Qt and cmake...")
+
+      function printrun(cmd)
+        println("Running install command, if this fails please run manually:\n$cmd")
+        run(cmd)
+      end
+
       if BinDeps.can_use(AptGet)
-        run(`sudo apt-get install cmake cmake-data qtdeclarative5-dev qtdeclarative5-qtquick2-plugin qtdeclarative5-dialogs-plugin qtdeclarative5-controls-plugin qtdeclarative5-quicklayouts-plugin qtdeclarative5-window-plugin`)
+        printrun(`sudo apt-get install cmake cmake-data qtdeclarative5-dev qtdeclarative5-qtquick2-plugin qtdeclarative5-dialogs-plugin qtdeclarative5-controls-plugin qtdeclarative5-quicklayouts-plugin qtdeclarative5-window-plugin`)
       elseif BinDeps.can_use(Pacman)
-        run(`sudo pacman -S --needed qt5-quickcontrols2`)
+        printrun(`sudo pacman -S --needed qt5-quickcontrols2`)
       elseif BinDeps.can_use(Yum)
-        run(`sudo yum install cmake qt5-devel qt5-qtquickcontrols2-devel`)
+        printrun(`sudo yum install cmake qt5-devel qt5-qtquickcontrols2-devel`)
       end
     end
   end

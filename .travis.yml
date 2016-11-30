@@ -11,6 +11,17 @@ matrix:
         - "export DISPLAY=:99.0"
         - "sh -e /etc/init.d/xvfb start"
         - sleep 3 # give xvfb some time to start
+      addons:
+        apt:
+          packages:
+            - cmake
+            - cmake-data
+            - qtdeclarative5-dev
+            - qtdeclarative5-qtquick2-plugin
+            - qtdeclarative5-dialogs-plugin
+            - qtdeclarative5-controls-plugin
+            - qtdeclarative5-quicklayouts-plugin
+            - qtdeclarative5-window-plugin
       julia: release
     - os: osx
       compiler: "clang"
