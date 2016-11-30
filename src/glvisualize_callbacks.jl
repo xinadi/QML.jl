@@ -50,6 +50,15 @@ end
 
 Base.isopen(w::QMLWindow) = true
 
+type QMLGLContext <: GLWindow.AbstractContext
+    window::QMLWindow
+    framebuffer::GLWindow.GLFramebuffer
+    visible::Bool
+    cache::Dict
+end
+
+QMLGLContext(window, framebuffer, visible) = QMLGLContext(window, framebuffer, visible, Dict())
+
 function initialize_signals()
   state = GLVisualizeState()
   return state
@@ -96,7 +105,7 @@ function on_framebuffer_setup(state, handle, width, height)
   clear = true
   stroke = (0f0, color)
 
-  glctx = GLWindow.GLContext(window, fb, true)
+  glctx = QMLGLContext(window, fb, true)
   if !isdefined(state, :screen)
     state.screen = Screen(Symbol("QMLWindow"),
         window_area, nothing, Screen[], signal_dict,
