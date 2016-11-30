@@ -42,14 +42,19 @@ if QT_ROOT == ""
     end
   end
 
-  if(is_linux() && (!isfile("/usr/lib/qt/qml/QtQuick/Controls.2/Universal/ApplicationWindow.qml") || !isdir("/usr/include/qt/QtCore")))
-    println("Installing Qt and cmake...")
-    if BinDeps.can_use(AptGet)
-      run(`sudo apt-get install cmake cmake-data qtdeclarative5-dev qtdeclarative5-qtquick2-plugin qtdeclarative5-dialogs-plugin qtdeclarative5-controls-plugin qtdeclarative5-quicklayouts-plugin qtdeclarative5-window-plugin`)
-    elseif BinDeps.can_use(Pacman)
-      run(`sudo pacman -S --needed qt5-quickcontrols2`)
-    elseif BinDeps.can_use(Yum)
-      run(`sudo yum install cmake qt5-devel qt5-qtquickcontrols2-devel`)
+  if is_linux()
+    try
+      run(pipeline(`qmake-qt5 --version`, stdout=DevNull, stderr=DevNull))
+      run(`qmlscene $(joinpath(dirname(@__FILE__), "imports.qml"))`)
+    catch
+      println("Installing Qt and cmake...")
+      if BinDeps.can_use(AptGet)
+        run(`sudo apt-get install cmake cmake-data qtdeclarative5-dev qtdeclarative5-qtquick2-plugin qtdeclarative5-dialogs-plugin qtdeclarative5-controls-plugin qtdeclarative5-quicklayouts-plugin qtdeclarative5-window-plugin`)
+      elseif BinDeps.can_use(Pacman)
+        run(`sudo pacman -S --needed qt5-quickcontrols2`)
+      elseif BinDeps.can_use(Yum)
+        run(`sudo yum install cmake qt5-devel qt5-qtquickcontrols2-devel`)
+      end
     end
   end
 end
