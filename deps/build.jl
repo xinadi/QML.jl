@@ -44,8 +44,8 @@ if QT_ROOT == ""
 
   if is_linux()
     try
-      run(pipeline(`qmake-qt5 --version`, stdout=DevNull, stderr=DevNull))
-      run(`qmlscene $(joinpath(dirname(@__FILE__), "imports.qml"))`)
+      run(pipeline(`qmake --version`, stdout=DevNull, stderr=DevNull))
+      run(pipeline(`qmlscene $(joinpath(dirname(@__FILE__), "imports.qml"))`, stdout=DevNull, stderr=DevNull))
     catch
       println("Installing Qt and cmake...")
 
@@ -55,7 +55,7 @@ if QT_ROOT == ""
       end
 
       if BinDeps.can_use(AptGet)
-        printrun(`sudo apt-get install cmake cmake-data qtdeclarative5-dev qtdeclarative5-qtquick2-plugin qtdeclarative5-dialogs-plugin qtdeclarative5-controls-plugin qtdeclarative5-quicklayouts-plugin qtdeclarative5-window-plugin`)
+        printrun(`sudo apt-get install cmake cmake-data qtdeclarative5-dev qtdeclarative5-qtquick2-plugin qtdeclarative5-dialogs-plugin qtdeclarative5-controls-plugin qtdeclarative5-quicklayouts-plugin qtdeclarative5-window-plugin qmlscene qt5-default`)
       elseif BinDeps.can_use(Pacman)
         printrun(`sudo pacman -S --needed qt5-quickcontrols2`)
       elseif BinDeps.can_use(Yum)
