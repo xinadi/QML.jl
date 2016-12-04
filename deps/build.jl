@@ -44,7 +44,11 @@ if QT_ROOT == ""
 
   if is_linux()
     try
-      run(pipeline(`qmake --version`, stdout=DevNull, stderr=DevNull))
+      try
+        run(pipeline(`qmake-qt5 --version`, stdout=DevNull, stderr=DevNull))
+      catch
+        run(pipeline(`qmake --version`, stdout=DevNull, stderr=DevNull))
+      end
       run(pipeline(`qmlscene $(joinpath(dirname(@__FILE__), "imports.qml"))`, stdout=DevNull, stderr=DevNull))
     catch
       println("Installing Qt and cmake...")
@@ -59,7 +63,7 @@ if QT_ROOT == ""
       elseif BinDeps.can_use(Pacman)
         printrun(`sudo pacman -S --needed qt5-quickcontrols2`)
       elseif BinDeps.can_use(Yum)
-        printrun(`sudo yum install cmake qt5-devel qt5-qtquickcontrols2-devel`)
+        printrun(`sudo yum install cmake qt5-qtbase-devel qt5-qtquickcontrols2-devel`)
       end
     end
   end
@@ -113,7 +117,7 @@ provides(BuildProcess,
   end),qmlwrap)
 
 deps = [qmlwrap]
-provides(Binaries, Dict(URI("https://github.com/barche/QML.jl/releases/download/v0.1.0/QML-julia-$(VERSION.major).$(VERSION.minor)-win$(Sys.WORD_SIZE).zip") => deps), os = :Windows)
+provides(Binaries, Dict(URI("https://github.com/barche/QML.jl/releases/download/v0.2.0/QML-julia-$(VERSION.major).$(VERSION.minor)-win$(Sys.WORD_SIZE).zip") => deps), os = :Windows)
 
 @BinDeps.install Dict([(:qmlwrap, :_l_qml_wrap)])
 
