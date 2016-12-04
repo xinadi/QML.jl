@@ -63,7 +63,7 @@ if QT_ROOT == ""
       elseif BinDeps.can_use(Pacman)
         printrun(`sudo pacman -S --needed qt5-quickcontrols2`)
       elseif BinDeps.can_use(Yum)
-        printrun(`sudo yum install cmake qt5-qtbase-devel qt5-qtquickcontrols2-devel`)
+        printrun(`sudo yum install cmake qt5-qtbase-devel qt5-qtquickcontrols qt5-qtquickcontrols2-devel`)
       end
     end
   end
