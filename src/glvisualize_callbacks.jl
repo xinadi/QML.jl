@@ -1,7 +1,6 @@
 module GLVisualizeSupport
 
 using Colors
-using Compat
 using FixedPointNumbers
 using FixedSizeArrays
 using GeometryTypes
@@ -17,7 +16,7 @@ type GLVisualizeState
   window_position::Signal{Vec{2,Int}}
   keyboard_buttons::Signal{NTuple{4, Int}}
   mouse_buttons::Signal{NTuple{3, Int}}
-  dropped_files::Signal{Vector{Compat.UTF8String}}
+  dropped_files::Signal{Vector{String}}
   framebuffer_size::Signal{Vec{2,Int}}
   unicode_input::Signal{Vector{Char}}
   cursor_position::Signal{Vec{2, Float64}}
@@ -34,7 +33,7 @@ type GLVisualizeState
     Signal(Vec{2,Int}(0,0)),
     Signal((0,0,0,0)),
     Signal((0,0,0)),
-    Signal(Compat.UTF8String[]),
+    Signal(String[]),
     Signal(Vec{2,Int}(0,0)),
     Signal(Char[]),
     Signal(Vec(0.,0.)),

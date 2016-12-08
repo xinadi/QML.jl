@@ -1,7 +1,6 @@
 using Base.Test
 using QML
 using Plots
-using Compat
 
 # No Python gui:
 ENV["MPLBACKEND"] = "Agg"
@@ -11,7 +10,7 @@ function init_backend(width::Float64, height::Float64, bestr::AbstractString)
     return
   end
 
-  @compat be = Symbol(lowercase(bestr))
+  be = Symbol(lowercase(bestr))
   if be == :gr
     gr(size=(Int64(round(width)),Int64(round(height))))
   elseif be == :pyplot

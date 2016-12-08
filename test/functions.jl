@@ -1,6 +1,5 @@
 using Base.Test
 using QML
-using Compat
 
 # Test calling Julia functions
 

@@ -1,6 +1,5 @@
 using BinDeps
 using CxxWrap
-using Compat
 
 QT_ROOT = get(ENV, "QT_ROOT", "")
 

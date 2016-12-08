@@ -1,7 +1,5 @@
 module QML
 
-using Compat
-
 @static if is_windows()
   ENV["QML_PREFIX_PATH"] = joinpath(dirname(dirname(@__FILE__)),"deps","usr")
 end
@@ -108,7 +106,7 @@ end
 
 function Base.display(d::JuliaDisplay, x)
   buf = IOBuffer()
-  @compat Base.show(buf, MIME"image/png"(), x)
+  Base.show(buf, MIME"image/png"(), x)
   load_png(d, takebuf_array(buf))
 end
 
