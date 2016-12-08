@@ -5,6 +5,7 @@ using Compat
 QT_ROOT = get(ENV, "QT_ROOT", "")
 
 @static if is_windows()
+  build_on_windows = false
   # prefer building if requested
   if QT_ROOT != ""
     build_on_windows = true
@@ -44,6 +45,7 @@ if QT_ROOT == ""
 
   if is_linux()
     try
+      run(pipeline(`cmake --version`, stdout=DevNull, stderr=DevNull))
       try
         run(pipeline(`qmake-qt5 --version`, stdout=DevNull, stderr=DevNull))
       catch

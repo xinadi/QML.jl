@@ -43,11 +43,6 @@ function render(xmin, xmax)
   }
   """
 
-  if VERSION < v"0.5-dev"
-    vertex_source = UTF8String(vertex_source)
-    fragment_source = UTF8String(fragment_source)
-  end
-
   # Compile the vertex shader
   vertex_shader = glCreateShader(GL_VERTEX_SHADER)
   glShaderSource(vertex_shader, vertex_source)  # nicer thanks to GLAbstraction
