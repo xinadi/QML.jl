@@ -1,6 +1,7 @@
 # MUST disable threading in Qt
 ENV["QSG_RENDER_LOOP"] = "basic"
 
+using CxxWrap
 using QML
 using QML.GLVisualizeSupport
 using GLVisualize, GeometryTypes, GLAbstraction, Colors
@@ -8,9 +9,15 @@ using GLVisualize, GeometryTypes, GLAbstraction, Colors
 # Cat example from GLVisualize
 mesh 	= loadasset("cat.obj")
 
+type CatAngle
+  angle::Float64
+end
+
+const catangle = CatAngle(0)
+
 # Render function that takes a parameter t from a QML slider
-function render_callback(degrees)
-  rotation_angle = Float32(degrees)*pi/180f0
+function render_function()
+  rotation_angle = Float32(catangle.angle)*pi/180f0
   rotation  = rotationmatrix_x(deg2rad(90f0)) * rotationmatrix_y(rotation_angle)
 
   global context
@@ -27,5 +34,7 @@ function render_callback(degrees)
   return
 end
 
-@qmlapp joinpath(dirname(@__FILE__), "qml", "glvisualize.qml")
+render_callback = CxxWrap.safe_cfunction(render_function, Void, ())
+
+@qmlapp joinpath(dirname(@__FILE__), "qml", "glvisualize.qml") catangle render_callback
 exec()

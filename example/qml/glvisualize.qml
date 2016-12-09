@@ -39,11 +39,18 @@ ApplicationWindow {
     }
 
     GLVisualizeViewport {
-      id: jvp
+      id: viewport
       Layout.fillWidth: true
       Layout.fillHeight: true
-      renderFunction: "render_callback"
-      renderArguments: [angle.value]
+      renderFunction: render_callback
+
+      Connections {
+        target: angle
+        onValueChanged: {
+          catangle.angle = angle.value
+          viewport.update()
+        }
+      }
     }
   }
 
