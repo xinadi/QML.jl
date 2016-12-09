@@ -1,17 +1,25 @@
 # MUST disable threading in Qt
 ENV["QSG_RENDER_LOOP"] = "basic"
 
+using CxxWrap
 using QML
 using ModernGL, GeometryTypes, GLAbstraction
 
-function render(xmin, xmax)
+type Triangle
+  xmin::Float64
+  xmax::Float64
+end
+
+const triangle = Triangle(-0.5,0.5)
+
+function render()
   # Draw a triangle. Code mostly from the tutorials in GLAbstraction.
   vao = Ref(GLuint(0))
   glGenVertexArrays(1, vao)
   glBindVertexArray(vao[])
 
   # The vertices of our triangle
-  vertices = Point2f0[(0, 0.5), (xmax, -0.5), (xmin, -0.5)] # note Float32
+  vertices = Point2f0[(0, 0.5), (triangle.xmax, -0.5), (triangle.xmin, -0.5)] # note Float32
 
   # Create the Vertex Buffer Object (VBO)
   vbo = Ref(GLuint(0))   # initial value is irrelevant, just allocate space
@@ -94,7 +102,10 @@ function render(xmin, xmax)
   glDrawArrays(GL_TRIANGLES, 0, length(vertices))
 end
 
-@qmlapp joinpath(dirname(@__FILE__), "qml", "gltriangle.qml")
+render_triangle = CxxWrap.safe_cfunction(render, Void, ())
+
+# Pass the triangle as a context property
+@qmlapp joinpath(dirname(@__FILE__), "qml", "gltriangle.qml") triangle render_triangle
 exec()
 
 # Uncomment to test without QML

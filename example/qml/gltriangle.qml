@@ -42,11 +42,27 @@ ApplicationWindow {
     }
 
     OpenGLViewport {
-      id: jvp
+      id: viewport
       Layout.fillWidth: true
       Layout.fillHeight: true
-      renderFunction: "render"
-      renderArguments: [xmin.value, xmax.value]
+      renderFunction: render_triangle
+    }
+
+    // Put the connections here, because viewport is defined after the sliders
+    Connections {
+      target: xmin
+      onValueChanged: {
+        triangle.xmin = xmin.value;
+        viewport.update()
+      }
+    }
+
+    Connections {
+      target: xmax
+      onValueChanged: {
+        triangle.xmax = xmax.value;
+        viewport.update()
+      }
     }
   }
 
