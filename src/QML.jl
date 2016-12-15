@@ -29,7 +29,6 @@ function __init__()
       end
     end
   end
-  global __appmanager = ApplicationManager()
   init_application()
 end
 
