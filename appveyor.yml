@@ -1,11 +1,13 @@
 environment:
-  QT_ROOT: C:\Qt\5.7
-  BUILD_ON_WINDOWS: 1
   matrix:
-  - JULIAVERSION: "julialang/bin/winnt/x86/0.5/julia-0.5-latest-win32.exe"
   - JULIAVERSION: "julialang/bin/winnt/x64/0.5/julia-0.5-latest-win64.exe"
-  - JULIAVERSION: "julianightlies/bin/winnt/x86/julia-latest-win32.exe"
-  - JULIAVERSION: "julianightlies/bin/winnt/x64/julia-latest-win64.exe"
+    BUILD_ON_WINDOWS: 1
+    MSYSTEM: MINGW64
+  - JULIAVERSION: "julialang/bin/winnt/x86/0.5/julia-0.5-latest-win32.exe"
+    BUILD_ON_WINDOWS: 1
+    MSYSTEM: MINGW32
+  - JULIAVERSION: "julialang/bin/winnt/x64/0.5/julia-0.5-latest-win64.exe"
+    BUILD_ON_WINDOWS: 1 # Test MSVC on 0.5 64bit only
 
 branches:
   only:
@@ -16,7 +18,7 @@ notifications:
   - provider: Email
     on_build_success: false
     on_build_failure: false
-    on_build_status_changed: false
+    on_build_status_changed: true
 
 install:
 # Download most recent Julia Windows binary
@@ -25,12 +27,20 @@ install:
         "C:\projects\julia-binary.exe")
 # Run installer silently, output to C:\projects\julia
   - C:\projects\julia-binary.exe /S /D=C:\projects\julia
+  - IF DEFINED MSYSTEM C:\msys64\usr\bin\bash.exe -l -c "pacman --needed --noconfirm -S mingw-w64-x86_64-cmake mingw-w64-x86_64-gcc mingw-w64-i686-cmake mingw-w64-i686-gcc make mingw-w64-x86_64-qt5 mingw-w64-i686-qt5 mingw-w64-i686-ntldd-git"
 
 build_script:
 # Need to convert from shallow to complete for Pkg.clone to work
   - IF EXIST .git\shallow (git fetch --unshallow)
-  - C:\projects\julia\bin\julia -e "versioninfo();
-      Pkg.clone(pwd(), \"QML\"); Pkg.build(\"QML\")"
+  - IF DEFINED MSYSTEM C:\msys64\usr\bin\bash.exe -l -c "HOME=C:/Users/appveyor C:/projects/julia/bin/julia -e \"cd(ENV[\\\"OLDPWD\\\"]); versioninfo(); Pkg.clone(pwd(), \\\"QML\\\"); Pkg.build(\\\"QML\\\")\""
+  - IF NOT DEFINED MSYSTEM C:\projects\julia\bin\julia -e "versioninfo(); Pkg.clone(pwd(), \"QML\"); Pkg.build(\"QML\")"
 
 test_script:
   - C:\projects\julia\bin\julia --check-bounds=yes -e "Pkg.test(\"QML\")"
+
+after_test:
+  - IF DEFINED MSYSTEM C:\projects\julia\bin\julia -e "cd(joinpath(Pkg.dir(\"QML\"), \"deps\"));  run(`7z a $(ENV[\"APPVEYOR_BUILD_FOLDER\"])\\QML-julia-$(VERSION.major).$(VERSION.minor)-win$(Sys.WORD_SIZE).zip usr`)"
+  - echo %APPVEYOR_JOB_NAME%
+
+artifacts:
+  - path: 'QML-julia*.zip'
