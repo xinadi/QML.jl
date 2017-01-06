@@ -2,17 +2,17 @@ import QtQuick 2.0
 import QtQuick.Controls 1.0
 import QtQuick.Layouts 1.0
 import org.julialang 1.1
-
-import QtQuick 2.0
-import QtQuick.Controls 1.0
-import QtQuick.Layouts 1.0
-import org.julialang 1.0
+import QtQuick.Window 2.2
 
 ApplicationWindow {
   title: "My Application"
   width: 800
   height: 600
   visible: true
+
+  Component.onCompleted: {
+    screeninfo.pixel_ratio = Screen.devicePixelRatio
+  }
 
   ColumnLayout {
     id: root
