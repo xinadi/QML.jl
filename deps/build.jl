@@ -88,6 +88,9 @@ genopt = "Unix Makefiles"
     else
       genopt = "Visual Studio 14 2015"
     end
+    if QT_ROOT == ""
+      QT_ROOT = "C:\\Qt\\5.7"
+    end
     QT_ROOT = joinpath(QT_ROOT, Sys.WORD_SIZE == 64 ? "msvc2015_64" : "msvc2015")
   else
     lib_prefix = "lib" #Makefiles on windows do keep the lib prefix
@@ -104,8 +107,8 @@ end
 build_type = get(ENV, "CXXWRAP_BUILD_TYPE", "Release")
 
 qml_steps = @build_steps begin
-	`cmake -G "$genopt" -DCMAKE_INSTALL_PREFIX="$prefix" -DCMAKE_BUILD_TYPE="Release" -DCMAKE_PREFIX_PATH="$cmake_prefix" -DCxxWrap_DIR="$cxx_wrap_dir" $qmlwrap_srcdir`
-	`cmake --build . --config Release --target install $makeopts`
+	`cmake -G "$genopt" -DCMAKE_INSTALL_PREFIX="$prefix" -DCMAKE_BUILD_TYPE="$build_type" -DCMAKE_PREFIX_PATH="$cmake_prefix" -DCxxWrap_DIR="$cxx_wrap_dir" $qmlwrap_srcdir`
+	`cmake --build . --config $build_type --target install $makeopts`
 end
 
 # If built, always run cmake, in case the code changed
@@ -132,7 +135,7 @@ deps = [qmlwrap]
   archname = Sys.WORD_SIZE == 64 ? "x64" : "x86"
   pkgverstring = string(Pkg.installed("QML"))
   if endswith(pkgverstring,"+")
-    bin_uri = URI("https://ci.appveyor.com/api/projects/barche/qml-jl/artifacts/$(zipfilename)?job=Environment%3a+JULIAVERSION%3djulialang%2fbin%2fwinnt%2f$(archname)%2f$(shortversion)%2fjulia-$(shortversion)-latest-win$(Sys.WORD_SIZE).exe%2c+BUILD_ON_WINDOWS%3d1%2c+MSYSTEM%3dMINGW$(Sys.WORD_SIZE)")
+    bin_uri = URI("https://ci.appveyor.com/api/projects/barche/qml-jl/artifacts/$(zipfilename)?job=Environment%3a+JULIAVERSION%3djulialang%2fbin%2fwinnt%2f$(archname)%2f$(shortversion)%2fjulia-$(shortversion)-latest-win$(Sys.WORD_SIZE).exe%2c+BUILD_ON_WINDOWS%3d1")
   else
     bin_uri = URI("https://github.com/barche/QML.jl/releases/download/v0.2.0/QML-julia/$(pkgverstring)/QML-julia-$(VERSION.major).$(VERSION.minor)-win$(Sys.WORD_SIZE).zip")
   end

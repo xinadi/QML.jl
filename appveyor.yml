@@ -1,13 +1,13 @@
 environment:
   matrix:
+  - JULIAVERSION: "julialang/bin/winnt/x64/0.4/julia-0.4-latest-win64.exe"
+    BUILD_ON_WINDOWS: 1
   - JULIAVERSION: "julialang/bin/winnt/x64/0.5/julia-0.5-latest-win64.exe"
     BUILD_ON_WINDOWS: 1
-    MSYSTEM: MINGW64
+  - JULIAVERSION: "julialang/bin/winnt/x86/0.4/julia-0.4-latest-win32.exe"
+    BUILD_ON_WINDOWS: 1
   - JULIAVERSION: "julialang/bin/winnt/x86/0.5/julia-0.5-latest-win32.exe"
     BUILD_ON_WINDOWS: 1
-    MSYSTEM: MINGW32
-  - JULIAVERSION: "julialang/bin/winnt/x64/0.5/julia-0.5-latest-win64.exe"
-    BUILD_ON_WINDOWS: 1 # Test MSVC on 0.5 64bit only
 
 branches:
   only:
@@ -39,8 +39,16 @@ test_script:
   - C:\projects\julia\bin\julia --check-bounds=yes -e "Pkg.test(\"QML\")"
 
 after_test:
-  - IF DEFINED MSYSTEM C:\projects\julia\bin\julia -e "cd(joinpath(Pkg.dir(\"QML\"), \"deps\"));  run(`7z a $(ENV[\"APPVEYOR_BUILD_FOLDER\"])\\QML-julia-$(VERSION.major).$(VERSION.minor)-win$(Sys.WORD_SIZE).zip usr`)"
+  - IF NOT DEFINED MSYSTEM C:\projects\julia\bin\julia -e "cd(joinpath(Pkg.dir(\"QML\"), \"deps\"));  run(`7z a $(ENV[\"APPVEYOR_BUILD_FOLDER\"])\\QML-julia-$(VERSION.major).$(VERSION.minor)-win$(Sys.WORD_SIZE).zip usr`)"
   - echo %APPVEYOR_JOB_NAME%
 
 artifacts:
   - path: 'QML-julia*.zip'
+
+deploy:
+  provider: GitHub
+  auth_token:
+    secure: gT/6HUmJMkLU89J2qu3FZ/OR2Velz//TSA/GJr65M1iNRjTimZLnAk73oRPGtA7d # your encrypted token from GitHub
+  on:
+    branch: master                 # release from master branch only
+    appveyor_repo_tag: true        # deploy on tag push only
