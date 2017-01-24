@@ -12,27 +12,63 @@ ApplicationWindow {
   height: 400
   visible: true
 
-  Component
-  {
-    id: columnComponent
-    TableViewColumn { width: 50 }
-  }
-
-  TableView {
-    id: view
+  ColumnLayout {
+    id: root
+    spacing: 6
     anchors.fill: parent
-    model: nuclidesModel
 
-    resources:
-    {
-      var columns = []
-      columns.push(columnComponent.createObject(view, { "role": "name", "title": "Nuclide", "width": 100 }))
-      for(var i=0; i<years.length; i++)
-      {
-        var role  = years[i]
-        columns.push(columnComponent.createObject(view, { "role": role, "title": role}))
+    RowLayout {
+      Layout.fillWidth: true
+      Layout.alignment: Qt.AlignCenter
+
+      Button {
+          Layout.alignment: Qt.AlignCenter
+          text: "Add column"
+          onClicked: { Julia.append_year() }
       }
-      return columns
+
+      Button {
+          Layout.alignment: Qt.AlignCenter
+          text: "Remove column"
+          onClicked: { Julia.pop_year_front() }
+      }
+    }
+
+    Component
+    {
+      id: columnComponent
+      TableViewColumn { width: 50 }
+    }
+
+    TableView {
+      id: view
+      Layout.fillWidth: true
+      Layout.fillHeight: true
+      model: nuclidesModel
+
+      function update_columns() {
+        var savedModel = model;
+        model = null; // Avoid model updates during reset
+        while(columnCount != 0) { // Remove existing columns first
+          removeColumn(0);
+        }
+        addColumn(columnComponent.createObject(view, { "role": "name", "title": "Nuclide", "width": 100 }));
+        for(var i=0; i<years.length; i++)
+        {
+          var role  = years[i];
+          addColumn(columnComponent.createObject(view, { "role": role, "title": role}));
+        }
+        model = savedModel;
+      }
+
+      // Update on role changes
+      Connections {
+        target: nuclidesModel
+        onRolesChanged: view.update_columns()
+      }
+
+      // First-time init
+      Component.onCompleted: update_columns()
     }
   }
 }

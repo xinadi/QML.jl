@@ -6,7 +6,7 @@ import org.julialang 1.0
 ApplicationWindow {
   title: "Arrays"
   width: 200
-  height: 375
+  height: 500
   visible: true
 
   ColumnLayout {
@@ -41,6 +41,38 @@ ApplicationWindow {
         onTextChanged: myrole = text
       }
     }
+
+    Component
+    {
+      id: columnComponent
+      TableViewColumn { width: 50 }
+    }
+
+    TableView {
+      id: tabview
+      width: 200
+      height: 125
+      model: tablemodel
+
+      function setcolumns() {
+        model = null
+        while(columnCount != 0) {
+          removeColumn(0);
+        }
+        for(var i=0; i < tablemodel.roles.length; i++) {
+          var role  = tablemodel.roles[i];
+          addColumn(columnComponent.createObject(tabview, { "role": role, "title": role}))
+        }
+        model = tablemodel
+      }
+
+      Connections {
+        target: tablemodel
+        onRolesChanged: tabview.setcolumns()
+      }
+
+      Component.onCompleted: setcolumns()
+    }
   }
 
   Timer {
@@ -54,6 +86,50 @@ ApplicationWindow {
 
       lv.currentIndex = 0
       lv.currentItem.text = "TEST"
+
+      if(tabview.columnCount != 3) {
+        Julia.testfail("wrong column count: " + tabview.columnCount)
+      }
+
+      if(tabview.getColumn(0).role != "a") {
+        Julia.testfail("Bad role name for a")
+      }
+      if(tabview.getColumn(1).role != "b") {
+        Julia.testfail("Bad role name for b")
+      }
+      if(tabview.getColumn(2).role != "c") {
+        Julia.testfail("Bad role name for c")
+      }
+
+      console.log("begin remove")
+      Julia.removerole_b()
+      console.log("end remove")
+      if(tabview.columnCount != 2) {
+        Julia.testfail("wrong column count after remove 1: " + tabview.columnCount)
+      }
+      if(tabview.getColumn(0).role != "a") {
+        Julia.testfail("Bad role name for a after remove 1")
+      }
+      if(tabview.getColumn(1).role != "c") {
+        Julia.testfail("Bad role name for c after remove 1")
+      }
+
+      Julia.removerole_c()
+      if(tabview.columnCount != 1) {
+        Julia.testfail("wrong column count after remove: " + tabview.columnCount)
+      }
+      if(tabview.getColumn(0).role != "a") {
+        Julia.testfail("Bad role name for a after remove 2")
+      }
+
+      Julia.setrole_a()
+      if(tabview.columnCount != 1) {
+        Julia.testfail("wrong column count after setrole: " + tabview.columnCount)
+      }
+      if(tabview.getColumn(0).role != "abc") {
+        Julia.testfail("Bad role name for abc after setrow")
+      }
+
 
       Qt.quit()
     }
