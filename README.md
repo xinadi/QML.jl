@@ -19,6 +19,14 @@ On Linux and macOS, compilation should be automatic, with dependencies installed
 
 You can check that the correct Qt version is used using the `qt_prefix_path()` function.
 
+### Raspberry Pi
+Because of issues with LLVM library compatibility between the graphics driver on the Raspberry Pi and Julia, QML.jl will only work if you build Julia from source, using the system LLVM version 3.9. Install the `llvm-3.9-dev` package, and then build Julia with the following Make.user:
+
+```
+override LLVM_CONFIG=llvm-config-3.9
+override USE_SYSTEM_LLVM=1
+```
+
 ## Usage
 ### Loading a QML file
 We support three methods of loading a QML file: `QQmlApplicationEngine`, `QQuickView` and `QQmlComponent`. These behave equivalently to the corresponding Qt classes.
