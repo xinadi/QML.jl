@@ -1,6 +1,8 @@
 using BinDeps
 using CxxWrap
 
+const QML_JL_VERSION = v"0.3.0"
+
 QT_ROOT = get(ENV, "QT_ROOT", "")
 
 @static if is_windows()
@@ -25,10 +27,11 @@ if QT_ROOT == ""
   if is_apple()
     std_hb_root = "/usr/local/opt/qt5"
     if(!isdir(std_hb_root))
-      if Pkg.installed("Homebrew") === nothing
+      try
+        using Homebrew
+      catch
         error("Homebrew package not installed, please run Pkg.add(\"Homebrew\")")
       end
-      using Homebrew
       if !Homebrew.installed("qt5")
         Homebrew.add("qt5")
       end
@@ -133,7 +136,7 @@ deps = [qmlwrap]
   shortversion = "$(VERSION.major).$(VERSION.minor)"
   zipfilename = "QML-julia-$(shortversion)-win$(Sys.WORD_SIZE).zip"
   archname = Sys.WORD_SIZE == 64 ? "x64" : "x86"
-  pkgverstring = string(Pkg.installed("QML"))
+  pkgverstring = string(QML_JL_VERSION)
   if endswith(pkgverstring,"+")
     bin_uri = URI("https://ci.appveyor.com/api/projects/barche/qml-jl/artifacts/$(zipfilename)?job=Environment%3a+JULIAVERSION%3djulialang%2fbin%2fwinnt%2f$(archname)%2f$(shortversion)%2fjulia-$(shortversion)-latest-win$(Sys.WORD_SIZE).exe%2c+BUILD_ON_WINDOWS%3d1")
   else
