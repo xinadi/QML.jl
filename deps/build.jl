@@ -1,7 +1,7 @@
 using BinDeps
 using CxxWrap
 
-const QML_JL_VERSION = v"0.3.0"
+const QML_JL_VERSION = v"0.3.1"
 
 QT_ROOT = get(ENV, "QT_ROOT", "")
 
@@ -84,6 +84,9 @@ makeopts = ["--", "-j", "$(Sys.CPU_CORES+2)"]
 # Set generator if on windows
 genopt = "Unix Makefiles"
 @static if is_windows()
+  if isdir(prefix)
+    rm(prefix, recursive=true)
+  end
   if get(ENV, "MSYSTEM", "") == ""
     makeopts = "--"
     if Sys.WORD_SIZE == 64
@@ -140,7 +143,7 @@ deps = [qmlwrap]
   if endswith(pkgverstring,"+")
     bin_uri = URI("https://ci.appveyor.com/api/projects/barche/qml-jl/artifacts/$(zipfilename)?job=Environment%3a+JULIAVERSION%3djulialang%2fbin%2fwinnt%2f$(archname)%2f$(shortversion)%2fjulia-$(shortversion)-latest-win$(Sys.WORD_SIZE).exe%2c+BUILD_ON_WINDOWS%3d1")
   else
-    bin_uri = URI("https://github.com/barche/QML.jl/releases/download/v$(pkgverstring)/QML-julia-$(VERSION.major).$(VERSION.minor)-win$(Sys.WORD_SIZE).zip")
+    bin_uri = URI("https://github.com/barche/QML.jl/releases/download/v$(pkgverstring)/QMLv$(pkgverstring)-julia-$(VERSION.major).$(VERSION.minor)-win$(Sys.WORD_SIZE).zip")
   end
   provides(Binaries, Dict(bin_uri => deps), os = :Windows)
 end
