@@ -39,7 +39,7 @@ after_test:
   - echo %APPVEYOR_JOB_NAME%
 
 artifacts:
-  - path: 'QML-julia*.zip'
+  - path: 'QML*-julia*.zip'
 
 deploy:
   provider: GitHub
