@@ -2,6 +2,7 @@
 
 using Base.Test
 using QML
+using StateMachineIterator
 
 qmlfile = joinpath(dirname(Base.source_path()), "qml", "progressbar.qml")
 
@@ -12,31 +13,33 @@ end
 const simulation_state = SimulationState(0.0)
 
 # Our simulation is just a busy wait, producing progress between 0.0 and 1.0
-function simulate()
+@iterator function simulate()
   counter = 0.0
   maxcount = 1000000000.0
   while counter < maxcount
     for i in 1:Int(maxcount/100)
       counter += 1.0
     end
-    produce(counter/maxcount)
+    @yield return (counter/maxcount)
   end
-  produce(1.0)
+  @yield return 1.0
 end
 
-simulation_task = Task(simulate)
-
 # Run a step in the simulation, restart if already finished
+iter = simulate()
+fsm = start(iter)
 function step()
   global simulation_state
-  global simulation_task
+  global iter
+  global fsm
 
   if simulation_state.progress >= 1.0
     println("Simulation was finished, restarting")
-    simulation_task = Task(simulate)
+    iter = simulate()
+    fsm = start(iter)
   end
-
-  @show progress = consume(simulation_task)
+  progress, fsm = next(iter, fsm)
+  @show progress
   @qmlset qmlcontext().simulation_state.progress = progress
 
   return
