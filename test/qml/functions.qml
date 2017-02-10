@@ -24,6 +24,9 @@ Item {
 
       Julia.test_qvariant_map({"somekey": "somevalue"})
 
+      Julia.set_state1()
+      Julia.set_state2()
+
       Qt.quit()
     }
   }

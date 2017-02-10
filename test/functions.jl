@@ -1,6 +1,9 @@
 using Base.Test
 using QML
 
+include(joinpath("include","functions_module.jl"))
+using TestModuleFunction
+
 # Test calling Julia functions
 
 call_results1 = []
@@ -31,7 +34,8 @@ function test_qvariant_map(m::QVariantMap)
   nothing
 end
 
-@qmlfunction julia_callback1 julia_callback2 return_callback check_return_callback test_qvariant_map
+set_state2 = TestModuleFunction.set_state2
+@qmlfunction julia_callback1 julia_callback2 return_callback check_return_callback test_qvariant_map set_state1 set_state2
 @qmlapp joinpath(dirname(@__FILE__), "qml", "functions.qml")
 exec()
 
@@ -48,3 +52,5 @@ stringresult = VERSION < v"0.5-dev" ? ASCIIString : String
 @test typeof(call_results2[2]) == Int32
 @test typeof(call_results2[3]) == stringresult
 @test call_results2 == [3., 6, "ab"]
+
+@test get_state() == 2
