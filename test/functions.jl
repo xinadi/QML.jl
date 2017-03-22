@@ -45,7 +45,7 @@ stringresult = VERSION < v"0.5-dev" ? ASCIIString : String
 @test typeof(call_results1[2]) == Int32
 @test typeof(call_results1[3]) == Float64
 @test typeof(call_results1[4]) == stringresult
-@test typeof(call_results1[5]) == QML.JuliaDisplay
+@test typeof(call_results1[5]) <: QML.JuliaDisplay
 @test call_results1[1:4] == [false, 1, 1.5, "test"]
 
 @test typeof(call_results2[1]) == Float64
