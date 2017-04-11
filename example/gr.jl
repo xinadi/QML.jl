@@ -18,8 +18,8 @@ end
 
 const screeninfo = ScreenInfo(0.0)
 
-# Called from QQuickPaintedItem::paint with the QPainter as an argument
-function paint(p::QPainter, item::JuliaPaintedItem)
+# Arguments here need to be the "reference types", hence the "Ref" suffix
+function paint(p::QML.QPainterRef, item::QML.JuliaPaintedItemRef)
   println("pixel ratio: ", effectiveDevicePixelRatio(window(item)))
   ENV["GKSwstype"] = 381
   ENV["GKSconid"] = split(repr(p.cpp_object), "@")[2]
@@ -37,7 +37,7 @@ function paint(p::QPainter, item::JuliaPaintedItem)
 end
 
 # Convert to cfunction, passing the painter as void*
-paint_cfunction = safe_cfunction(paint, Void, (QPainter,JuliaPaintedItem))
+paint_cfunction = safe_cfunction(paint, Void, (QML.QPainterRef,QML.JuliaPaintedItemRef))
 
 # paint_cfunction becomes a context property
 @qmlapp qmlfile paint_cfunction sine_parameters screeninfo

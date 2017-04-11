@@ -124,7 +124,6 @@ on_window_close(signals) = push!(signals.window_open, false)
 on_window_size_change(signals, w, h) = push!(signals.window_size, Vec{2,Int}(w, h))
 
 function on_context_destroy()
-  println("on_context_destroy called")
   GLAbstraction.empty_shader_cache!()
   return
 end

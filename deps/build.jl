@@ -196,5 +196,5 @@ if get(ENV, "MSYSTEM", "") != ""
     run(`cp $lib $libdest`)
   end
   mingw_prefix = "/mingw"*string(Sys.WORD_SIZE)
-  run(`cp -rf $(mingw_prefix)/share/qt5/qml/QtQ* $(libdest)/`)
+  run(`cp -rf $(mingw_prefix)/share/qt5/qml/QtQ\* $(libdest)/`)
 end
