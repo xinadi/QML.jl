@@ -25,21 +25,21 @@ qmlwrap = library_dependency("qmlwrap", aliases=["libqmlwrap"])
 used_homebrew = false
 if QT_ROOT == ""
   if is_apple()
-    std_hb_root = "/usr/local/opt/qt5"
+    std_hb_root = "/usr/local/opt/qt"
     if(!isdir(std_hb_root))
       try
         using Homebrew
       catch
         error("Homebrew package not installed, please run Pkg.add(\"Homebrew\")")
       end
-      if !Homebrew.installed("qt5")
-        Homebrew.add("qt5")
+      if !Homebrew.installed("qt")
+        Homebrew.add("qt")
       end
       if !Homebrew.installed("cmake")
         Homebrew.add("cmake")
       end
       used_homebrew = true
-      QT_ROOT = joinpath(Homebrew.prefix(), "opt", "qt5")
+      QT_ROOT = joinpath(Homebrew.prefix(), "opt", "qt")
     else
       QT_ROOT = std_hb_root
     end
