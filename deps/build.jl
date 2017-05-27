@@ -115,7 +115,7 @@ cmake_prefix *= (cmake_prefix == "" ? "" : ";")*jlcxx_dir
 build_type = get(ENV, "CXXWRAP_BUILD_TYPE", "Release")
 
 qml_steps = @build_steps begin
-	`cmake -G "$genopt" -DCMAKE_INSTALL_PREFIX="$prefix" -DCMAKE_BUILD_TYPE="$build_type" -DCMAKE_PREFIX_PATH="$cmake_prefix" $qmlwrap_srcdir`
+	`cmake -G "$genopt" -DCMAKE_INSTALL_PREFIX="$prefix" -DCMAKE_BUILD_TYPE="$build_type" -DCMAKE_PREFIX_PATH="$cmake_prefix" -DCMAKE_PROGRAM_PATH="$JULIA_HOME" $qmlwrap_srcdir`
 	`cmake --build . --config $build_type --target install $makeopts`
 end
 
