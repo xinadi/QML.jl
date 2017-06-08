@@ -36,7 +36,7 @@ end
 Overloads for getting a property value based on its name for any base class
 """
 generic_property_get(ctx::QQmlContext, key::AbstractString) = context_property(ctx, key)
-generic_property_get(o::JuliaObject, key::AbstractString) = value(o, key)
+generic_property_get(o::JuliaObject, key::AbstractString) = julia_object_value(o, key)
 
 """
 Expand an expression of the form a.b.c to replace the dot operator by function calls:

@@ -9,10 +9,13 @@ end
 # absolute path in case working dir is overridden
 qml_file = joinpath(dirname(@__FILE__), "qml", "julia_object.qml")
 
-julia_object = JuliaTestType(0.)
+julia_object = JuliaTestType(0)
 
 # Run with qml file and one context property
 @qmlapp qml_file julia_object
+
+@test (@qmlget qmlcontext().julia_object.a) == 0
+@test QML.julia_value(@qmlget qmlcontext().julia_object).a == 0
 
 # Run the application
 exec()
