@@ -34,8 +34,26 @@ function test_qvariant_map(m::QVariantMap)
   nothing
 end
 
+type CustomType
+  a::Int
+  b::String
+end
+
+const customglobal = CustomType(1,"One")
+
+function getglobal()
+  global customglobal
+  return customglobal
+end
+
+function settwo(x::CustomType)
+  x.a = 2
+  x.b = "Two"
+end
+
+
 set_state2 = TestModuleFunction.set_state2
-@qmlfunction julia_callback1 julia_callback2 return_callback check_return_callback test_qvariant_map set_state1 set_state2
+@qmlfunction julia_callback1 julia_callback2 return_callback check_return_callback test_qvariant_map set_state1 set_state2 getglobal settwo
 @qmlapp joinpath(dirname(@__FILE__), "qml", "functions.qml")
 exec()
 
@@ -54,3 +72,6 @@ stringresult = VERSION < v"0.5-dev" ? ASCIIString : String
 @test call_results2 == [3., 6, "ab"]
 
 @test get_state() == 2
+
+@test customglobal.a == 2
+@test customglobal.b == "Two"

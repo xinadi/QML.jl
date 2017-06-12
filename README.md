@@ -146,8 +146,8 @@ type JuliaTestType
 end
 
 jobj = JuliaTestType(0.)
-@qmlset root_ctx.julia_object = jobj
-@qmlset root_ctx.julia_object.a = 2
+@qmlset qmlcontext().julia_object = jobj
+@qmlset qmlcontext().julia_object.a = 2
 @test @qmlget(root_ctx.julia_object.a) == 2
 @test jobj.a == 2
 ```

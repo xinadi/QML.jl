@@ -27,6 +27,8 @@ Item {
       Julia.set_state1()
       Julia.set_state2()
 
+      Julia.settwo(Julia.getglobal())
+
       Qt.quit()
     }
   }
