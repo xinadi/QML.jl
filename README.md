@@ -165,6 +165,36 @@ Timer {
  }
 ```
 
+When passing a `JuliaObject` object from QML to a Julia function, it is automatically converted to the Julia value, so on the Julia side it can be manipulated as normal. To get the QML side to see the changes the `update` function must be called:
+
+```julia
+type JuliaTestType
+  a::Int32
+  i::InnerType
+end
+
+# passed as context property
+julia_object2 = JuliaTestType(0, InnerType(0.0))
+
+function setthree(x::JuliaTestType)
+  x.a = 3
+  x.i.x = 3.0
+end
+
+function testthree(a,x)
+  @test a == 3
+  @test x == 3.0
+end
+```
+
+```qml
+// ...
+Julia.setthree(julia_object2)
+julia_object2.update()
+Julia.testthree(julia_object2.a, julia_object2.i.x)
+// ...
+```
+
 ### Emitting signals from Julia
 Defining signals must be done in QML in the JuliaSignals block, following the instructions from the [QML manual](http://doc.qt.io/qt-5/qtqml-syntax-objectattributes.html#signal-attributes). Example signal with connection:
 ```qml

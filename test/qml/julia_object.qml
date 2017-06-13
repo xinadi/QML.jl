@@ -10,6 +10,9 @@ Timer {
        Julia.jlobj_callback(julia_object)
        julia_object.i = Julia.innertwo()
        Julia.check_inner_x(julia_object.i.x)
+       Julia.setthree(julia_object2)
+       julia_object2.update()
+       Julia.testthree(julia_object2.a, julia_object2.i.x)
        Qt.quit()
      }
  }

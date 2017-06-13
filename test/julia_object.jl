@@ -15,6 +15,7 @@ end
 qml_file = joinpath(dirname(@__FILE__), "qml", "julia_object.qml")
 
 julia_object = JuliaTestType(0, InnerType(0.0))
+julia_object2 = JuliaTestType(0, InnerType(0.0))
 
 function test_string(s)
   try
@@ -45,10 +46,24 @@ function check_inner_x(x)
   end
 end
 
-@qmlfunction test_string jlobj_callback innertwo check_inner_x
+function setthree(x::JuliaTestType)
+  x.a = 3
+  x.i.x = 3.0
+end
+
+function testthree(a,x)
+  try
+    @test a == 3
+    @test x == 3.0
+  catch
+    exit(1)
+  end
+end
+
+@qmlfunction test_string jlobj_callback innertwo check_inner_x setthree testthree
 
 # Run with qml file and one context property
-@qmlapp qml_file julia_object
+@qmlapp qml_file julia_object julia_object2
 
 @test (@qmlget qmlcontext().julia_object.a) == 0
 @test (@qmlget qmlcontext().julia_object.i.x) == 0.0
