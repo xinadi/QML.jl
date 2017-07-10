@@ -19,7 +19,7 @@ julia_object2 = JuliaTestType(0, InnerType(0.0))
 
 function test_string(s)
   try
-    @test s == "JuliaTestType(1, InnerType(0.0))"
+    @test s == string(julia_object)
     return
   catch e
     exit(1)

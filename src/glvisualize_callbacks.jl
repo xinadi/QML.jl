@@ -2,7 +2,7 @@ module GLVisualizeSupport
 
 using Colors
 using FixedPointNumbers
-using FixedSizeArrays
+using StaticArrays
 using GeometryTypes
 using GLAbstraction
 using GLVisualize

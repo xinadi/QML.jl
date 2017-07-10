@@ -53,7 +53,7 @@ function render()
 
   # Compile the vertex shader
   vertex_shader = glCreateShader(GL_VERTEX_SHADER)
-  glShaderSource(vertex_shader, vertex_source)  # nicer thanks to GLAbstraction
+  glShaderSource(vertex_shader, Vector{UInt8}(vertex_source))  # nicer thanks to GLAbstraction
   glCompileShader(vertex_shader)
   # Check that it compiled correctly
   status = Ref(GLint(0))
@@ -66,7 +66,7 @@ function render()
 
   # Compile the fragment shader
   fragment_shader = glCreateShader(GL_FRAGMENT_SHADER)
-  glShaderSource(fragment_shader, fragment_source)
+  glShaderSource(fragment_shader, Vector{UInt8}(fragment_source))
   glCompileShader(fragment_shader)
   # Check that it compiled correctly
   status = Ref(GLint(0))

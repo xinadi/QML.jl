@@ -25,7 +25,7 @@ function paint(p::QML.QPainterRef, item::QML.JuliaPaintedItemRef)
   ENV["GKSconid"] = split(repr(p.cpp_object), "@")[2]
 
   x = 0:π/100:π
-  f = sine_parameters.amplitude*sin(sine_parameters.frequency*x)
+  f = sine_parameters.amplitude*sin.(sine_parameters.frequency*x)
 
   dev = device(p)
   plt = gcf()
