@@ -17,7 +17,7 @@ if isfile(envfile)
   include(envfile)
 end
 
-wrap_module(_l_qml_wrap)
+wrap_module(_l_qml_wrap, QML)
 
 function __init__()
   # Make sure we have an application at module load, so any QObject is created after this
@@ -106,7 +106,7 @@ end
 function Base.display(d::JuliaDisplay, x)
   buf = IOBuffer()
   Base.show(buf, MIME"image/png"(), x)
-  load_png(d, takebuf_array(buf))
+  load_png(d, take!(buf))
 end
 
 function Base.displayable(d::JuliaDisplay, mime::AbstractString)
@@ -121,8 +121,8 @@ export @qmlget, @qmlset, @emit, @qmlfunction, @qmlapp
 has_glvisualize = false
 
 try
-  include("glvisualize_callbacks.jl")
-  has_glvisualize = true
+ include("glvisualize_callbacks.jl")
+ has_glvisualize = true
 end
 
 """
