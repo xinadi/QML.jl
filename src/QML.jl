@@ -60,6 +60,12 @@ macro qmlget(dots_expr)
   :(@expand_dots($(esc(dots_expr)), generic_property_get))
 end
 
+# Specialize for Reals
+function set_context_property(ctx::QQmlContext, key::AbstractString, value::Real)
+  invoke(set_context_property, Tuple{QQmlContext, AbstractString, Any}, ctx, key, convert(Float64,value))
+  return nothing
+end
+
 """
 Overloads for setting a property value based on its name for any base class
 """
@@ -100,7 +106,14 @@ end
 Load the given QML path using a QQmlApplicationEngine, initializing the context with the given properties
 """
 macro qmlapp(path, context_properties...)
-  esc(:(QML.load_qml_app($path, $(Any[string(p) for p in context_properties]), Any[$(context_properties...)])))
+  result = quote
+    qml_engine = init_qmlapplicationengine()
+  end
+  for p in context_properties
+    push!(result.args, :(set_context_property(qmlcontext(), $(esc(string(p))), $(esc(p)))))
+  end
+  push!(result.args, :(load(qml_engine, $(esc(path)))))
+  return result
 end
 
 function Base.display(d::JuliaDisplay, x)
@@ -120,10 +133,10 @@ export @qmlget, @qmlset, @emit, @qmlfunction, @qmlapp
 
 has_glvisualize = false
 
-try
- include("glvisualize_callbacks.jl")
- has_glvisualize = true
-end
+# try
+#  include("glvisualize_callbacks.jl")
+#  has_glvisualize = true
+# end
 
 """
 Constructor for ListModel that automatically copies a typed array into an Array{Any,1} and creates a constructor and setter and getter functions for each field if addroles == true
