@@ -54,7 +54,7 @@ end
 
 set_state2 = TestModuleFunction.set_state2
 @qmlfunction julia_callback1 julia_callback2 return_callback check_return_callback test_qvariant_map set_state1 set_state2 getglobal settwo
-@qmlapp joinpath(dirname(@__FILE__), "qml", "functions.qml")
+@test(@qmlapp joinpath(dirname(@__FILE__), "qml", "functions.qml"))
 exec()
 
 stringresult = VERSION < v"0.5-dev" ? ASCIIString : String
