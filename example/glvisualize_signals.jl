@@ -3,7 +3,6 @@ ENV["QSG_RENDER_LOOP"] = "basic"
 
 using CxxWrap
 using QML
-using QML.GLVisualizeSupport
 using GLVisualize, GeometryTypes, GLAbstraction, Colors
 using Reactive
 

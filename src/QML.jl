@@ -131,12 +131,7 @@ end
 
 export @qmlget, @qmlset, @emit, @qmlfunction, @qmlapp
 
-has_glvisualize = false
-
-# try
-#  include("glvisualize_callbacks.jl")
-#  has_glvisualize = true
-# end
+glvisualize_include() = joinpath(dirname(@__FILE__), "glvisualize_callbacks.jl")
 
 """
 Constructor for ListModel that automatically copies a typed array into an Array{Any,1} and creates a constructor and setter and getter functions for each field if addroles == true
