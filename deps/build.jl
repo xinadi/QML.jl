@@ -1,7 +1,7 @@
 using BinDeps
 using CxxWrap
 
-const QML_JL_VERSION = v"0.4.0"
+const QML_JL_VERSION = v"0.4.1"
 
 QT_ROOT = get(ENV, "QT_ROOT", "")
 
@@ -143,7 +143,7 @@ deps = [qmlwrap]
   archname = Sys.WORD_SIZE == 64 ? "x64" : "x86"
   pkgverstring = string(QML_JL_VERSION)
   if endswith(pkgverstring,"+")
-    bin_uri = URI("https://ci.appveyor.com/api/projects/barche/qml-jl/artifacts/$(zipfilename)?job=Environment%3a+JULIAVERSION%3djulialang%2fbin%2fwinnt%2f$(archname)%2f$(shortversion)%2fjulia-$(shortversion)-latest-win$(Sys.WORD_SIZE).exe%2c+BUILD_ON_WINDOWS%3d1")
+    bin_uri = URI("https://ci.appveyor.com/api/projects/barche/qml-jl/artifacts/$(zipfilename)?job=Environment%3a+JULIA_URL%3dhttps%3a%2f%2fjulialang-s3.julialang.org%2fbin%2fwinnt%2f$(archname)%2f$(shortversion)%2fjulia-$(shortversion)-latest-win$(Sys.WORD_SIZE).exe%2c+BUILD_ON_WINDOWS%3d1")
   else
     bin_uri = URI("https://github.com/barche/QML.jl/releases/download/v$(pkgverstring)/QMLv$(pkgverstring)-julia-$(VERSION.major).$(VERSION.minor)-win$(Sys.WORD_SIZE).zip")
   end
