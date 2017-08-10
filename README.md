@@ -111,15 +111,21 @@ Interaction with Julia happens through the following mechanisms:
 Note that Julia slots appear missing, but they are not needed since it is possible to directly connect a Julia function to a QML signal in the QML code (see the QTimer example below).
 
 ### Calling Julia functions
-In Julia, functions are registered using the `@qmlfunction` macro:
+In Julia, functions are registered using the `qmlfunction` function:
 ```julia
 my_function() = "Hello from Julia"
 my_other_function(a, b) = "Hi from Julia"
 
+qmlfunction("my_function", my_function)
+qmlfunction("my_other_function", my_other_function)
+```
+
+For convenience, there is also a macro that registers any number of functions that are in scope and will have the same name in QML as in Julia:
+```julia
 @qmlfunction my_function my_other_function
 ```
 
-The macro takes any number of function names as arguments
+However, the macro cannot be used in the case of non-exported functions from a different module or in case the function contains a `!` character.
 
 In QML, include the Julia API:
 ```qml

@@ -36,7 +36,7 @@ end
 custom_list = [ListElem("a",1), ListElem("b", 2)]
 custom_model = ListModel(custom_list)
 
-@qmlfunction get_array testfail
+@qmlfunction get_array
 @qmlapp qml_file julia_array array_model array_model2 move_model resize_typed_model insert_model clear_model custom_model
 
 # Run the application

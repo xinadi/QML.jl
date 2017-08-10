@@ -29,6 +29,8 @@ Item {
 
       Julia.settwo(Julia.getglobal())
 
+      Julia.unexported_check(Julia.unexported_return_two())
+
       Qt.quit()
     }
   }

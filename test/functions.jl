@@ -51,9 +51,25 @@ function settwo(x::CustomType)
   x.b = "Two"
 end
 
+module UnExported
+
+using Base.Test
+
+return_two() = 2.0
+
+function check(x)
+  @test x == 2.0
+  return
+end
+
+end
 
 set_state2 = TestModuleFunction.set_state2
 @qmlfunction julia_callback1 julia_callback2 return_callback check_return_callback test_qvariant_map set_state1 set_state2 getglobal settwo
+
+qmlfunction("unexported_return_two", UnExported.return_two)
+qmlfunction("unexported_check", UnExported.check)
+
 @test(@qmlapp joinpath(dirname(@__FILE__), "qml", "functions.qml"))
 exec()
 

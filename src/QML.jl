@@ -97,8 +97,13 @@ Register a Julia function for access from QML:
 @qmlfunction MyFunc
 ```
 """
-macro qmlfunction(fname...)
-  esc(:(QML.register_function($(Any[string(f) for f in fname]))))
+macro qmlfunction(fnames...)
+  result = quote end
+  for fname in fnames
+    push!(result.args, :(qmlfunction($(esc(string(fname))), $(esc(fname)))))
+  end
+
+  return result
 end
 
 """
@@ -128,7 +133,7 @@ function Base.displayable(d::JuliaDisplay, mime::AbstractString)
   return false
 end
 
-export @qmlget, @qmlset, @emit, @qmlfunction, @qmlapp
+export @qmlget, @qmlset, @emit, @qmlfunction, @qmlapp, qmlfunction
 
 glvisualize_include() = joinpath(dirname(@__FILE__), "glvisualize_callbacks.jl")
 
@@ -201,5 +206,12 @@ Equivalent to `QQmlComponent::setData`. Use this to set the QML code for a QQmlC
 Equivalent to `QQmlComponent::create`. This creates a component defined by the QML code set using `set_data`.
 It also makes sure the newly created object is parented to the given context.
 """ create
+
+@doc """
+qmlfunction(name, function)
+
+Register the given function using the given name. Useful for registering functions from a non-exported module or renaming a function upon register (e.g. removing the !)
+
+""" qmlfunction
 
 end
