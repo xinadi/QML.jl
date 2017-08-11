@@ -42,6 +42,9 @@ Expand an expression of the form a.b.c to replace the dot operator by function c
 `@expand_dots a.b.c.d f` returns `f(f(f(a,"b"),"c"),"d")`
 """
 macro expand_dots(source_expr, func)
+  if source_expr.head == :escape
+    source_expr = source_expr.args[1]
+  end
   if isa(source_expr, Expr) && source_expr.head == :(.)
     return :($func(@expand_dots($(esc(source_expr.args[1])), $func), $(string(source_expr.args[2].args[1]))))
   end
