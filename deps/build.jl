@@ -1,7 +1,7 @@
 using BinDeps
 using CxxWrap
 
-const QML_JL_VERSION = v"0.4.2"
+const QML_JL_VERSION = v"0.4.3"
 
 QT_ROOT = get(ENV, "QT_ROOT", "")
 
