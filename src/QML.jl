@@ -1,10 +1,13 @@
 module QML
 
+export @qmlget, @qmlset, @emit, @qmlfunction, @qmlapp, qmlfunction, QVariant
+
 @static if is_windows()
   ENV["QML_PREFIX_PATH"] = joinpath(dirname(dirname(@__FILE__)),"deps","usr")
 end
 
 using CxxWrap
+using Observables
 
 const depsfile = joinpath(dirname(dirname(@__FILE__)), "deps", "deps.jl")
 if !isfile(depsfile)
@@ -15,6 +18,13 @@ include(depsfile)
 const envfile = joinpath(dirname(dirname(@__FILE__)), "deps", "env.jl")
 if isfile(envfile)
   include(envfile)
+end
+
+"""
+QVariant type encapsulation
+"""
+immutable QVariant
+  value::Any
 end
 
 wrap_module(_l_qml_wrap, QML)
@@ -31,11 +41,38 @@ function __init__()
   end
 end
 
+# Functor to update a QML property when an Observable is changed in Julia
+immutable QmlPropertyUpdater
+  propertymap::QQmlPropertyMap
+  key::String
+end
+function (updater::QmlPropertyUpdater)(x)
+  updater.propertymap[updater.key] = x
+end
+
+# Predicate to find out if a handler is a QML updater
+noqmlupdater(::Any) = true
+noqmlupdater(::QmlPropertyUpdater) = false
+
+# Called from C++ to update an Observable linked to a QML property
+function update_observable_property!(o::Observable, v)
+  # This avoids calling the to-qml update handler, since we initiated the update from QML
+  Observables.setexcludinghandlers(o, v, noqmlupdater)
+end
+
+# QQmlPropertyMap indexing interface
+Base.getindex(propmap::QQmlPropertyMap, key::AbstractString) = value(propmap, key).value
+Base.setindex!(propmap::QQmlPropertyMap, val, key::AbstractString) = insert(propmap, key, QVariant(val))
+Base.setindex!(propmap::QQmlPropertyMap, val::QVariant, key::AbstractString) = insert(propmap, key, val)
+function Base.setindex!(propmap::QQmlPropertyMap, val::Observable, key::AbstractString)
+  insert_observable(propmap, key, val)
+  on(QmlPropertyUpdater(propmap, key), val)
+end
+
 """
 Overloads for getting a property value based on its name for any base class
 """
-generic_property_get(ctx::QQmlContext, key::AbstractString) = context_property(ctx, key)
-generic_property_get(o::JuliaObject, key::AbstractString) = julia_object_value(o, key)
+generic_property_get(ctx::QQmlContext, key::AbstractString) = context_property(ctx, key).value
 
 """
 Expand an expression of the form a.b.c to replace the dot operator by function calls:
@@ -62,17 +99,28 @@ macro qmlget(dots_expr)
   :(@expand_dots($(esc(dots_expr)), generic_property_get))
 end
 
+"""
+Set a property on the given context
+"""
+function set_context_property(ctx::QQmlContext, key::AbstractString, value)
+  invoke(set_context_property, Tuple{QQmlContext, AbstractString, QVariant}, ctx, key, QVariant(value))
+end
+
 # Specialize for Reals
 function set_context_property(ctx::QQmlContext, key::AbstractString, value::Real)
   invoke(set_context_property, Tuple{QQmlContext, AbstractString, Any}, ctx, key, convert(Float64,value))
-  return nothing
+  return
+end
+
+# Ambiguity resolution
+function set_context_property(ctx::QML.QQmlContext, key::AbstractString, value::Union{CxxWrap.SmartPointer{T2}, T2} where T2<:QML.QObject)
+  return invoke(set_context_property, Tuple{Union{CxxWrap.SmartPointer{T2}, T2} where T2<:QML.QQmlContext, AbstractString, QObject}, ctx, key, value)
 end
 
 """
 Overloads for setting a property value based on its name for any base class
 """
 generic_property_set(ctx::QQmlContext, key::AbstractString, value::Any) = set_context_property(ctx, key, value)
-generic_property_set(o::JuliaObject, key::AbstractString, value::Any) = set(o, key, value)
 
 """
 Setter version of `@qmlget`, use in the form:
@@ -148,8 +196,6 @@ function Base.displayable(d::JuliaDisplay, mime::AbstractString)
   end
   return false
 end
-
-export @qmlget, @qmlset, @emit, @qmlfunction, @qmlapp, qmlfunction
 
 glvisualize_include() = joinpath(dirname(@__FILE__), "glvisualize_callbacks.jl")
 
