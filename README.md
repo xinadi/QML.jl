@@ -51,24 +51,14 @@ And additionally,
 ### Loading a QML file
 We support three methods of loading a QML file: `QQmlApplicationEngine`, `QQuickView` and `QQmlComponent`. These behave equivalently to the corresponding Qt classes.
 #### QQmlApplicationEngine
-The easiest way to run the QML file `main.qml` from the current directory is using the `@qmlapp` macro:
+The easiest way to run the QML file `main.qml` from the current directory is using the `load` function, which will create and return a `QQmlApplicationEngine` and load the supplied QML file:
 ```julia
 using QML
-@qmlapp "main.qml"
+load("main.qml")
 exec()
 ```
-The QML must have an `ApplicationWindow` as top component. It is also possible to default-construct the `QQmlApplicationEngine` and call `load` to load the QML separately:
-```julia
-qml_engine = init_qmlapplicationengine()
-# ...
-# set properties, ...
-# ...
-load(qml_engine, "main.qml")
-```
 
-This is useful to set context properties before loading the QML, for example.
-
-Note we use `init_` functions rather than calling the constructor for the Qt type directly. The init methods have the advantage that cleanup (calling delete etc.) happens in C++ automatically. Calling the constructor directly requires manually finalizing the corresponding components in the correct order and has a high risk of causing crashes on exit.
+The lifetime of the `QQmlApplicationEngine` is managed from C++ and it gets cleaned up when the application quits. This means it is not necessary to keep a reference to the engine to prevent it from being garbage collected prematurely.
 
 #### QQuickView
 The `QQuickView` creates a window, so it's not necessary to wrap the QML in `ApplicationWindow`. A QML file is loaded as follows:
@@ -139,87 +129,95 @@ Julia.my_other_function(arg1, arg2)
 ```
 
 ### Context properties
-The entry point for setting context properties is the root context of the engine, available using the `qmlcontext()` function. It is defined once the `@qmlapp` macro or one of the init functions has been called.
+Context properties are set using the context object method. To dynamically add properties from Julia, a `QQmlPropertyMap` is used, setting e.g. a property named `a`:
 ```julia
-@qmlset qmlcontext().property_name = property_value
+propmap = QML.QQmlPropertyMap()
+propmap["a"] = 1
 ```
 
-This sets the QML context property named `property_name` to value `julia_value`. Any time the `@qmlset` macro is called on such a property, QML is notified of the change and updates any dependent values.
+This sets the QML context property named `property_name` to value `julia_value`.
 
 The value of a property can be queried from Julia like this:
 ```julia
-@qmlget qmlcontext().property_name
+@test propmap["a"] == 1
 ```
 
-At application initialization, it is also possible to pass context properties as additional arguments to the `@qmlapp` macro:
+To pass these properties to the QML side, the property map can be the second argument to `load`:
 ```julia
-my_prop = 2.
-@qmlapp "main.qml" my_prop
+load(qml_file, propmap)
 ```
-This will initialize a context property named `my_prop` with the value 2.
+
+There is also a shorthand notation using keywords:
+```julia
+load(qml_file, a=1, b=2)
+```
+This will create context properties `a` and `b`, initialized to `1` and `2`.
+
+#### Observable properties
+When an [`Observable`](https://github.com/JuliaGizmos/Observables.jl) is set in a `QQmlPropertyMap`, bi-directional change notification is enabled. For example, using the Julia code:
+```julia
+using QML
+using Observables
+
+const qml_file = "observable.qml"
+const input = Observable(1.0)
+const output = Observable(0.0)
+
+on(output) do x
+  println("Output changed to ", x)
+end
+
+load(qml_file, input=input, output=output)
+exec_async() # run from REPL for async execution
+```
+
+In QML we add a slider for the input and display the output, which is twice the input (computed in QML here):
+```qml
+import QtQuick 2.0
+import QtQuick.Controls 1.0
+import QtQuick.Layouts 1.0
+
+ApplicationWindow {
+  id: root
+  title: "Observables"
+  width: 512
+  height: 200
+  visible: true
+
+  ColumnLayout {
+    spacing: 6
+    anchors.fill: parent
+
+    Slider {
+      value: input
+      Layout.alignment: Qt.AlignCenter
+      Layout.fillWidth: true
+      minimumValue: 0.0
+      maximumValue: 100.0
+      stepSize: 1.0
+      tickmarksEnabled: true
+      onValueChanged: {
+        input = value;
+        output = 2*input;
+      }
+    }
+
+    Text {
+      Layout.alignment: Qt.AlignCenter
+      text: output
+      font.pixelSize: 0.1*root.height
+    }
+  }
+
+}
+```
+
+Moving the slider will print the output on Julia. The input can also be set from the REPL using e.g. `input[] = 3.0`, and the slider will move accordingly and call QML to compute the output, which can be queried using `output[]`.
 
 #### Type conversion
 Most fundamental types are converted implicitly. Mind that the default integer type in QML corresponds to `Int32` in Julia.
 
 We also convert `QVariantMap`, exposing the indexing operator `[]` to access element by a string key. This mostly to deal with arguments passed to the QML `append` function in list models.
-
-#### Composite types
-Setting a composite type as a context property maps the type fields into a `JuliaObject`, which derives from `QQmlPropertyMap`. Example:
-
-```julia
-type JuliaTestType
-  a::Int32
-end
-
-jobj = JuliaTestType(0.)
-@qmlset qmlcontext().julia_object = jobj
-@qmlset qmlcontext().julia_object.a = 2
-@test @qmlget(root_ctx.julia_object.a) == 2
-@test jobj.a == 2
-```
-
-Access from QML:
-```qml
-import QtQuick 2.0
-
-Timer {
-     interval: 0; running: true; repeat: false
-     onTriggered: {
-       julia_object.a = 1
-       Qt.quit()
-     }
- }
-```
-
-When passing a `JuliaObject` object from QML to a Julia function, it is automatically converted to the Julia value, so on the Julia side it can be manipulated as normal. To get the QML side to see the changes the `update` function must be called:
-
-```julia
-type JuliaTestType
-  a::Int32
-  i::InnerType
-end
-
-# passed as context property
-julia_object2 = JuliaTestType(0, InnerType(0.0))
-
-function setthree(x::JuliaTestType)
-  x.a = 3
-  x.i.x = 3.0
-end
-
-function testthree(a,x)
-  @test a == 3
-  @test x == 3.0
-end
-```
-
-```qml
-// ...
-Julia.setthree(julia_object2)
-julia_object2.update()
-Julia.testthree(julia_object2.a, julia_object2.i.x)
-// ...
-```
 
 ### Emitting signals from Julia
 Defining signals must be done in QML in the JuliaSignals block, following the instructions from the [QML manual](http://doc.qt.io/qt-5/qtqml-syntax-objectattributes.html#signal-attributes). Example signal with connection:
@@ -254,7 +252,7 @@ adds the role named `myrole` to `array_model`, using the function `myrole` to ac
 
 To use the model from QML, it can be exposed as a context attribute, e.g:
 ```julia
-@qmlapp qml_file array_model
+load(qml_file, array_model=array_model)
 ```
 
 And then in QML:
@@ -293,7 +291,7 @@ fruitlist = [
   Fruit("Durian", 9.95, ListModel([Attribute("Tropical"), Attribute("Smelly")]))]
 
 # Set a context property with our listmodel
-@qmlset qmlcontext().fruitModel = ListModel(fruitlist)
+propmap["fruitModel"] = ListModel(fruitlist)
 ```
 See the full example for more details, including the addition of an extra constructor to deal with the nested `ListModel` for the attributes.
 
@@ -301,19 +299,16 @@ See the full example for more details, including the addition of an extra constr
 `QTimer` can be used to simulate running Julia code in the background. Excerpts from [`test/gui.jl`](test/gui.jl):
 
 ```julia
-bg_counter = 0
+const bg_counter = Observable(0)
 
 function counter_slot()
   global bg_counter
-  bg_counter += 1
-  @qmlset qmlcontext().bg_counter = bg_counter
+  bg_counter[] += 1
 end
 
 @qmlfunction counter_slot
 
-timer = QTimer()
-@qmlset qmlcontext().bg_counter = bg_counter
-@qmlset qmlcontext().timer = timer
+load(qml_file, timer=QTimer(), bg_counter=bg_counter)
 ```
 
 Use in QML like this:

@@ -26,10 +26,7 @@ end
 
 @qmlfunction propertymap_test set_expected_ob do_ob_update
 
-# Run with qml file and one context property
-@qmlapp qml_file
-
-propmap = QML.QQmlPropertyMap(qmlcontext())
+propmap = QML.QQmlPropertyMap()
 propmap["a"] = 1
 @test propmap["a"] == 1
 
@@ -48,11 +45,13 @@ expected_ob = 3
 println("setting ob from Julia to value $expected_ob")
 ob[] = expected_ob
 
-QML.set_context_object(qmlcontext(), propmap)
+@test propmap["ob"] == expected_ob
+
+# Load the QML file, setting the property map as context object
+load(qml_file, propmap)
 
 # Run the application
 exec()
 
 @test ob[] == expected_ob
-
 @test ob_handler_calls == 3

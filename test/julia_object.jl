@@ -1,5 +1,6 @@
 using Base.Test
 using QML
+using Observables
 
 type InnerType
   x::Float64
@@ -11,67 +12,39 @@ type JuliaTestType
   i::InnerType
 end
 
+function modify_julia_object(jo::JuliaTestType)
+  jo.a = 3
+  jo.i.x = 2.0
+  return
+end
+
+replace_julia_object() = JuliaTestType(1, InnerType(2.0))
+
+geta(jo) = jo.a
+getx(jo) = jo.i.x
+
+function julia_object_check(b::Bool)
+  @test b
+end
+
+logged_x = 0.0
+
+function logx(x)
+  global logged_x
+  logged_x = x
+  return
+end
+
 # absolute path in case working dir is overridden
 qml_file = joinpath(dirname(@__FILE__), "qml", "julia_object.qml")
+observed_object = Observable(JuliaTestType(0,InnerType(0.0)))
+@qmlfunction modify_julia_object replace_julia_object julia_object_check geta getx logx
 
-julia_object = JuliaTestType(0, InnerType(0.0))
-julia_object2 = JuliaTestType(0, InnerType(0.0))
-
-function test_string(s)
-  try
-    @test s == string(julia_object)
-    return
-  catch e
-    exit(1)
-  end
-end
-
-function jlobj_callback(o::JuliaTestType)
-  try
-    @test o == julia_object
-    return
-  catch e
-    exit(1)
-  end
-end
-
-innertwo() = InnerType(2.0)
-
-function check_inner_x(x)
-  try
-    @test x == 2.0
-    return
-  catch e
-    exit(1)
-  end
-end
-
-function setthree(x::JuliaTestType)
-  x.a = 3
-  x.i.x = 3.0
-end
-
-function testthree(a,x)
-  try
-    @test a == 3
-    @test x == 3.0
-  catch
-    exit(1)
-  end
-end
-
-@qmlfunction test_string jlobj_callback innertwo check_inner_x setthree testthree
-
-# Run with qml file and one context property
-@qmlapp qml_file julia_object julia_object2
-
-@test (@qmlget qmlcontext().julia_object.a) == 0
-@test (@qmlget qmlcontext().julia_object.i.x) == 0.0
-@test QML.julia_value(@qmlget qmlcontext().julia_object).a == 0
+load(qml_file, julia_object=JuliaTestType(1, InnerType(2.0)), observed_object=observed_object)
 
 # Run the application
 exec()
 
-
-@test julia_object.a == 1
-@test julia_object.i.x == 2.0
+@test observed_object[].a == 1
+@test observed_object[].i.x == 2.0
+@test logged_x == 2.0

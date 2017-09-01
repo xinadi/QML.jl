@@ -1,8 +1,6 @@
 using Base.Test
 using QML
 
-hi = "Hi from Julia"
-
 # absolute path in case working dir is overridden
 qml_data = QByteArray("""
 import QtQuick 2.0
@@ -31,7 +29,10 @@ ApplicationWindow {
 """)
 
 qengine = init_qmlengine()
-@qmlset qmlcontext().hi = hi
+ctx = root_context(qengine)
+ctxobj = QQmlPropertyMap(ctx)
+set_context_object(ctx, ctxobj)
+ctxobj["hi"] = "Hi from Julia"
 
 qcomp = QQmlComponent(qengine)
 set_data(qcomp, qml_data, "")

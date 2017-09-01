@@ -1,18 +1,17 @@
 import QtQuick 2.0
 import org.julialang 1.0
 
-Timer {
-     interval: 200; running: true; repeat: false
-     onTriggered: {
-       julia_object.a += parseInt("1")
-       julia_object.b = 0
-       Julia.test_string(julia_object.julia_string())
-       Julia.jlobj_callback(julia_object)
-       julia_object.i = Julia.innertwo()
-       Julia.check_inner_x(julia_object.i.x)
-       Julia.setthree(julia_object2)
-       julia_object2.update()
-       Julia.testthree(julia_object2.a, julia_object2.i.x)
-       Qt.quit()
-     }
- }
+Item {
+  Timer {
+    interval: 200; running: true; repeat: false
+    onTriggered: {
+      Julia.julia_object_check(Julia.geta(julia_object) == 1)
+      Julia.julia_object_check(Julia.getx(julia_object) == 2.0)
+      observed_object = Julia.replace_julia_object()
+      Qt.quit()
+    }
+  }
+
+  property var someNumber: Julia.getx(observed_object)
+  onSomeNumberChanged: Julia.logx(someNumber) // should be triggered when replacing observed_object
+}

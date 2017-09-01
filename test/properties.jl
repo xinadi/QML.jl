@@ -3,8 +3,12 @@ using QML
 
 # Test context properties
 
+propmap = QQmlPropertyMap()
+propmap["my_prop"] = 1
+propmap["φ"] = φ
+
 function check_property(x)
-  @test x == @qmlget qmlcontext().my_prop
+  @test x == propmap["my_prop"]
   nothing
 end
 
@@ -16,6 +20,5 @@ end
 @qmlfunction check_property check_golden
 qmlfile = joinpath(dirname(@__FILE__), "qml", "properties.qml")
 
-my_prop = 1
-@qmlapp qmlfile my_prop φ
+load(qmlfile, propmap)
 exec()

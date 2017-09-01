@@ -27,7 +27,7 @@ end
 # absolute path in case working dir is overridden
 qml_file = joinpath(dirname(@__FILE__), "qml", "julia_signal.qml")
 
-@qmlapp qml_file
+load(qml_file)
 
 # Run the application
 exec()

@@ -35,7 +35,7 @@ removerole_c() = removerole(tablemodel, "c")
 setrole_a() = setrole(tablemodel, 0, "abc", (x::TableItem) -> x.a*x.b*x.c)
 
 @qmlfunction testfail removerole_b removerole_c setrole_a
-@qmlapp qml_file array_model array_model2 tablemodel
+load(qml_file, array_model=array_model, array_model2=array_model2, tablemodel=tablemodel)
 
 exec()
 

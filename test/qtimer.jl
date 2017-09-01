@@ -12,10 +12,8 @@ end
 
 @qmlfunction counter_slot
 
-timer = QTimer()
-
 qmlfile = joinpath(dirname(@__FILE__), "qml", "qtimer.qml")
-@qmlapp qmlfile timer
+load(qmlfile, timer=QTimer())
 exec()
 
 @test bg_counter > 100

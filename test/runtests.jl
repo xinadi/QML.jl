@@ -1,6 +1,6 @@
 using Base.Test
 
-excluded = ["runtests.jl", "qml", "include", "julia_object.jl"]
+excluded = ["runtests.jl", "qml", "include"]
 
 # OpenGL on Linux travis is excessively old, causing a crash when attempting display of a window
 if get(ENV, "QML_SKIP_GUI_TESTS", "0") != "0"
