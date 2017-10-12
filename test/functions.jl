@@ -70,7 +70,7 @@ set_state2 = TestModuleFunction.set_state2
 qmlfunction("unexported_return_two", UnExported.return_two)
 qmlfunction("unexported_check", UnExported.check)
 
-@test(@qmlapp joinpath(dirname(@__FILE__), "qml", "functions.qml"))
+@qmlapp joinpath(dirname(@__FILE__), "qml", "functions.qml")
 exec()
 
 stringresult = VERSION < v"0.5-dev" ? ASCIIString : String
