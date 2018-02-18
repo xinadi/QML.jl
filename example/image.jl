@@ -1,5 +1,6 @@
 using Base.Test
 using QML
+using Images # for show of png
 using TestImages
 
 function test_display(d::JuliaDisplay)

@@ -125,8 +125,21 @@ end
 
 function Base.display(d::JuliaDisplay, x)
   buf = IOBuffer()
-  Base.show(buf, MIME"image/png"(), x)
-  load_png(d, take!(buf))
+  supported_types = (MIME"image/svg+xml"(), MIME"image/png"())
+  write_methods = (load_svg, load_png)
+  written = false
+  for (t,write_method) in zip(supported_types, write_methods)
+    if mimewritable(t,x)
+      Base.show(buf, t, x)
+      write_method(d, take!(buf))
+      written = true
+      break
+    end
+  end
+  if !written
+    throw(ErrorException("Can't display using any of the types $supported_types"))
+  end
+  
 end
 
 function Base.displayable(d::JuliaDisplay, mime::AbstractString)
