@@ -18,7 +18,7 @@ end
 
 @BinDeps.setup
 
-jlcxx_dir = Pkg.dir("CxxWrap","deps","usr","share","cmake")
+jlcxx_dir = joinpath(dirname(CxxWrap._l_jlcxx), "cmake", "JlCxx")
 
 qmlwrap = library_dependency("qmlwrap", aliases=["libqmlwrap"])
 
@@ -63,7 +63,7 @@ if QT_ROOT == ""
       end
 
       if BinDeps.can_use(AptGet)
-        printrun(`sudo apt-get install cmake cmake-data qtdeclarative5-dev qtdeclarative5-qtquick2-plugin qtdeclarative5-dialogs-plugin qtdeclarative5-controls-plugin qtdeclarative5-quicklayouts-plugin qtdeclarative5-window-plugin qmlscene qt5-default`)
+        printrun(`sudo apt-get install cmake cmake-data qtdeclarative5-dev qml-module-qtquick-controls qml-module-qtquick-dialogs qmlscene qt5-default`)
       elseif BinDeps.can_use(Pacman)
         printrun(`sudo pacman -S --needed qt5-quickcontrols2`)
       elseif BinDeps.can_use(Yum)
