@@ -178,6 +178,12 @@ function ListModel{T}(a::Array{T}, addroles=true)
   return listmodel
 end
 
+# ListModel Julia interface
+Base.push!(lm::ListModel, val) = push_back(lm, val)
+Base.size(lm::ListModel) = (model_length(lm),)
+Base.length(lm::ListModel) = model_length(lm)
+Base.delete!(lm::ListModel, i) = remove(lm, i-1)
+
 @doc """
 Module for building [Qt5 QML](http://doc.qt.io/qt-5/qtqml-index.html) graphical user interfaces for Julia programs.
 Types starting with `Q` are equivalent of their Qt C++ counterpart, so they have no Julia docstring and we refer to

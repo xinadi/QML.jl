@@ -42,3 +42,17 @@ exec()
 @show julia_array
 
 @test julia_array[1] == "TEST"
+@test size(array_model) == (3,)
+@test array_model[2] == 1
+array_model[1] = 42
+@test array_model[1] == 42
+@test julia_array[1] == 42
+push!(array_model, "Test2")
+@test array_model[4] == "Test2"
+@test julia_array[end] == "Test2"
+@test length(julia_array) == 4
+@test length(array_model) == 4
+delete!(array_model,3)
+@test length(julia_array) == 3
+@test length(array_model) == 3
+@test julia_array[3] == "Test2"
