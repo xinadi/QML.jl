@@ -1,13 +1,13 @@
-using Base.Test
+using Test
 using QML
 using Observables
 
-type InnerType
+mutable struct InnerType
   x::Float64
 end
 
 # example type
-type JuliaTestType
+mutable struct JuliaTestType
   a::Int32
   i::InnerType
 end

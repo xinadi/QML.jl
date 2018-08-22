@@ -1,4 +1,4 @@
-using Base.Test
+using Test
 using QML
 using Images # for show of png
 using TestImages

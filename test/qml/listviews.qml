@@ -101,9 +101,7 @@ ApplicationWindow {
         Julia.testfail("Bad role name for c")
       }
 
-      console.log("begin remove")
       Julia.removerole_b()
-      console.log("end remove")
       if(tabview.columnCount != 2) {
         Julia.testfail("wrong column count after remove 1: " + tabview.columnCount)
       }
@@ -113,7 +111,6 @@ ApplicationWindow {
       if(tabview.getColumn(1).role != "c") {
         Julia.testfail("Bad role name for c after remove 1")
       }
-
       Julia.removerole_c()
       if(tabview.columnCount != 1) {
         Julia.testfail("wrong column count after remove: " + tabview.columnCount)
@@ -129,7 +126,6 @@ ApplicationWindow {
       if(tabview.getColumn(0).role != "abc") {
         Julia.testfail("Bad role name for abc after setrow")
       }
-
 
       Qt.quit()
     }

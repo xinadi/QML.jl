@@ -1,4 +1,4 @@
-using Base.Test
+using Test
 using QML
 
 # Test use of QTimer

@@ -1,22 +1,23 @@
 module QML
 
+export QQmlContext, set_context_property, root_context, load, qt_prefix_path, set_source, engine, QByteArray, to_string, QQmlComponent, set_data, create, QQuickItem, content_item, JuliaObject, QTimer, context_property, emit, JuliaDisplay, init_application, qmlcontext, init_qmlapplicationengine, init_qmlengine, init_qquickview, exec, exec_async, ListModel, addrole, setconstructor, removerole, setrole, QVariantMap
+export QPainter, device, width, height, logicalDpiX, logicalDpiY, QQuickWindow, effectiveDevicePixelRatio, window, JuliaPaintedItem, update
 export @emit, @qmlfunction, @qmlapp, qmlfunction, QVariant, load, QQmlPropertyMap, set_context_object
-
-@static if is_windows()
-  ENV["QML_PREFIX_PATH"] = joinpath(dirname(dirname(@__FILE__)),"deps","usr")
-end
-
-using CxxWrap
-using Observables
-using FileIO
-
-FileIO.add_format(format"QML", (), ".qml")
 
 const depsfile = joinpath(dirname(dirname(@__FILE__)), "deps", "deps.jl")
 if !isfile(depsfile)
   error("$depsfile not found, package QML did not build properly")
 end
 include(depsfile)
+
+@static if Sys.iswindows()
+  ENV["QML_PREFIX_PATH"] = dirname(dirname(libjlqml))
+end
+
+using CxxWrap
+using Observables
+using FileIO
+import Libdl
 
 const envfile = joinpath(dirname(dirname(@__FILE__)), "deps", "env.jl")
 if isfile(envfile)
@@ -26,13 +27,12 @@ end
 """
 QVariant type encapsulation
 """
-immutable QVariant
+struct QVariant
   value::Any
 end
 
-wrap_module(_l_qml_wrap, QML)
+@wrapmodule libjlqml
 
-load
 function FileIO.load(f::FileIO.File{format"QML"}, ctxobj::QObject)
   qml_engine = init_qmlapplicationengine()
   ctx = root_context(qml_engine)
@@ -69,8 +69,7 @@ function FileIO.load(f::FileIO.File{format"QML"}; kwargs...)
 end
 
 function __init__()
-  # Make sure we have an application at module load, so any QObject is created after this
-  @static if is_windows()
+  @static if Sys.iswindows()
     libdir = joinpath(dirname(dirname(@__FILE__)),"deps","usr","lib")
     for fname in readdir(libdir)
       if endswith(fname, ".dll")
@@ -78,10 +77,13 @@ function __init__()
       end
     end
   end
+
+  @initcxx
+  FileIO.add_format(format"QML", (), ".qml")
 end
 
 # Functor to update a QML property when an Observable is changed in Julia
-immutable QmlPropertyUpdater
+struct QmlPropertyUpdater
   propertymap::QQmlPropertyMap
   key::String
 end
@@ -101,7 +103,7 @@ end
 
 # QQmlPropertyMap indexing interface
 Base.getindex(propmap::QQmlPropertyMap, key::AbstractString) = value(propmap, key).value
-function Base.setindex!{T}(propmap::QQmlPropertyMap, val::T, key::AbstractString)
+function Base.setindex!(propmap::QQmlPropertyMap, val::T, key::AbstractString) where {T}
   if !isbits(T) && !isimmutable(T)
     gcprotect(val)
   end
@@ -222,7 +224,7 @@ glvisualize_include() = joinpath(dirname(@__FILE__), "glvisualize_callbacks.jl")
 """
 Constructor for ListModel that automatically copies a typed array into an Array{Any,1} and creates a constructor and setter and getter functions for each field if addroles == true
 """
-function ListModel{T}(a::Array{T}, addroles=true)
+function ListModel(a::Array{T}, addroles=true) where {T}
   any_array = Array{Any,1}(a)
   function update_array()
     n = length(any_array)

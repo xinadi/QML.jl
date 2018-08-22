@@ -1,4 +1,4 @@
-using Base.Test
+using Test
 using QML
 
 # Julia Fruit model item. Each field is automatically a role, by default

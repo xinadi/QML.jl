@@ -1,8 +1,8 @@
-using Base.Test
+using Test
 using QML
 
 include(joinpath("include","functions_module.jl"))
-using TestModuleFunction
+using .TestModuleFunction
 
 # Test calling Julia functions
 
@@ -34,7 +34,7 @@ function test_qvariant_map(m::QVariantMap)
   nothing
 end
 
-type CustomType
+mutable struct CustomType
   a::Int
   b::String
 end
@@ -53,7 +53,7 @@ end
 
 module UnExported
 
-using Base.Test
+using Test
 
 return_two() = 2.0
 

@@ -1,4 +1,4 @@
-using Base.Test
+using Test
 using QML
 
 function emit_signal1()

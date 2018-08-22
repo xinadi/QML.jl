@@ -1,6 +1,6 @@
 # This example show how to update the GUI dusing a long-running simulation
 
-using Base.Test
+using Test
 using QML
 
 qmlfile = joinpath(dirname(Base.source_path()), "qml", "progressbar.qml")

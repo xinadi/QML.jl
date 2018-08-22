@@ -1,4 +1,4 @@
-using Base.Test
+using Test
 using QML
 
 # absolute path in case working dir is overridden

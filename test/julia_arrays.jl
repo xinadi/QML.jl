@@ -1,4 +1,4 @@
-using Base.Test
+using Test
 using QML
 
 # absolute path in case working dir is overridden
@@ -28,7 +28,7 @@ addrole(array_model2, "decorated", decorated)
 setconstructor(array_model2, identity)
 setconstructor(insert_model, identity)
 
-type ListElem
+mutable struct ListElem
   a::String
   b::Int32
 end

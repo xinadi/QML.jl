@@ -1,5 +1,3 @@
-__precompile__()
-
 module TestModuleFunction
 
 export set_state1, get_state

@@ -1,4 +1,4 @@
-using Base.Test
+using Test
 using QML
 
 # absolute path in case working dir is overridden
@@ -21,7 +21,7 @@ addrole(array_model2, "myrole", myrole2, setindex!)
 addrole(array_model2, "decorated", decorated2)
 setconstructor(array_model2, identity)
 
-type TableItem
+mutable struct TableItem
   a::Int32
   b::Int32
   c::Int32
