@@ -1,49 +1,41 @@
-ENV["QSG_RENDER_LOOP"] = "basic"
+ENV["QSG_RENDER_LOOP"] = "basic" # multithreading in Qt must be off
 using CxxWrap # for safe_cfunction
 using QML
-using GR
+using Observables
 
-qmlfile = joinpath(dirname(Base.source_path()), "qml", "gr.qml")
+# Set up plots with GR so QPainter can be used directly
+using Plots
+ENV["GKSwstype"] = "use_default"
+gr(show=true)
 
-type SineParameters
-  amplitude::Float64
-  frequency::Float64
-end
+const qmlfile = joinpath(dirname(Base.source_path()), "qml", "gr.qml")
 
-sine_parameters = SineParameters(1,1)
-
-type ScreenInfo
-  pixel_ratio::Float64
-end
-
-const screeninfo = ScreenInfo(0.0)
+f = Observable(1.0)
+A = Observable(1.0)
 
 # Arguments here need to be the "reference types", hence the "Ref" suffix
-function paint(p::QML.QPainterRef, item::QML.JuliaPaintedItemRef)
-  println("pixel ratio: ", effectiveDevicePixelRatio(window(item)))
-  ENV["GKSwstype"] = 381
-  ENV["GKSconid"] = split(repr(p.cpp_object), "@")[2]
-
-  x = 0:π/100:π
-  f = sine_parameters.amplitude*sin.(sine_parameters.frequency*x)
+function paint(p::QML.QPainterRef, item::QML.JuliaPaintedItemRef)  
+  ENV["GKS_WSTYPE"] = 381
+  ENV["GKS_CONID"] = split(repr(p.cpp_object), "@")[2]
 
   dev = device(p)
-  plt = gcf()
-  plt[:size] = (width(dev), height(dev))
+  r = effectiveDevicePixelRatio(window(item))
+  w, h = width(dev) / r, height(dev) / r
 
-  plot(x,f)
+  x = 0:π/100:π
+  y = A[]*sin.(f[]*x)
+
+  plot(x, y, ylims=(-5,5), size=(w, h))
 
   return
 end
 
-# Convert to cfunction, passing the painter as void*
-paint_cfunction = safe_cfunction(paint, Void, (QML.QPainterRef,QML.JuliaPaintedItemRef))
-
-# paint_cfunction becomes a context property
-@qmlapp qmlfile paint_cfunction sine_parameters screeninfo
+load(qmlfile,
+  paint_cfunction = @safe_cfunction(paint, Cvoid, (QML.QPainterRef, QML.JuliaPaintedItemRef)),
+  frequency = f,
+  amplitude = A
+)
 exec()
-
-@show screeninfo.pixel_ratio
 
 """
 Example of GR.jl integration

@@ -30,7 +30,7 @@ end
 
 @qmlfunction plot_diagram
 
-@qmlapp joinpath(dirname(Base.source_path()), "qml", "checkboxes.qml")
+load(joinpath(dirname(Base.source_path()), "qml", "checkboxes.qml"))
 exec()
 
 return

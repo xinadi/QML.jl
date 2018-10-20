@@ -20,6 +20,13 @@ Item {
       verify_array(a)
       verify_array(julia_array)
 
+      if(int_array[0] != 1 || int_array[1] != 2 || int_array[2] != 3) {
+        console.log("Bad int array: ", int_array)
+        throw "Error verifying int array"
+      }
+
+      // ob_array = [4,5,6]
+
       array_model2.setProperty(2, "myrole", "TEST2")
       array_model2.append({"myrole":"Added"})
       array_model2.append({"myrole":2})

@@ -1,6 +1,6 @@
 using QML
 
-@qmlapp joinpath(dirname(Base.source_path()), "qml", "tutorial.qml")
+load(joinpath(dirname(Base.source_path()), "qml", "tutorial.qml"))
 exec()
 
 return

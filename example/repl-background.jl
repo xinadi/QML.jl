@@ -3,9 +3,11 @@ using QML
 qml_file = joinpath(dirname(@__FILE__), "qml", "repl-background.qml")
 
 @qmlfunction pushdisplay
-@qmlapp qml_file
+load(qml_file)
 exec_async()
 
-ENV["MPLBACKEND"] = "Agg"
-using Plots
-pyplot(size=(512,512))
+using GR
+GR.inline()
+
+# Include from the REPL, and then add plotting commands, e.g:
+plot(rand(10,2))

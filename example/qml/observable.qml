@@ -8,6 +8,7 @@ ApplicationWindow {
   width: 512
   height: 200
   visible: true
+  onClosing: Qt.quit()
 
   ColumnLayout {
     spacing: 6

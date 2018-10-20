@@ -13,8 +13,7 @@ function init_backend(width::Float64, height::Float64, bestr::AbstractString)
   be = Symbol(lowercase(bestr))
   if be == :gr
     gr(size=(Int64(round(width)),Int64(round(height))))
-  elseif be == :pyplot
-    pyplot(size=(Int64(round(width)),Int64(round(height))))
+    Plots.GR.inline()
   end
 
   return
@@ -26,7 +25,7 @@ function plotsin(d::JuliaDisplay, amplitude::Float64, frequency::Float64)
   end
 
   x = 0:π/100:π
-  f = amplitude*sin(frequency*x)
+  f = amplitude*sin.(frequency.*x)
 
   plt = plot(x,f,ylims=(-5,5),show=false)
   display(d, plt)
@@ -38,7 +37,7 @@ end
 @qmlfunction plotsin init_backend
 
 qml_file = joinpath(dirname(@__FILE__), "qml", "plot.qml")
-@qmlapp qml_file
+load(qml_file)
 
 # Run the application
 exec()

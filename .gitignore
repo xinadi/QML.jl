@@ -8,4 +8,4 @@
 /deps/env.jl
 /deps/usr
 CMakeLists.txt.user
-Manifest.toml
+/Manifest.toml

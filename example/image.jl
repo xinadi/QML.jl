@@ -7,9 +7,10 @@ function test_display(d::JuliaDisplay)
   img = testimage("lena_color_256")
   display(d, img)
 end
-
-@qmlapp joinpath(dirname(@__FILE__), "qml", "image.qml")
 @qmlfunction test_display
+
+load(joinpath(dirname(@__FILE__), "qml", "image.qml"))
+
 
 # Run the application
 exec()

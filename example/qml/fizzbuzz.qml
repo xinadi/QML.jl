@@ -17,11 +17,11 @@ ApplicationWindow {
             placeholderText: "Input a number..."
             text: ""
             id: textField
-            onTextChanged: Julia.do_fizzbuzz(textField.text)
+            onTextChanged: Julia.do_fizzbuzz(textField.text, fizzbuzz)
         }
         Text {
             id: text
-            text: fizzbuzz.result
+            text: fizzbuzzMessage
         }
         Button {
             text: 'Quit'

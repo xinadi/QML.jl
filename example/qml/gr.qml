@@ -10,10 +10,6 @@ ApplicationWindow {
   height: 600
   visible: true
 
-  Component.onCompleted: {
-    screeninfo.pixel_ratio = Screen.devicePixelRatio
-  }
-
   ColumnLayout {
     id: root
     spacing: 6
@@ -28,11 +24,15 @@ ApplicationWindow {
       }
 
       Slider {
-        id: amplitude
+        id: amplitudeSlider
         width: 100
-        value: 1.
+        value: 1.0
         minimumValue: 0.1
-        maximumValue: 5.
+        maximumValue: 5.0
+        onValueChanged: { 
+          amplitude = value;
+          painter.update()
+        }
       }
 
       Text {
@@ -40,11 +40,15 @@ ApplicationWindow {
       }
 
       Slider {
-        id: frequency
+        id: frequencySlider
         width: 100
-        value: 1.
-        minimumValue: 1.
+        value: 10.0
+        minimumValue: 1.0
         maximumValue: 50.
+        onValueChanged: { 
+          frequency = value;
+          painter.update()
+        }
       }
     }
 
@@ -53,22 +57,6 @@ ApplicationWindow {
       paintFunction : paint_cfunction
       Layout.fillWidth: true
       Layout.fillHeight: true
-
-      Connections {
-        target: amplitude
-        onValueChanged: {
-          sine_parameters.amplitude = amplitude.value;
-          painter.update()
-        }
-      }
-
-      Connections {
-        target: frequency
-        onValueChanged: {
-          sine_parameters.frequency = frequency.value;
-          painter.update()
-        }
-      }
     }
   }
 }

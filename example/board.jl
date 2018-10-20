@@ -1,7 +1,7 @@
 using QML
 
 # Represents the state related to a single emoji
-type EmojiState
+mutable struct EmojiState
   emoji::String
   numclicks::Float64
   bgcolor::String
@@ -23,7 +23,7 @@ cols = 3
 qml_file = joinpath(dirname(@__FILE__), "qml", "board.qml")
 
 # create the app, with cols and emojiModel exposed as QML context properties
-@qmlapp qml_file cols emojiModel
+load(qml_file,cols=cols,emojiModel=emojiModel)
 
 # Start the GUI
 exec()

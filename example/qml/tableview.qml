@@ -24,13 +24,13 @@ ApplicationWindow {
       Button {
           Layout.alignment: Qt.AlignCenter
           text: "Add column"
-          onClicked: { Julia.append_year() }
+          onClicked: { years = [2001, 2002, 2003]; }
       }
 
       Button {
           Layout.alignment: Qt.AlignCenter
           text: "Remove column"
-          onClicked: { Julia.pop_year_front() }
+          onClicked: { shift(years) }
       }
     }
 

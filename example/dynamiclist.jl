@@ -2,14 +2,14 @@ using Test
 using QML
 
 # Julia Fruit model item. Each field is automatically a role, by default
-type Fruit
+mutable struct Fruit
   name::String
   cost::Float64
   attributes::ListModel
 end
 
 # Attributes must have a description and are nested model items
-type Attribute
+mutable struct Attribute
   description::String
 end
 
@@ -29,7 +29,9 @@ fruitlist = [
   Fruit("Durian", 9.95, ListModel([Attribute("Tropical"), Attribute("Smelly")]))]
 
 # Set a context property with our listmodel
-@qmlset qmlcontext().fruitModel = ListModel(fruitlist)
+ctxobj = QQmlPropertyMap(qmlcontext())
+ctxobj["fruitModel"] = ListModel(fruitlist)
+set_context_object(qmlcontext(), ctxobj)
 
 # Load QML after setting context properties, to avoid errors on initialization
 qml_file = joinpath(dirname(@__FILE__), "qml", "dynamiclist.qml")

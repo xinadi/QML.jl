@@ -1,20 +1,28 @@
 using QML
+using Observables
 
-# Encapsulate a point position
-type Point
-  x::Float64
-  y::Float64
-end
-
-const position = Point(0,0)
+const x = Observable(0.0)
+const y = Observable(0.0)
 
 qmlfile = joinpath(dirname(Base.source_path()), "qml", "sketch.qml")
 # Load the QML file, using position as a context property
-@qmlapp qmlfile position
-exec()
+
+posmap = QQmlPropertyMap()
+posmap["x"] = x
+posmap["y"] = y
 
 # Confirm that the point position is exposed to Julia
-println("Last position: ", position)
+const positionskip = 10
+const nb_moves = Ref(0)
+on(x) do px
+  if nb_moves[] % positionskip == 0
+    println("On position: ($px, $(y[]))")
+  end
+  nb_moves[] += 1
+end
+
+load(qmlfile, position=posmap)
+exec()
 
 """
 Example for sketching on a canvas

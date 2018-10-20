@@ -5,7 +5,7 @@ using CxxWrap
 using QML
 using ModernGL, GeometryTypes, GLAbstraction
 
-type Triangle
+mutable struct Triangle
   xmin::Float64
   xmax::Float64
 end

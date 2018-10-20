@@ -1,53 +1,143 @@
-# This example show how to update the GUI dusing a long-running simulation
-
+# This example show how to update the GUI during a long-running simulation
 using Test
 using QML
+using Observables
+using ResumableFunctions
+using Statistics
+
+const nsteps = 100
+const stepsize = Observable(0)
+
+# Simple counting "simulation" with its interface
+mutable struct Simulation
+  counter::Int
+  maxcount::Int
+  stepsize::Int
+
+  function Simulation()
+    result = new(0, nsteps, stepsize[])
+    on(stepsize) do n
+      result.stepsize = n
+    end
+    return result
+  end
+end
+
+isfinished(s) = s.counter == s.maxcount
+
+function dostep(s::Simulation)
+  if isfinished(s)
+    error("Simulation is finished, can't step anymore")
+  end
+  
+  if s.stepsize != 0
+    sleep(s.stepsize/1000)
+  end
+  s.counter += 1
+end
+
+getprogress(s) = s.counter / s.maxcount
+restart(s) = (s.counter = 0)
+
+const simulation_types = [
+  ("Direct", :direct),
+  ("Channel", :channel),
+  ("ResumableFunctions", :resumable)
+]
 
 qmlfile = joinpath(dirname(Base.source_path()), "qml", "progressbar.qml")
 
-type SimulationState
-  progress::Float64
+# Global state, accessible from QML
+const simulation = Observable{Any}(nothing) # The simulation
+const progress = Observable(0.0) # Simulation progress
+const selectedsimtype = Observable(0) # Index of the selected simulation type
+const ticks = Observable(0) # Number of times the timer has ticked
+
+on(selectedsimtype) do i
+  setup(simulation, simulation_types[i][2])
 end
 
-const simulation_state = SimulationState(0.0)
+# Direct update of the simulation
+function step(sim::Simulation)
+  dostep(sim)
+  progress[] = getprogress(sim)
+end
 
-# Our simulation is just a busy wait, producing progress between 0.0 and 1.0
-function simulate()
-  counter = 0.0
-  maxcount = 1000000000.0
-  while counter < maxcount
-    for i in 1:Int(maxcount/100)
-      counter += 1.0
-    end
-    produce(counter/maxcount)
+# Track the simulation in a channel
+function simulate_chan(c::Channel)
+  sim = Simulation()
+  while !isfinished(sim)
+    dostep(sim)
+    put!(c, getprogress(sim))
   end
-  produce(1.0)
+end
+function step(c::Channel)
+  progress[] = take!(c)
 end
 
-simulation_task = Task(simulate)
-
-# Run a step in the simulation, restart if already finished
-function step()
-  global simulation_state
-  global simulation_task
-
-  if simulation_state.progress >= 1.0
-    println("Simulation was finished, restarting")
-    simulation_task = Task(simulate)
+# Track the simulation in a ResumableFunction
+@resumable function simulate_resumable()
+  sim = Simulation()
+  while !isfinished(sim)
+    dostep(sim)
+    @yield getprogress(sim)
   end
-
-  @show progress = consume(simulation_task)
-  @qmlset qmlcontext().simulation_state.progress = progress
-
-  return
+end
+function step(it::ResumableFunctions.FiniteStateMachineIterator)
+  progress[] = it()
 end
 
-# Register the stepping function function
-@qmlfunction step
+const timings = zeros(UInt64, nsteps)
 
-# The timer will run simulation steps as fast as it can while active, yielding to the GUI after each tick
-timer = QTimer()
+function setup(observablesim, simtype)
+  if simtype == :direct
+    observablesim[] = Simulation()
+  elseif simtype == :channel
+    observablesim[] = Channel(simulate_chan)
+  elseif simtype == :resumable
+    observablesim[] = simulate_resumable()
+  else
+    error("Unknown simulation type $simtype")
+  end
+  progress[] = 0.0
+  println("set up simulation $(simulation[])")
+end
+
+# set up initial simulation
+selectedsimtype[] = 1
+
+# Control the simulation using a QTimer, to hook into the Qt event loop
+const timer = QTimer()
+
+# Stop the timer when the simulation is at the end.
+on(progress) do p
+  if p >= 1.0
+    QML.stop(timer)
+    meantime = mean(timings[2:end] .- timings[1:end-1]) / 1e6
+    println("Finished simulation after $(ticks[]) ticks with average time of $meantime ms between ticks")
+    ticks[] = 0
+    setup(simulation, simulation_types[selectedsimtype[]][2])
+  end
+end
+
+on(ticks) do t
+  ti = Int(t)
+  if ti != 0 && ti <= length(timings)
+    timings[ti] = time_ns()
+    step(simulation[])
+  end
+end
 
 # All arguments after qmlfile are context properties:
-@qmlapp qmlfile simulation_state timer
+load(
+  qmlfile,
+  progress=progress,
+  timer=timer,
+  ticks=ticks,
+  simulationTypes=ListModel(first.(simulation_types)),
+  selectedSimType=selectedsimtype,
+  stepsize=stepsize)
+
 exec()
+
+println("Simuation was at $(progress[]) in the end.")

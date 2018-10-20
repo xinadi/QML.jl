@@ -1,5 +1,6 @@
 using Test
 using QML
+using Observables
 
 # absolute path in case working dir is overridden
 qml_file = joinpath(dirname(@__FILE__), "qml", "julia_arrays.qml")
@@ -9,6 +10,9 @@ move_array = collect(0:9)
 resize_typed_array = collect(1:5)
 insert_array = [1,2,4]
 clear_array = [1.,2.]
+any_array = Any[1,2,3]
+int_array = [1,2,3]
+ob_array = Observable(int_array)
 
 get_array() = julia_array
 
@@ -45,8 +49,10 @@ load(qml_file,
   resize_typed_model=resize_typed_model,
   insert_model=insert_model,
   clear_model=clear_model,
-  custom_model=custom_model)
-
+  custom_model=custom_model,
+  any_array=any_array,
+  int_array=int_array,
+  ob_array=ob_array)
 
 # Run the application
 exec()
@@ -74,3 +80,8 @@ exec()
 @show custom_list
 @test custom_list[3].a == "ten"
 @test custom_list[3].b == 10
+
+ob_array[] = [4,5,6]
+
+@show int_array
+@show ob_array[]

@@ -17,7 +17,5 @@ end
 
 @qmlfunction singlefile multifile
 
-qmlfile = joinpath(dirname(Base.source_path()), "qml", "filedialog.qml")
-# Load the QML file, using position as a context property
-@qmlapp qmlfile position
+load(joinpath(dirname(Base.source_path()), "qml", "filedialog.qml"))
 exec()

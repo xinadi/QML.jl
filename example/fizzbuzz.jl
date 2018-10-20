@@ -1,15 +1,17 @@
 using QML
+using Observables
 """
 Translation of the FizzBuzz example from http://seanchas116.github.io/ruby-qml/
 """
 
-type FizzBuzz
-  result::AbstractString
-  count::Int
-  success::Bool
+mutable struct FizzBuzz
+  result::Observable{String}
+  count::Observable{Int}
+  success::Observable{Bool}
+  FizzBuzz() = new(Observable(""), Observable(0), Observable(false))
 end
 
-function do_fizzbuzz(input::AbstractString)
+function do_fizzbuzz(input::AbstractString, fb::FizzBuzz)
   if isempty(input)
     return
   end
@@ -17,31 +19,36 @@ function do_fizzbuzz(input::AbstractString)
   try
     i = parse(Int32, input)
   catch
-    @qmlset qmlcontext().fizzbuzz.result = "parse error"
+    fb.result[] = "parse error"
   end
   if i % 15 == 0
-    @qmlset qmlcontext().fizzbuzz.result = "FizzBuzz"
-    fizzbuzz.success = true
+    fb.result[] = "FizzBuzz"
+    fb.success[] = true
     @emit fizzBuzzFound(i)
   elseif i % 3 == 0
-    @qmlset qmlcontext().fizzbuzz.result = "Fizz"
+    fb.result[] = "Fizz"
   elseif i % 5 == 0
-    @qmlset qmlcontext().fizzbuzz.result = "Buzz"
+    fb.result[] = "Buzz"
   else
-    @qmlset qmlcontext().fizzbuzz.result = input
+    fb.result[] = input
   end
-  if fizzbuzz.count == 2 && !fizzbuzz.success
+  if fb.count[] == 2 && !fb.success[]
     @emit fizzBuzzFail()
   end
-  fizzbuzz.count += 1
+  fb.count[] += 1
   nothing
 end
 
-qmlfile = joinpath(dirname(Base.source_path()), "qml", "fizzbuzz.qml")
-fizzbuzz = FizzBuzz("", 0, false)
-
-@qmlapp qmlfile fizzbuzz
-
 @qmlfunction do_fizzbuzz
 
+the_fizzbuzz = FizzBuzz()
+
+qmlfile = joinpath(dirname(Base.source_path()), "qml", "fizzbuzz.qml")
+load(qmlfile, fizzbuzz=the_fizzbuzz, fizzbuzzMessage=the_fizzbuzz.result)
 exec()
+
+print("""
+State of fizzbuzz at exit:
+  result: $(the_fizzbuzz.result[])
+  count: $(the_fizzbuzz.count[])
+""")

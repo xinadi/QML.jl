@@ -199,7 +199,7 @@ function Base.display(d::JuliaDisplay, x)
   write_methods = (load_svg, load_png)
   written = false
   for (t,write_method) in zip(supported_types, write_methods)
-    if mimewritable(t,x)
+    if showable(t,x)
       Base.show(buf, t, x)
       write_method(d, take!(buf))
       written = true
@@ -207,7 +207,7 @@ function Base.display(d::JuliaDisplay, x)
     end
   end
   if !written
-    throw(ErrorException("Can't display using any of the types $supported_types"))
+    throw(MethodError(display, (d,x)))
   end
 
 end
