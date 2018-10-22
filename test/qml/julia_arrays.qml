@@ -25,7 +25,7 @@ Item {
         throw "Error verifying int array"
       }
 
-      // ob_array = [4,5,6]
+      ob_array = [7,8,9]
 
       array_model2.setProperty(2, "myrole", "TEST2")
       array_model2.append({"myrole":"Added"})

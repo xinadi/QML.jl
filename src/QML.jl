@@ -1,8 +1,8 @@
 module QML
 
-export QQmlContext, set_context_property, root_context, load, qt_prefix_path, set_source, engine, QByteArray, to_string, QQmlComponent, set_data, create, QQuickItem, content_item, JuliaObject, QTimer, context_property, emit, JuliaDisplay, init_application, qmlcontext, init_qmlapplicationengine, init_qmlengine, init_qquickview, exec, exec_async, ListModel, addrole, setconstructor, removerole, setrole, QVariantMap
+export QQmlContext, root_context, load, qt_prefix_path, set_source, engine, QByteArray, to_string, QQmlComponent, set_data, create, QQuickItem, content_item, JuliaObject, QTimer, context_property, emit, JuliaDisplay, init_application, qmlcontext, init_qmlapplicationengine, init_qmlengine, init_qquickview, exec, exec_async, ListModel, addrole, setconstructor, removerole, setrole, QVariantMap
 export QPainter, device, width, height, logicalDpiX, logicalDpiY, QQuickWindow, effectiveDevicePixelRatio, window, JuliaPaintedItem, update
-export @emit, @qmlfunction, @qmlapp, qmlfunction, QVariant, load, QQmlPropertyMap, set_context_object
+export @emit, @qmlfunction, @qmlapp, qmlfunction, load, QQmlPropertyMap, set_context_object
 
 const depsfile = joinpath(dirname(dirname(@__FILE__)), "deps", "deps.jl")
 if !isfile(depsfile)
@@ -25,7 +25,7 @@ if isfile(envfile)
 end
 
 """
-QVariant type encapsulation
+QVariant type encapsulation. Used to wrap Julia values that need to be passed as a QVariant to QML
 """
 struct QVariant
   value::Any
@@ -88,7 +88,9 @@ struct QmlPropertyUpdater
   key::String
 end
 function (updater::QmlPropertyUpdater)(x)
+  println("inserting value of type $(typeof(x)): $x")
   updater.propertymap[updater.key] = x
+  println("done inserting value of type $(typeof(x))")
 end
 
 # Predicate to find out if a handler is a QML updater
@@ -99,6 +101,16 @@ noqmlupdater(::QmlPropertyUpdater) = false
 function update_observable_property!(o::Observable, v)
   # This avoids calling the to-qml update handler, since we initiated the update from QML
   Observables.setexcludinghandlers(o, v, noqmlupdater)
+end
+
+# Set arrays directly only if they have the same type
+function update_observable_property!(o::Observable{Array{T}}, v::Array{T}) where {T}
+  invoke(update_observable_property!, Tuple{Observable, Any}, o, v)
+end
+
+# Arrays with another type must be converted
+function update_observable_property!(o::Observable{Array{T1}}, v::Array{T2}) where {T1,T2}
+  invoke(update_observable_property!, Tuple{Observable, Any}, o, Array{T1}(v))
 end
 
 # QQmlPropertyMap indexing interface
@@ -131,24 +143,6 @@ macro expand_dots(source_expr, func)
 end
 
 """
-Set a property on the given context
-"""
-function set_context_property(ctx::QQmlContext, key::AbstractString, value)
-  invoke(set_context_property, Tuple{QQmlContext, AbstractString, QVariant}, ctx, key, QVariant(value))
-end
-
-# Specialize for Reals
-function set_context_property(ctx::QQmlContext, key::AbstractString, value::Real)
-  invoke(set_context_property, Tuple{QQmlContext, AbstractString, Any}, ctx, key, convert(Float64,value))
-  return
-end
-
-# Ambiguity resolution
-function set_context_property(ctx::QML.QQmlContext, key::AbstractString, value::Union{CxxWrap.SmartPointer{T2}, T2} where T2<:QML.QObject)
-  return invoke(set_context_property, Tuple{Union{CxxWrap.SmartPointer{T2}, T2} where T2<:QML.QQmlContext, AbstractString, QObject}, ctx, key, value)
-end
-
-"""
 Emit a signal in the form:
 ```
 @emit signal_name(arg1, arg2)
@@ -170,21 +164,6 @@ macro qmlfunction(fnames...)
     push!(result.args, :(qmlfunction($(esc(string(fname))), $(esc(fname)))))
   end
 
-  return result
-end
-
-"""
-Load the given QML path using a QQmlApplicationEngine, initializing the context with the given properties. Deprecated
-"""
-macro qmlapp(path, context_properties...)
-  Base.depwarn("The qmlapp macro is deprecated. Please use the qmlapp function instead and add properties separately using either @contextproperties or the global context object.", :qmlapp)
-  result = quote
-    qml_engine = init_qmlapplicationengine()
-  end
-  for p in context_properties
-    push!(result.args, :(set_context_property(qmlcontext(), $(esc(string(p))), $(esc(p)))))
-  end
-  push!(result.args, :(load_into_engine(qml_engine, $(esc(path)))))
   return result
 end
 
@@ -257,22 +236,6 @@ Module for building [Qt5 QML](http://doc.qt.io/qt-5/qtqml-index.html) graphical 
 Types starting with `Q` are equivalent of their Qt C++ counterpart, so they have no Julia docstring and we refer to
 the [Qt documentation](http://doc.qt.io/qt-5/qtqml-index.html) for details instead.
 """ QML
-
-@doc """
-Equivalent to [`QQmlContext::setContextProperty`](http://doc.qt.io/qt-5/qqmlcontext.html#setContextProperty).
-
-This function is useful to expose Julia values to  Current properties can be fundamental numeric types,
-strings and any `QObject`.
-
-Example:
-```julia
-qml_engine = QQmlApplicationEngine()
-root_ctx = root_context(qml_engine)
-set_context_property(root_ctx, "my_property", 1)
-```
-
-You can now use `my_property` in QML and every time `set_context_property` is called on it the GUI gets notified.
-""" set_context_property
 
 @doc "Equivalent to [`QQmlEngine::rootContext`](http://doc.qt.io/qt-5/qqmlengine.html#rootContext)" root_context
 

@@ -54,6 +54,8 @@ load(qml_file,
   int_array=int_array,
   ob_array=ob_array)
 
+ob_array[] = [4,5,6]
+
 # Run the application
 exec()
 
@@ -81,7 +83,4 @@ exec()
 @test custom_list[3].a == "ten"
 @test custom_list[3].b == 10
 
-ob_array[] = [4,5,6]
-
-@show int_array
-@show ob_array[]
+@test ob_array[] == [7, 8, 9]
