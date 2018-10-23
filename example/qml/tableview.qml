@@ -24,13 +24,13 @@ ApplicationWindow {
       Button {
           Layout.alignment: Qt.AlignCenter
           text: "Add column"
-          onClicked: { years = [2001, 2002, 2003]; }
+          onClicked: { years = years.concat([years[years.length-1]+1]); }
       }
 
       Button {
           Layout.alignment: Qt.AlignCenter
           text: "Remove column"
-          onClicked: { shift(years) }
+          onClicked: { years = years.slice(1) }
       }
     }
 

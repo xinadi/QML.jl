@@ -2,12 +2,11 @@ using QML
 
 qmlfile = joinpath(dirname(Base.source_path()), "qml", "text.qml")
 
-fromcontext = "From context property"
 fromfunction() = "From function call"
 @qmlfunction fromfunction
 
-# All qmlapp arguments after the QML file path are interpreted as context properties with the same name
-@qmlapp qmlfile fromcontext
+# All keyword arguments to load are added as context properties on the QML side
+load(qmlfile, fromcontext="From context property")
 exec()
 
 """
