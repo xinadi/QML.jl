@@ -3,14 +3,15 @@ ENV["QSG_RENDER_LOOP"] = "basic"
 
 using CxxWrap
 using QML
-using ModernGL, GeometryTypes, GLAbstraction
+using ModernGL, GeometryTypes
 
-mutable struct Triangle
-  xmin::Float64
-  xmax::Float64
+mutable struct Corner
+    id::Int32
+    cx::Float64
+    cy::Float64
 end
 
-const triangle = Triangle(-0.5,0.5)
+const corners = [Corner(1,0,0.5), Corner(2,0.5,-0.5), Corner(3,-0.5,-0.5)]
 
 function render()
   # Draw a triangle. Code mostly from the tutorials in GLAbstraction.
@@ -19,7 +20,7 @@ function render()
   glBindVertexArray(vao[])
 
   # The vertices of our triangle
-  vertices = Point2f0[(0, 0.5), (triangle.xmax, -0.5), (triangle.xmin, -0.5)] # note Float32
+  vertices = Point2f0[(c.cx, c.cy) for c in corners] # note Float32
 
   # Create the Vertex Buffer Object (VBO)
   vbo = Ref(GLuint(0))   # initial value is irrelevant, just allocate space
@@ -51,9 +52,11 @@ function render()
   }
   """
 
+  srctoptr(s) = convert(Ptr{UInt8}, pointer([convert(Ptr{GLchar}, pointer(s))]))
+
   # Compile the vertex shader
   vertex_shader = glCreateShader(GL_VERTEX_SHADER)
-  glShaderSource(vertex_shader, Vector{UInt8}(vertex_source))  # nicer thanks to GLAbstraction
+  glShaderSource(vertex_shader, 1, srctoptr(vertex_source), C_NULL)  # nicer thanks to GLAbstraction
   glCompileShader(vertex_shader)
   # Check that it compiled correctly
   status = Ref(GLint(0))
@@ -66,7 +69,7 @@ function render()
 
   # Compile the fragment shader
   fragment_shader = glCreateShader(GL_FRAGMENT_SHADER)
-  glShaderSource(fragment_shader, Vector{UInt8}(fragment_source))
+  glShaderSource(fragment_shader, 1, srctoptr(fragment_source), C_NULL)
   glCompileShader(fragment_shader)
   # Check that it compiled correctly
   status = Ref(GLint(0))
@@ -93,7 +96,7 @@ function render()
   glEnableVertexAttribArray(pos_attribute)
 
   # Set background
-  glClearColor(0.,0.,0.4,1.)
+  glClearColor(0.4,0.4,1.0,1.)
   glEnable(GL_DEPTH_TEST)
   glDepthFunc(GL_LESS)
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
@@ -102,18 +105,8 @@ function render()
   glDrawArrays(GL_TRIANGLES, 0, length(vertices))
 end
 
-render_triangle = CxxWrap.safe_cfunction(render, Void, ())
-
 # Pass the triangle as a context property
-@qmlapp joinpath(dirname(@__FILE__), "qml", "gltriangle.qml") triangle render_triangle
+load(joinpath(dirname(@__FILE__), "qml", "gltriangle.qml"),
+    cornersModel=ListModel(corners),
+    render_triangle=@safe_cfunction(render, Cvoid, ()))
 exec()
-
-# Uncomment to test without QML
-# using GLWindow, GLFW
-# window = GLWindow.create_glcontext("Example", resolution=(512, 512), debugging=true)
-# while isopen(window)
-#   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-#   render(-0.5,0.5)
-#   swapbuffers(window)
-#   pollevents()
-# end

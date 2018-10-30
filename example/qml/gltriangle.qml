@@ -1,69 +1,57 @@
 import QtQuick 2.0
 import QtQuick.Controls 1.0
 import QtQuick.Layouts 1.0
-import org.julialang 1.0
+import org.julialang 1.1
+import QtQuick.Window 2.2
 
 ApplicationWindow {
-  title: "My Application"
-  width: 512
-  height: 512
+  id: appRoot
+  title: "OpenGL"
+  width: 500
+  height: 500
   visible: true
 
-  ColumnLayout {
-    id: root
-    spacing: 6
+  OpenGLViewport {
+    id: viewport
     anchors.fill: parent
+    renderFunction: render_triangle
 
-    RowLayout {
-      Layout.fillWidth: true
-      Layout.alignment: Qt.AlignCenter
+    Repeater {
+      anchors.fill: parent
+      model: cornersModel
 
-      Text {
-        text: "X min:"
-      }
+      Rectangle {
+        id: pointMarker
+        width: 9
+        height: 9
+        color: "black"
+        
 
-      Slider {
-        id: xmin
-        value: -0.5
-        minimumValue: -1.
-        maximumValue: 0.
-      }
+        Component.onCompleted: {
+          x = (cx+1)/2*appRoot.width-width/2
+          y =  (-cy+1)/2*appRoot.height-height/2
+        }
 
-      Text {
-        text: "X max:"
-      }
+        Text { text: id; x: 10; y: 10 }
 
-      Slider {
-        id: xmax
-        value: 0.5
-        minimumValue: 0.
-        maximumValue: 1.
-      }
-    }
+        MouseArea {
+          anchors.fill: parent
+          drag.target: parent
+          drag.threshold: 0
+          drag.smoothed: false
+          onPressed: parent.color = "yellow" // visual feedback for the clicking
+          onReleased: parent.color = "black"
+        }
 
-    OpenGLViewport {
-      id: viewport
-      Layout.fillWidth: true
-      Layout.fillHeight: true
-      renderFunction: render_triangle
-    }
-
-    // Put the connections here, because viewport is defined after the sliders
-    Connections {
-      target: xmin
-      onValueChanged: {
-        triangle.xmin = xmin.value;
-        viewport.update()
-      }
-    }
-
-    Connections {
-      target: xmax
-      onValueChanged: {
-        triangle.xmax = xmax.value;
-        viewport.update()
+        onXChanged: {
+          cx = (x+width/2)*2/appRoot.width-1;
+          viewport.update();
+        }
+        onYChanged: {
+          cy = -((y+height/2)*2/appRoot.height-1);
+          viewport.update();
+        }
       }
     }
   }
-
 }
