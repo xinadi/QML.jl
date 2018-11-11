@@ -1,5 +1,5 @@
 import QtQuick 2.0
-import QtQuick.Controls 1.0
+import QtQuick.Controls 2.0
 import QtQuick.Layouts 1.0
 import org.julialang 1.1
 import QtQuick.Window 2.2
@@ -39,8 +39,11 @@ ApplicationWindow {
           drag.target: parent
           drag.threshold: 0
           drag.smoothed: false
+          hoverEnabled: true
           onPressed: parent.color = "yellow" // visual feedback for the clicking
           onReleased: parent.color = "black"
+          onEntered: if (pressedButtons == 0) { parent.color = "green" }
+          onExited: if (pressedButtons == 0) { parent.color = "black"; }
         }
 
         onXChanged: {
