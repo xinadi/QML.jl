@@ -88,9 +88,7 @@ struct QmlPropertyUpdater
   key::String
 end
 function (updater::QmlPropertyUpdater)(x)
-  println("inserting value of type $(typeof(x)): $x")
   updater.propertymap[updater.key] = x
-  println("done inserting value of type $(typeof(x))")
 end
 
 # Predicate to find out if a handler is a QML updater
@@ -198,7 +196,9 @@ function Base.displayable(d::JuliaDisplay, mime::AbstractString)
   return false
 end
 
-glvisualize_include() = joinpath(dirname(@__FILE__), "glvisualize_callbacks.jl")
+function load_makie_support()
+  include(joinpath(dirname(@__FILE__), "glvisualize_callbacks.jl"))
+end
 
 """
 Constructor for ListModel that automatically copies a typed array into an Array{Any,1} and creates a constructor and setter and getter functions for each field if addroles == true
