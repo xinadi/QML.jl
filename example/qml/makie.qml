@@ -42,7 +42,7 @@ ApplicationWindow {
       }
     }
 
-    GLVisualizeViewport {
+    MakieViewport {
       id: viewport
       Layout.fillWidth: true
       Layout.fillHeight: true

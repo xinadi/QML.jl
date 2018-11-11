@@ -33,20 +33,8 @@ To run the included examples, execute:
 ```julia
 include(joinpath(Pkg.dir("QML"), "example", "runexamples.jl"))
 ```
-The examples require some additional packages to be installed:
-```julia
-Pkg.add("ModernGL")
-Pkg.add("GLVisualize")
-Pkg.add("GeometryTypes")
-Pkg.add("GR")
-Pkg.add("TestImages")
-Pkg.add("Plots")
-Pkg.add("PyPlot")
-Pkg.clone("https://github.com/BenLauwens/StatefulFunctions.jl.git")
-```
-And additionally,
-* On Linux and Windows, `Pkg.add("ImageMagick")`
-* On macOS, `Pkg.add("QuartzImageIO")`
+The examples require some additional packages to be described by the manifest and project files in the examples directory, so from the examples directory you should
+start Julia with `julia --project` and then run `instantiate` from the pkg shell.
 
 ### Loading a QML file
 We support three methods of loading a QML file: `QQmlApplicationEngine`, `QQuickView` and `QQmlComponent`. These behave equivalently to the corresponding Qt classes.

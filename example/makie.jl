@@ -15,7 +15,7 @@ function render_function(screen)
   display(screen, cat)
 end
 
-load(joinpath(dirname(@__FILE__), "qml", "glvisualize.qml"),
+load(joinpath(dirname(@__FILE__), "qml", "makie.qml"),
   catangle=catangle,
   render_callback=@safe_cfunction(render_function, Cvoid, (Any,))
 )

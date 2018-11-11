@@ -197,7 +197,7 @@ function Base.displayable(d::JuliaDisplay, mime::AbstractString)
 end
 
 function load_makie_support()
-  include(joinpath(dirname(@__FILE__), "glvisualize_callbacks.jl"))
+  include(joinpath(dirname(@__FILE__), "makie_support.jl"))
 end
 
 """

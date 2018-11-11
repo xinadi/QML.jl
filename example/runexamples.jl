@@ -1,6 +1,6 @@
 mydir, myname = splitdir(@__FILE__)
 
-excluded = ["glvisualize.jl", "glvisualize_signals.jl"]
+excluded = []
 
 cd(mydir) do
   for fname in readdir()
