@@ -24,9 +24,13 @@ ApplicationWindow {
 
       Slider {
         id: angle
-        value: 0.
-        minimumValue: 0.
-        maximumValue: 360.
+        value: 0.0
+        minimumValue: 0.0
+        maximumValue: 360.0
+        onValueChanged: {
+          catangle = value;
+          viewport.update();
+        }
       }
     }
 
@@ -43,14 +47,6 @@ ApplicationWindow {
       Layout.fillWidth: true
       Layout.fillHeight: true
       renderFunction: render_callback
-
-      Connections {
-        target: angle
-        onValueChanged: {
-          catangle.angle = angle.value
-          viewport.update()
-        }
-      }
     }
   }
 
