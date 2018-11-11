@@ -10,9 +10,9 @@ This package provides an interface to [Qt5 QML](http://qt.io/). It uses the [`Cx
 ![OpenGL example](example/gltriangle.gif?raw=true "OpenGL example, using GLAbstraction.jl")
 
 ## Installation
-To install, type:
-```julia
-Pkg.add("QML")
+The current master version is experimental for Julia 1.0, and no binaries are available yet. Please build the binary part from [JlQml](https://github.com/barche/jlqml) first, and then set the `JLQML_DIR` environment variable to the path to the jlqml build directory. After that, run, in pkg mode:
+```text
+add QML#master
 ```
 
 On Linux and macOS, compilation should be automatic, with dependencies installed by the packagemanager or Homebrew.jl. On Windows, binaries are downloaded. To use a non-standard Qt, set the environment variable `QT_ROOT` to the base Qt directory (the one containing `lib` and `bin` on macOS and linux, or the directory containing `msvc2015_64` or `msvc2015` on Windows).
