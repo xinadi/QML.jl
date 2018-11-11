@@ -1,13 +1,10 @@
 environment:
   matrix:
-  - JULIA_URL: "https://julialang-s3.julialang.org/bin/winnt/x64/0.5/julia-0.5-latest-win64.exe"
-    BUILD_ON_WINDOWS: 1
-  - JULIA_URL: "https://julialang-s3.julialang.org/bin/winnt/x86/0.5/julia-0.5-latest-win32.exe"
-    BUILD_ON_WINDOWS: 1
-  - JULIA_URL: "https://julialang-s3.julialang.org/bin/winnt/x64/0.6/julia-0.6-latest-win64.exe"
-    BUILD_ON_WINDOWS: 1
-  - JULIA_URL: "https://julialang-s3.julialang.org/bin/winnt/x86/0.6/julia-0.6-latest-win32.exe"
-    BUILD_ON_WINDOWS: 1
+  - julia_version: 1
+
+platform:
+  - x86 # 32-bit
+  - x64 # 64-bit
 
 branches:
   only:
@@ -21,35 +18,13 @@ notifications:
     on_build_status_changed: true
 
 install:
-  - ps: "[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12"
-# Download most recent Julia Windows binary
-  - ps: (new-object net.webclient).DownloadFile(
-        $env:JULIA_URL,
-        "C:\projects\julia-binary.exe")
-# Run installer silently, output to C:\projects\julia
-  - C:\projects\julia-binary.exe /S /D=C:\projects\julia
-  - IF DEFINED MSYSTEM C:\msys64\usr\bin\bash.exe -l -c "pacman --needed --noconfirm -S mingw-w64-x86_64-cmake mingw-w64-x86_64-gcc mingw-w64-i686-cmake mingw-w64-i686-gcc make mingw-w64-x86_64-qt5 mingw-w64-i686-qt5 mingw-w64-i686-ntldd-git"
+  - ps: iex ((new-object net.webclient).DownloadString("https://raw.githubusercontent.com/JuliaCI/Appveyor.jl/version-1/bin/install.ps1"))
 
 build_script:
-# Need to convert from shallow to complete for Pkg.clone to work
-  - IF EXIST .git\shallow (git fetch --unshallow)
-  - IF DEFINED MSYSTEM C:\msys64\usr\bin\bash.exe -l -c "HOME=C:/Users/appveyor C:/projects/julia/bin/julia -e \"cd(ENV[\\\"OLDPWD\\\"]); versioninfo(); Pkg.clone(pwd(), \\\"QML\\\"); Pkg.build(\\\"QML\\\")\""
-  - IF NOT DEFINED MSYSTEM C:\projects\julia\bin\julia -e "versioninfo(); Pkg.clone(pwd(), \"QML\"); Pkg.build(\"QML\")"
+  - echo "%JL_BUILD_SCRIPT%"
+  - C:\julia\bin\julia -e "%JL_BUILD_SCRIPT%"
 
 test_script:
-  - C:\projects\julia\bin\julia --check-bounds=yes -e "Pkg.test(\"QML\")"
-
-after_test:
-  - IF NOT DEFINED MSYSTEM C:\projects\julia\bin\julia -e "cd(joinpath(Pkg.dir(\"QML\"), \"deps\"));  run(`7z a $(ENV[\"APPVEYOR_BUILD_FOLDER\"])\\QML$(get(ENV, \"APPVEYOR_REPO_TAG_NAME\", \"\"))-julia-$(VERSION.major).$(VERSION.minor)-win$(Sys.WORD_SIZE).zip usr`)"
-  - echo %APPVEYOR_JOB_NAME%
-
-artifacts:
-  - path: 'QML*-julia*.zip'
-
-deploy:
-  provider: GitHub
-  auth_token:
-    secure: gT/6HUmJMkLU89J2qu3FZ/OR2Velz//TSA/GJr65M1iNRjTimZLnAk73oRPGtA7d # your encrypted token from GitHub
-  on:
-    branch: master                 # release from master branch only
-    appveyor_repo_tag: true        # deploy on tag push only
+  - echo "%JL_TEST_SCRIPT%"
+  - C:\julia\bin\julia -e "%JL_TEST_SCRIPT%"
+  

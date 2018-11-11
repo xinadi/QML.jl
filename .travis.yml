@@ -1,29 +1,10 @@
 # Documentation: http://docs.travis-ci.com/user/languages/julia/
 language: julia
-sudo: required
-dist: trusty
-matrix:
-  include:
-    - os: linux
-      env:
-        - QML_SKIP_GUI_TESTS=1
-      before_script:
-        - "export DISPLAY=:99.0"
-        - "sh -e /etc/init.d/xvfb start"
-        - sleep 3 # give xvfb some time to start
-        - "export GALLIUM_DRIVER=\"softpipe\""
-      julia: 0.5
-    - os: linux
-      env:
-        - QML_SKIP_GUI_TESTS=1
-      before_script:
-        - "export DISPLAY=:99.0"
-        - "sh -e /etc/init.d/xvfb start"
-        - sleep 3 # give xvfb some time to start
-        - "export GALLIUM_DRIVER=\"softpipe\""
-      julia: 0.6
-    - os: osx
-      compiler: "clang"
-      julia: nightly
+os:
+  - linux
+  - osx
+julia:
+  - 1.0
+      
 notifications:
-  email: true
+  email: false
