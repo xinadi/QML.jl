@@ -2,7 +2,7 @@ module QML
 
 export QQmlContext, root_context, load, qt_prefix_path, set_source, engine, QByteArray, to_string, QQmlComponent, set_data, create, QQuickItem, content_item, JuliaObject, QTimer, context_property, emit, JuliaDisplay, init_application, qmlcontext, init_qmlapplicationengine, init_qmlengine, init_qquickview, exec, exec_async, ListModel, addrole, setconstructor, removerole, setrole, roles, QVariantMap
 export QPainter, device, width, height, logicalDpiX, logicalDpiY, QQuickWindow, effectiveDevicePixelRatio, window, JuliaPaintedItem, update
-export @emit, @qmlfunction, @qmlapp, qmlfunction, load, QQmlPropertyMap, set_context_object
+export @emit, @qmlfunction, qmlfunction, load, QQmlPropertyMap, set_context_object
 
 const depsfile = joinpath(dirname(dirname(@__FILE__)), "deps", "deps.jl")
 if !isfile(depsfile)

@@ -262,7 +262,7 @@ setconstructor(array_model, identity)
 
 In the dynamiclist example, the entries in the model are all "fruits", having the roles name, cost and attributes. In Julia, this can be encapsulated in a composite type:
 ```julia
-type Fruit
+mutable struct Fruit
   name::String
   cost::Float64
   attributes::ListModel
