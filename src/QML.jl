@@ -1,5 +1,6 @@
 module QML
 
+export QVariant, QString
 export QQmlContext, root_context, load, qt_prefix_path, set_source, engine, QByteArray, to_string, QQmlComponent, set_data, create, QQuickItem, content_item, JuliaObject, QTimer, context_property, emit, JuliaDisplay, init_application, qmlcontext, init_qmlapplicationengine, init_qmlengine, init_qquickview, exec, exec_async, ListModel, addrole, setconstructor, removerole, setrole, roles, QVariantMap
 export QPainter, device, width, height, logicalDpiX, logicalDpiY, QQuickWindow, effectiveDevicePixelRatio, window, JuliaPaintedItem, update
 export @emit, @qmlfunction, qmlfunction, load, QQmlPropertyMap, set_context_object
@@ -22,13 +23,6 @@ import Libdl
 const envfile = joinpath(dirname(dirname(@__FILE__)), "deps", "env.jl")
 if isfile(envfile)
   include(envfile)
-end
-
-"""
-QVariant type encapsulation. Used to wrap Julia values that need to be passed as a QVariant to QML
-"""
-struct QVariant
-  value::Any
 end
 
 @wrapmodule libjlqml
@@ -81,6 +75,32 @@ function __init__()
   @initcxx
   FileIO.add_format(format"QML", (), ".qml")
 end
+
+# QString
+function QString(s::String)
+  char_arr = transcode(UInt16, s)
+  return fromUtf16(char_arr, length(char_arr))
+end
+Base.ncodeunits(s::QString)::Int = cppsize(s)
+Base.codeunit(s::QString) = UInt16
+Base.codeunit(s::QString, i::Integer) = uint16char(s, i-1)
+Base.isvalid(s::QString, i::Integer) = isvalidindex(s, i-1)
+function Base.iterate(s::QString, i::Integer=1)
+  if !isvalid(s,i)
+    return nothing
+  end
+  (charcode, nexti) = get_iterate(s,i-1)
+  if nexti == -1
+    return nothing
+  end
+  return(Char(charcode),nexti+1)
+end
+
+# Conversion to the strongly-types QVariant interface
+@inline QVariant(x::T) where {T} = QVariant(T, x)
+@inline QVariant(x::QString) = QVariant(QString, x)
+@inline setValue(v::QVariant, x::T) where {T} = setValue(T, v, x)
+@inline setValue(v::CxxWrap.CxxBaseRef{QVariant}, x::T) where {T} = setValue(T, v, x)
 
 # Functor to update a QML property when an Observable is changed in Julia
 struct QmlPropertyUpdater

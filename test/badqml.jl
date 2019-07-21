@@ -3,9 +3,9 @@ using Test
 
 qmlfile = joinpath(dirname(@__FILE__), "qml", "badqml.qml")
 
-try
+#try
     load(qmlfile)
     exec()
-catch e
-    @test e.msg == "Failed to load QML file $qmlfile"
-end
+#catch e
+#    @test e.msg == "Failed to load QML file $qmlfile"
+#end
