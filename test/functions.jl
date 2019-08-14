@@ -1,5 +1,6 @@
 using Test
 using QML
+using CxxWrap
 
 include(joinpath("include","functions_module.jl"))
 using .TestModuleFunction
@@ -30,7 +31,7 @@ function check_return_callback(x::Int32)
 end
 
 function test_qvariant_map(m::QVariantMap)
-  @test m["somekey"] == "somevalue"
+  @test QML.value(m["somekey"]) == "somevalue"
   nothing
 end
 
@@ -73,18 +74,16 @@ qmlfunction("unexported_check", UnExported.check)
 load(joinpath(dirname(@__FILE__), "qml", "functions.qml"))
 exec()
 
-stringresult = VERSION < v"0.5-dev" ? ASCIIString : String
-
 @test typeof(call_results1[1]) == Bool
 @test typeof(call_results1[2]) == Int32
 @test typeof(call_results1[3]) == Float64
-@test typeof(call_results1[4]) == stringresult
-@test typeof(call_results1[5]) <: QML.JuliaDisplay
+@test typeof(call_results1[4]) <: QString
+@test typeof(call_results1[5]) == CxxWrap.CxxPtr{QML.QObject}
 @test call_results1[1:4] == [false, 1, 1.5, "test"]
 
 @test typeof(call_results2[1]) == Float64
 @test typeof(call_results2[2]) == Int32
-@test typeof(call_results2[3]) == stringresult
+@test typeof(call_results2[3]) == String
 @test call_results2 == [3., 6, "ab"]
 
 @test get_state() == 2

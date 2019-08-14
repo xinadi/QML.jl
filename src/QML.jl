@@ -25,11 +25,17 @@ if isfile(envfile)
   include(envfile)
 end
 
-@wrapmodule libjlqml
+@readmodule libjlqml
+@wraptypes
+
+# Make sure functions accepting a QString argument also accept a Julia string
+CxxWrap.argument_overloads(::Type{<:QString}) = [QString,String]
+
+@wrapfunctions
 
 function FileIO.load(f::FileIO.File{format"QML"}, ctxobj::QObject)
   qml_engine = init_qmlapplicationengine()
-  ctx = root_context(qml_engine)
+  ctx = root_context(CxxRef(qml_engine))
   set_context_object(ctx, ctxobj)
   if !load_into_engine(qml_engine, filename(f))
     error("Failed to load QML file ", filename(f))
@@ -50,13 +56,13 @@ Load a QML file, creating a QQmlApplicationEngine and setting the context object
 """
 function FileIO.load(f::FileIO.File{format"QML"}; kwargs...)
   qml_engine = init_qmlapplicationengine()
-  ctx = root_context(qml_engine)
+  ctx = root_context(CxxRef(qml_engine))
   propmap = QQmlPropertyMap(ctx)
-  set_context_object(ctx, propmap)
+  set_context_object(CxxRef(ctx), CxxPtr(propmap))
   for (key,value) in kwargs
     propmap[String(key)] = value
   end
-  if !load_into_engine(qml_engine, filename(f))
+  if !load_into_engine(qml_engine, QString(filename(f)))
     error("Failed to load QML file ", filename(f))
   end
   return qml_engine
@@ -97,10 +103,34 @@ function Base.iterate(s::QString, i::Integer=1)
 end
 
 # Conversion to the strongly-types QVariant interface
-@inline QVariant(x::T) where {T} = QVariant(T, x)
+@inline QVariant(x) = QVariant(Any,x)
+@inline QVariant(x::T) where {T<:Union{Number,QString,Ref,CxxWrap.SafeCFunction,QVariantMap,Nothing}} = QVariant(T, x)
 @inline QVariant(x::QString) = QVariant(QString, x)
 @inline setValue(v::QVariant, x::T) where {T} = setValue(T, v, x)
 @inline setValue(v::CxxWrap.CxxBaseRef{QVariant}, x::T) where {T} = setValue(T, v, x)
+QVariant(::Type{Nothing}, ::Nothing) = QVariant()
+value(v::Union{QVariant,CxxWrap.CxxBaseRef{QVariant}}) = value(type(v),v)
+Base.convert(::Type{QVariant}, x::T) where {T} = QVariant(x)
+
+Base.IndexStyle(::Type{<:QList}) = IndexLinear()
+Base.size(v::QList) = (Int(cppsize(v)),)
+Base.getindex(v::QList, i::Int) = cppgetindex(v,i-1)[]
+Base.setindex!(v::QList{T}, val, i::Int) where {T} = cppsetindex!(v, convert(T,val), i-1)
+function Base.push!(v::QList{T}, x) where {T}
+  push_back(v, convert(T,x))
+  return v
+end
+
+# Helper to call a julia function
+function julia_call(f, argptr::Ptr{Cvoid})
+  arglist = CxxRef{QList{QVariant}}(argptr)[]
+  result = QVariant(f((value(x) for x in arglist)...))
+  return result.cpp_object
+end
+
+function get_julia_call()
+  return @cfunction(julia_call, Ptr{Cvoid}, (Any,Ptr{Cvoid}))
+end
 
 # Functor to update a QML property when an Observable is changed in Julia
 struct QmlPropertyUpdater

@@ -51,29 +51,47 @@ let testvars = [1, 2.0, QString("test")]
     vartype(x) = typeof(x)
     vartype(x::QString) = QString
     for x in testvars
-        @test QML.value(vartype(x), QVariant(x)) == x
+        qvar = QVariant(x)
+        @test QML.value(qvar) == x
+        @test QML.type(qvar) == vartype(x)
     end
 end
 
+let x = 1.5
+    qvar = QVariant(x)
+    @test QML.value(qvar) == 1.5
+    @test QML.value(Float64,qvar) == 1.5
+    @test QML.value(Int,qvar) == 2
+    @test QML.value(QString,qvar) == "1.5"
+end
 
-# let
-#     const N = 100
+let qvl = QML.QList{QVariant}()
+    push!(qvl, 3)
+    @test QML.value(qvl[1]) == 3
+    @test length(qvl) == 1
+    result = 0
+    for x in qvl
+        result += QML.value(x)
+    end
+    @test result == 3
+end
 
-#     @test bench_sum_julia(N) == sum(1:N)
-#     @test bench_sum_variant(N) == sum(1:N)
-#     @test bench_sum_variant_ref(N) == sum(1:N)
-#     @test bench_return_variant(N) == sum(1:N)
-#     println("Julia sum timing:")
-#     @btime bench_sum_julia(N)
-#     println("Variant sum timing:")
-#     @btime bench_sum_variant(N)
-#     println("Variant sum ref timing:")
-#     @btime bench_sum_variant_ref(N)
-#     println("Variant return timing:")
-#     @btime bench_return_variant(N)
-#     println("Variant return ref timing:")
-#     @btime bench_return_variant_ref(N)
-# end
+let N = 100
+    @test bench_sum_julia(N) == sum(1:N)
+    @test bench_sum_variant(N) == sum(1:N)
+    @test bench_sum_variant_ref(N) == sum(1:N)
+    @test bench_return_variant(N) == sum(1:N)
+    println("Julia sum timing:")
+    @btime bench_sum_julia($N)
+    println("Variant sum timing:")
+    @btime bench_sum_variant($N)
+    println("Variant sum ref timing:")
+    @btime bench_sum_variant_ref($N)
+    println("Variant return timing:")
+    @btime bench_return_variant($N)
+    println("Variant return ref timing:")
+    @btime bench_return_variant_ref($N)
+end
 
 # Reference result (2018 Macbook Air)
 # Julia sum timing:
