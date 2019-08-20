@@ -65,7 +65,7 @@ let x = 1.5
     @test QML.value(QString,qvar) == "1.5"
 end
 
-let qvl = QML.QList{QVariant}()
+let qvl = QML.QVariantList()
     push!(qvl, 3)
     @test QML.value(qvl[1]) == 3
     @test length(qvl) == 1

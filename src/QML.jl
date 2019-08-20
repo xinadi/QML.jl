@@ -35,7 +35,9 @@ CxxWrap.argument_overloads(::Type{<:QString}) = [QString,String]
 
 function FileIO.load(f::FileIO.File{format"QML"}, ctxobj::QObject)
   qml_engine = init_qmlapplicationengine()
-  ctx = root_context(CxxRef(qml_engine))
+  rootctx = root_context(CxxRef(qml_engine))
+  # Make a child context, to avoid clobbering the global Qt object
+  ctx = CxxPtr(QQmlContext(rootctx, rootctx))
   set_context_object(ctx, ctxobj)
   if !load_into_engine(qml_engine, filename(f))
     error("Failed to load QML file ", filename(f))
@@ -56,7 +58,9 @@ Load a QML file, creating a QQmlApplicationEngine and setting the context object
 """
 function FileIO.load(f::FileIO.File{format"QML"}; kwargs...)
   qml_engine = init_qmlapplicationengine()
-  ctx = root_context(CxxRef(qml_engine))
+  rootctx = root_context(CxxRef(qml_engine))
+  # Make a child context, to avoid clobbering the global Qt object
+  ctx = rootctx#CxxPtr(QQmlContext(rootctx, rootctx))
   propmap = QQmlPropertyMap(ctx)
   set_context_object(CxxRef(ctx), CxxPtr(propmap))
   for (key,value) in kwargs
@@ -102,15 +106,28 @@ function Base.iterate(s::QString, i::Integer=1)
   return(Char(charcode),nexti+1)
 end
 
+const QVariantList = QList{QVariant}
+
 # Conversion to the strongly-types QVariant interface
 @inline QVariant(x) = QVariant(Any,x)
 @inline QVariant(x::T) where {T<:Union{Number,QString,Ref,CxxWrap.SafeCFunction,QVariantMap,Nothing}} = QVariant(T, x)
-@inline QVariant(x::QString) = QVariant(QString, x)
+@inline QVariant(x::AbstractString) = QVariant(QString,QString(x))
+@inline QVariant(x::QObject) = QVariant(CxxPtr{QObject},CxxPtr(x))
+
+function QVariant(arr::AbstractArray)
+  qvarlist = QVariantList()
+  for x in arr
+    push!(qvarlist, x)
+  end
+  return QVariant(QVariantList, qvarlist)
+end
+
 @inline setValue(v::QVariant, x::T) where {T} = setValue(T, v, x)
 @inline setValue(v::CxxWrap.CxxBaseRef{QVariant}, x::T) where {T} = setValue(T, v, x)
 QVariant(::Type{Nothing}, ::Nothing) = QVariant()
 value(v::Union{QVariant,CxxWrap.CxxBaseRef{QVariant}}) = value(type(v),v)
 Base.convert(::Type{QVariant}, x::T) where {T} = QVariant(x)
+Base.convert(::Type{T}, x::QVariant) where {T} = convert(T,value(x))
 
 Base.IndexStyle(::Type{<:QList}) = IndexLinear()
 Base.size(v::QList) = (Int(cppsize(v)),)
@@ -123,7 +140,7 @@ end
 
 # Helper to call a julia function
 function julia_call(f, argptr::Ptr{Cvoid})
-  arglist = CxxRef{QList{QVariant}}(argptr)[]
+  arglist = CxxRef{QVariantList}(argptr)[]
   result = QVariant(f((value(x) for x in arglist)...))
   return result.cpp_object
 end
@@ -151,28 +168,20 @@ function update_observable_property!(o::Observable, v)
   Observables.setexcludinghandlers(o, v, noqmlupdater)
 end
 
-# Set arrays directly only if they have the same type
-function update_observable_property!(o::Observable{Array{T}}, v::Array{T}) where {T}
-  invoke(update_observable_property!, Tuple{Observable, Any}, o, v)
-end
-
-# Arrays with another type must be converted
-function update_observable_property!(o::Observable{Array{T1}}, v::Array{T2}) where {T1,T2}
-  invoke(update_observable_property!, Tuple{Observable, Any}, o, Array{T1}(v))
-end
-
 # QQmlPropertyMap indexing interface
 Base.getindex(propmap::QQmlPropertyMap, key::AbstractString) = value(propmap, key).value
 function Base.setindex!(propmap::QQmlPropertyMap, val::T, key::AbstractString) where {T}
   if !isbits(T) && !isimmutable(T)
     gcprotect(val)
   end
-  insert(propmap, key, QVariant(val))
+  qvar = QVariant(val)
+  insert(propmap, QString(key), qvar)
 end
 Base.setindex!(propmap::QQmlPropertyMap, val::QVariant, key::AbstractString) = insert(propmap, key, val)
-function Base.setindex!(propmap::QQmlPropertyMap, val::Observable, key::AbstractString)
-  insert_observable(propmap, key, val)
-  on(QmlPropertyUpdater(propmap, key), val)
+function Base.setindex!(propmap::QQmlPropertyMap, ob::Observable, key::AbstractString)
+  val = QVariant(ob[])
+  insert_observable(propmap, key, ob, val)
+  on(QmlPropertyUpdater(propmap, key), ob)
 end
 Base.setindex!(propmap::QQmlPropertyMap, val::Irrational, key::AbstractString) = (propmap[key] = convert(Float64, val))
 
