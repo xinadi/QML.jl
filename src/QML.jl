@@ -111,9 +111,11 @@ const QVariantList = QList{QVariant}
 
 # Conversion to the strongly-types QVariant interface
 @inline QVariant(x) = QVariant(Any,x)
-@inline QVariant(x::T) where {T<:Union{Number,QString,Ref,CxxWrap.SafeCFunction,QVariantMap,Nothing}} = QVariant(T, x)
+@inline QVariant(x::T) where {T<:Union{Number,Ref,CxxWrap.SafeCFunction,QVariantMap,Nothing}} = QVariant(T, x)
 @inline QVariant(x::AbstractString) = QVariant(QString,QString(x))
+@inline QVariant(x::QString) = QVariant(QString,x)
 @inline QVariant(x::QObject) = QVariant(CxxPtr{QObject},CxxPtr(x))
+@inline QVariant(x::QVariant) = x
 
 function QVariant(arr::AbstractArray)
   qvarlist = QVariantList()
@@ -129,6 +131,7 @@ QVariant(::Type{Nothing}, ::Nothing) = QVariant()
 value(v::Union{QVariant,CxxWrap.CxxBaseRef{QVariant}}) = value(type(v),v)
 Base.convert(::Type{QVariant}, x::T) where {T} = QVariant(x)
 Base.convert(::Type{T}, x::QVariant) where {T} = convert(T,value(x))
+Base.convert(::Type{<:QVariant}, x::QVariant) = x
 
 Base.IndexStyle(::Type{<:QList}) = IndexLinear()
 Base.size(v::QList) = (Int(cppsize(v)),)
@@ -138,6 +141,7 @@ function Base.push!(v::QList{T}, x) where {T}
   push_back(v, convert(T,x))
   return v
 end
+Base.empty!(l::QList) = clear(l)
 
 # Helper to call a julia function
 function julia_call(f, argptr::Ptr{Cvoid})
@@ -260,35 +264,188 @@ function load_makie_support()
   include(joinpath(dirname(@__FILE__), "makie_support.jl"))
 end
 
-"""
-Constructor for ListModel that automatically copies a typed array into an Array{Any,1} and creates a constructor and setter and getter functions for each field if addroles == true
-"""
-function ListModel(a::Array{T}, addroles=true) where {T}
-  any_array = Array{Any,1}(a)
-  function update_array()
-    n = length(any_array)
-    resize!(a,n)
-    for i = 1:n
-      a[i] = any_array[i]
-    end
+struct ListModelFunctionUndefined <: Exception end
+defaultsetter(array, value, index) = throw(ListModelFunctionUndefined())
+defaultconstructor(roles...) = throw(ListModelFunctionUndefined())
+
+mutable struct ListModelData
+  values::AbstractVector
+  roles::QStringList
+  getters::Vector{Any}
+  setters::Vector{Any}
+  constructor
+  customroles::Bool
+
+  function ListModelData(values::AbstractVector)
+    roles = QStringList()
+    push!(roles, "string")
+    return new(values, roles, [string], [defaultsetter], defaultconstructor, false)
+  end
+end
+
+rowcount(m::ListModelData) = Int32(length(m.values))
+
+function data(m::ListModelData, row::Integer, role::Integer)
+  if row ∉ axes(m.values,1)
+    @warn "row $row is out of range for listmodel"
+    return QVariant()
+  end
+  return QVariant(m.getters[role](m.values[row]))
+end
+
+function setdata(m::ListModelData, row::Integer, val::CxxWrap.CxxBaseRef{QVariant}, role::Integer)
+  if row ∉ axes(m.values,1)
+    @warn "row $row is out of range for listmodel"
+    return false
   end
 
-  listmodel = ListModel(any_array, update_array)
+  try
+    m.setters[role](m.values, value(val), row)
+    return true
+  catch e
+    rolename = m.roles[role]
+    if e isa ListModelFunctionUndefined
+      @warn "No setter for role $rolename"
+    else
+      @warn "Error $e when setting value at row $row for role $rolename"
+    end
+    return false
+  end
+end
 
-  if nfields(T) > 0 && addroles
+rolenames(m::ListModelData) = m.roles
+
+function append_list(m::ListModelData, args::CxxWrap.CxxBaseRef{QVariantList})
+  try
+    push!(m.values, m.constructor((value(x) for x in args[])...))
+  catch e
+    @error "Error $e when appending value to listmodel."
+  end
+end
+
+function remove(m::ListModelData, row::Integer)
+  if row ∉ axes(m.values,1)
+    @warn "row $row is out of range for listmodel"
+    return
+  end
+  deleteat!(m.values, row)
+end
+
+function move(m::ListModelData, from::Integer, to::Integer, nb::Integer)
+  @assert from < to
+
+  # Save elements to mov
+  removed_elems = m.values[from:from+nb-1]
+  # Shift elements that remain
+  m.values[from:to-1] .= m.values[(from:to-1).+nb]
+  # Place saved elements in to block
+  m.values[to:to+nb-1] .= removed_elems
+
+  return
+end
+
+clear(m::ListModelData) = empty!(m.values)
+Base.push!(m::ListModelData, val) = push!(m.values, val)
+
+"""
+Constructor for ListModel that automatically creates a constructor and setter and getter functions for each field if addroles == true
+"""
+function ListModel(a::AbstractVector{T}, addroles=true) where {T}
+  data = ListModelData(a)
+
+  if !isabstracttype(T) && nfields(T) > 0 && addroles
     for fname in fieldnames(T)
-      addrole(listmodel, string(fname), (x) -> getfield(x, fname), (array, value, index) -> setfield!(array[index], fname, value))
+      push!(data.roles, string(fname))
+      push!(data.getters, (x) -> getfield(x, fname))
+      push!(data.setters, (array, value, index) -> setfield!(array[index], fname, value))
     end
-    setconstructor(listmodel, T)
+    data.constructor = T
   end
 
-  return listmodel
+  return ListModel(data)
+end
+
+function addrole(lm::ListModel, name, getter, setter=defaultsetter)
+  m = get_julia_data(lm)
+  if name ∈ rolenames(m)
+    @error "Role $name exists, aborting add"
+    return
+  end
+
+  if !m.customroles
+    empty!(m.roles)
+    empty!(m.getters)
+    empty!(m.setters)
+    m.customroles = true
+  end
+
+  push!(m.roles, name)
+  push!(m.getters, getter)
+  push!(m.setters, setter)
+
+  emit_roles_changed(lm)
+
+  return
+end
+
+function setrole(lm::ListModel, idx::Integer, name, getter, setter=defaultsetter)
+  m = get_julia_data(lm)
+  if idx ∉ axes(rolenames(m),1)
+    @error "Listmodel index $idx is out of range, aborting setrole"
+  end
+
+  if name ∈ rolenames(m) && rolenames(m)[idx] != name
+    @error "Role $name exists, aborting setrole"
+    return
+  end
+
+  m.getters[idx] = getter
+  m.setters[idx] = setter
+
+  if rolenames(m)[idx] == name
+    emit_data_changed(lm, 0, length(lm), StdVector(Int32[idx]))
+  else
+    m.roles[idx] = name
+    emit_roles_changed(lm)
+  end
+end
+
+function removerole(lm::ListModel, idx::Integer)
+  m = get_julia_data(lm)
+  if idx ∉ axes(rolenames(m),1)
+    @error "Request to delete non-existing role $idx, aborting"
+  end
+
+  deleteat!(m.roles, idx)
+  deleteat!(m.getters, idx)
+  deleteat!(m.setters, idx)
+  emit_roles_changed(lm)
+end
+
+function removerole(lm::ListModel, name::AbstractString)
+  m = get_julia_data(lm)
+  idx = findfirst(isequal(name), m.values)
+
+  if isnothing(idx)
+    @error "Request to delete non-existing role $name, aborting"
+  end
+  removerole(lm,idx)
+end
+
+function setconstructor(lm::ListModel, constructor)
+  get_julia_data(lm).constructor = constructor
 end
 
 # ListModel Julia interface
+Base.getindex(lm::ListModel, idx::Int) = get_julia_data(lm).values[idx]
+function Base.setindex!(lm::ListModel, value, idx::Int)
+  lmdata = get_julia_data(lm)
+  lmdata.values[idx] = value
+  emit_data_changed(lm, idx-1, 1, StdVector(Int32.(axes(lmdata.rolenames, 1))))
+end
 Base.push!(lm::ListModel, val) = push_back(lm, val)
-Base.size(lm::ListModel) = (model_length(lm),)
-Base.length(lm::ListModel) = model_length(lm)
+Base.size(lm::ListModel) = size(get_julia_data(lm).values)
+Base.length(lm::ListModel) = length(get_julia_data(lm).values)
 Base.delete!(lm::ListModel, i) = remove(lm, i-1)
 
 @doc """
