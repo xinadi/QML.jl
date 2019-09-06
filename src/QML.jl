@@ -204,6 +204,14 @@ macro expand_dots(source_expr, func)
   return esc(source_expr)
 end
 
+function emit(name, args...)
+  arglist = QVariantList()
+  for arg in args
+    push!(arglist, QVariant(arg))
+  end
+  emit(name, arglist)
+end
+
 """
 Emit a signal in the form:
 ```
@@ -211,7 +219,7 @@ Emit a signal in the form:
 ```
 """
 macro emit(expr)
-  esc(:(emit($(string(expr.args[1])), Any[$(expr.args[2:end]...)])))
+  esc(:(emit($(string(expr.args[1])), $(expr.args[2:end]...))))
 end
 
 """
@@ -354,6 +362,9 @@ function ListModel(a::AbstractVector{T}, addroles=true) where {T}
   data = ListModelData(a)
 
   if !isabstracttype(T) && nfields(T) > 0 && addroles
+    empty!(data.roles)
+    empty!(data.getters)
+    empty!(data.setters)
     for fname in fieldnames(T)
       push!(data.roles, string(fname))
       push!(data.getters, (x) -> getfield(x, fname))

@@ -5,7 +5,7 @@ Item {
 
   JuliaSignals {
     signal testsignal()
-    signal testsignalargs(real x, string s)
+    signal testsignalargs(var x, var s)
 
     onTestsignal: Julia.check1(true)
     onTestsignalargs: Julia.check2(x, s)

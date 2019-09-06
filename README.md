@@ -374,3 +374,6 @@ include("example/repl-background.jl")
 plot([1,2],[3,4])
 ```
 This should display the result of the plotting command in the QML window.
+
+## Breaking changes
+* Signals in `JuliaSignals` must have arguments of type `var`
