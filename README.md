@@ -377,3 +377,4 @@ This should display the result of the plotting command in the QML window.
 
 ## Breaking changes
 * Signals in `JuliaSignals` must have arguments of type `var`
+* Role indices are 1-based now on the Julia side

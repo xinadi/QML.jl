@@ -142,6 +142,7 @@ function Base.push!(v::QList{T}, x) where {T}
   return v
 end
 Base.empty!(l::QList) = clear(l)
+Base.deleteat!(l::QList, i::Integer) = removeAt(l, i-1)
 
 # Helper to call a julia function
 function julia_call(f, argptr::Ptr{Cvoid})
@@ -292,12 +293,14 @@ mutable struct ListModelData
 end
 
 rowcount(m::ListModelData) = Int32(length(m.values))
+rolenames(m::ListModelData) = m.roles
 
 function data(m::ListModelData, row::Integer, role::Integer)
   if row ∉ axes(m.values,1)
     @warn "row $row is out of range for listmodel"
     return QVariant()
   end
+  @assert length(rolenames(m)) == length(m.getters)
   return QVariant(m.getters[role](m.values[row]))
 end
 
@@ -311,7 +314,7 @@ function setdata(m::ListModelData, row::Integer, val::CxxWrap.CxxBaseRef{QVarian
     m.setters[role](m.values, value(val), row)
     return true
   catch e
-    rolename = m.roles[role]
+    rolename = rolenames(m)[role]
     if e isa ListModelFunctionUndefined
       @warn "No setter for role $rolename"
     else
@@ -320,8 +323,6 @@ function setdata(m::ListModelData, row::Integer, val::CxxWrap.CxxBaseRef{QVarian
     return false
   end
 end
-
-rolenames(m::ListModelData) = m.roles
 
 function append_list(m::ListModelData, args::CxxWrap.CxxBaseRef{QVariantList})
   try
@@ -425,20 +426,27 @@ function removerole(lm::ListModel, idx::Integer)
   m = get_julia_data(lm)
   if idx ∉ axes(rolenames(m),1)
     @error "Request to delete non-existing role $idx, aborting"
+    return
   end
+
+  println("removing role $(m.roles[idx])")
 
   deleteat!(m.roles, idx)
   deleteat!(m.getters, idx)
   deleteat!(m.setters, idx)
+
+  @assert length(m.roles) == length(m.getters)
+
   emit_roles_changed(lm)
 end
 
 function removerole(lm::ListModel, name::AbstractString)
   m = get_julia_data(lm)
-  idx = findfirst(isequal(name), m.values)
+  idx = findfirst(isequal(name), m.roles)
 
   if isnothing(idx)
     @error "Request to delete non-existing role $name, aborting"
+    return
   end
   removerole(lm,idx)
 end
@@ -452,10 +460,10 @@ Base.getindex(lm::ListModel, idx::Int) = get_julia_data(lm).values[idx]
 function Base.setindex!(lm::ListModel, value, idx::Int)
   lmdata = get_julia_data(lm)
   lmdata.values[idx] = value
-  emit_data_changed(lm, idx-1, 1, StdVector(Int32.(axes(lmdata.rolenames, 1))))
+  emit_data_changed(lm, idx-1, 1, StdVector(Int32.(axes(rolenames(lmdata), 1))))
 end
 Base.push!(lm::ListModel, val) = push_back(lm, val)
-Base.size(lm::ListModel) = size(get_julia_data(lm).values)
+Base.size(lm::ListModel) = Base.size(get_julia_data(lm).values)
 Base.length(lm::ListModel) = length(get_julia_data(lm).values)
 Base.delete!(lm::ListModel, i) = remove(lm, i-1)
 

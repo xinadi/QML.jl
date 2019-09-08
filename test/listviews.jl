@@ -30,9 +30,9 @@ end
 tableitems = [TableItem(1,2,3), TableItem(4,5,6)]
 tablemodel = ListModel(tableitems)
 
-removerole_b() = removerole(tablemodel, 1)
+removerole_b() = removerole(tablemodel, 2)
 removerole_c() = removerole(tablemodel, "c")
-setrole_a() = setrole(tablemodel, 0, "abc", (x::TableItem) -> x.a*x.b*x.c)
+setrole_a() = setrole(tablemodel, 1, "abc", (x::TableItem) -> x.a*x.b*x.c)
 
 @qmlfunction testfail removerole_b removerole_c setrole_a
 load(qml_file, array_model=array_model, array_model2=array_model2, tablemodel=tablemodel)
