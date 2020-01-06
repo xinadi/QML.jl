@@ -5,10 +5,11 @@ using FixedPointNumbers
 using Makie
 using ModernGL
 using QML
+using CxxWrap
 
 mutable struct QMLGLContext
   valid::Bool
-  fbo::QML.QOpenGLFramebufferObjectRef
+  fbo::CxxPtr{QML.QOpenGLFramebufferObject}
 end
 
 Makie.GLMakie.GLAbstraction.native_switch_context!(ctx::QMLGLContext) = QML.bind(ctx.fbo)

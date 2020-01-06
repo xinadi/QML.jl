@@ -34,7 +34,7 @@ ApplicationWindow {
     }
 
     JuliaSignals {
-      signal fizzBuzzFound(int fizzbuzzvalue)
+      signal fizzBuzzFound(var fizzbuzzvalue)
       signal fizzBuzzFail()
       onFizzBuzzFound: lastFizzBuzz.text = fizzbuzzvalue
       onFizzBuzzFail: textField.placeholderText = "3*5 = ..."

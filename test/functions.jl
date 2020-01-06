@@ -78,7 +78,7 @@ exec()
 @test typeof(call_results1[2]) == Int32
 @test typeof(call_results1[3]) == Float64
 @test typeof(call_results1[4]) <: QString
-@test typeof(call_results1[5]) == CxxWrap.CxxPtr{QML.QObject}
+@test typeof(call_results1[5]) <: JuliaDisplay
 @test call_results1[1:4] == [false, 1, 1.5, "test"]
 
 @test typeof(call_results2[1]) == Float64

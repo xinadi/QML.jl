@@ -1,10 +1,11 @@
 module QML
 
-export QVariant, QString
+export QVariant, QString, QUrl
 export QQmlContext, root_context, load, qt_prefix_path, set_source, engine, QByteArray, to_string, QQmlComponent, set_data, create, QQuickItem, content_item, JuliaObject, QTimer, context_property, emit, JuliaDisplay, init_application, qmlcontext, init_qmlapplicationengine, init_qmlengine, init_qquickview, exec, exec_async, ListModel, addrole, setconstructor, removerole, setrole, roles, QVariantMap
 export QStringList, QVariantList
 export QPainter, device, width, height, logicalDpiX, logicalDpiY, QQuickWindow, effectiveDevicePixelRatio, window, JuliaPaintedItem, update
-export @emit, @qmlfunction, qmlfunction, load, QQmlPropertyMap, set_context_object
+export @emit, @qmlfunction, qmlfunction, load, QQmlPropertyMap
+export set_context_object, set_context_property
 
 const depsfile = joinpath(dirname(dirname(@__FILE__)), "deps", "deps.jl")
 if !isfile(depsfile)
@@ -20,6 +21,7 @@ using CxxWrap
 using Observables
 using FileIO
 import Libdl
+using Requires
 
 const envfile = joinpath(dirname(dirname(@__FILE__)), "deps", "env.jl")
 if isfile(envfile)
@@ -34,17 +36,21 @@ CxxWrap.argument_overloads(::Type{<:QString}) = [QString,String]
 
 @wrapfunctions
 
-function FileIO.load(f::FileIO.File{format"QML"}, ctxobj::QObject)
-  qml_engine = init_qmlapplicationengine()
-  rootctx = root_context(CxxRef(qml_engine))
-  # Make a child context, to avoid clobbering the global Qt object
-  ctx = CxxPtr(QQmlContext(rootctx, rootctx))
-  set_context_object(ctx, ctxobj)
-  if !load_into_engine(qml_engine, filename(f))
-    error("Failed to load QML file ", filename(f))
+set_context_object(ctx::Union{Ref{<:QQmlContext}, QQmlContext}, obj::QObject) = set_context_object(ctx, CxxPtr(obj))
+set_context_property(ctx::Union{Ref{<:QQmlContext}, QQmlContext}, name, value::QObject) = set_context_property(ctx, name, CxxPtr(value))
+
+function load_qml(qmlfilename, engine, contextobject)
+  ctx = root_context(CxxRef(engine))
+  set_context_object(CxxRef(ctx), CxxPtr(contextobject))
+  if !load_into_engine(engine, QString(qmlfilename))
+    error("Failed to load QML file ", qmlfilename)
   end
+  return engine
+end
+
+function FileIO.load(f::FileIO.File{format"QML"}, ctxobj::QObject)
   gcprotect(ctxobj)
-  return qml_engine
+  return load_qml(filename(f), init_qmlapplicationengine(), ctxobj)
 end
 
 """
@@ -59,18 +65,28 @@ Load a QML file, creating a QQmlApplicationEngine and setting the context object
 """
 function FileIO.load(f::FileIO.File{format"QML"}; kwargs...)
   qml_engine = init_qmlapplicationengine()
-  rootctx = root_context(CxxRef(qml_engine))
-  # Make a child context, to avoid clobbering the global Qt object
-  ctx = rootctx#CxxPtr(QQmlContext(rootctx, rootctx))
+  ctx = root_context(CxxRef(qml_engine))
   propmap = QQmlPropertyMap(ctx)
-  set_context_object(CxxRef(ctx), CxxPtr(propmap))
   for (key,value) in kwargs
     propmap[String(key)] = value
   end
-  if !load_into_engine(qml_engine, QString(filename(f)))
-    error("Failed to load QML file ", filename(f))
+  return load_qml(filename(f), qml_engine, propmap)
+end
+
+# Add the correct rpath to Qt5 if GR is installed on macOS
+@static if Sys.isapple()
+  function patchgr()
+    try
+      # If GR is loaded this path is found, if Qt is not found then it throws an error
+      Libdl.dlpath("qt5plugin.so")
+    catch e
+      qtpluginso = split(split(e.msg,('(',')'))[2], ',')[1]
+      @assert isfile(qtpluginso)
+      qtpath = joinpath(QML.qt_prefix_path(), "Frameworks")
+      run(`install_name_tool -add_rpath $qtpath $qtpluginso`)
+      println("Installed library rpath $qtpath to plugin $qtpluginso")
+    end
   end
-  return qml_engine
 end
 
 function __init__()
@@ -85,6 +101,10 @@ function __init__()
 
   @initcxx
   FileIO.add_format(format"QML", (), ".qml")
+
+  @static if Sys.isapple()
+    @require GR="28b8d3ca-fb5f-59d9-8090-bfdbd6d07a71" patchgr()
+  end
 end
 
 # QString
@@ -106,6 +126,8 @@ function Base.iterate(s::QString, i::Integer=1)
   end
   return(Char(charcode),nexti+1)
 end
+Base.convert(::Type{<:QString}, s::String) = QString(s)
+QString(u::QUrl) = toString(u)
 
 const QVariantList = QList{QVariant}
 
@@ -125,12 +147,12 @@ function QVariant(arr::AbstractArray)
   return QVariant(QVariantList, qvarlist)
 end
 
-@inline setValue(v::QVariant, x::T) where {T} = setValue(T, v, x)
-@inline setValue(v::CxxWrap.CxxBaseRef{QVariant}, x::T) where {T} = setValue(T, v, x)
+@inline @cxxdereference setValue(v::QVariant, x::T) where {T} = setValue(T, v, x)
 QVariant(::Type{Nothing}, ::Nothing) = QVariant()
-value(v::Union{QVariant,CxxWrap.CxxBaseRef{QVariant}}) = value(type(v),v)
+@cxxdereference value(v::QVariant) = CxxWrap.dereference_argument(value(type(v),v))
 Base.convert(::Type{QVariant}, x::T) where {T} = QVariant(x)
 Base.convert(::Type{T}, x::QVariant) where {T} = convert(T,value(x))
+Base.convert(::Type{Any}, x::QVariant) = x
 Base.convert(::Type{<:QVariant}, x::QVariant) = x
 
 Base.IndexStyle(::Type{<:QList}) = IndexLinear()
@@ -169,13 +191,13 @@ noqmlupdater(::Any) = true
 noqmlupdater(::QmlPropertyUpdater) = false
 
 # Called from C++ to update an Observable linked to a QML property
-function update_observable_property!(o::Observable, v)
+function update_observable_property!(o::Observable, v::QVariant)
   # This avoids calling the to-qml update handler, since we initiated the update from QML
-  Observables.setexcludinghandlers(o, v, noqmlupdater)
+  Observables.setexcludinghandlers(o, value(v), noqmlupdater)
 end
 
 # QQmlPropertyMap indexing interface
-Base.getindex(propmap::QQmlPropertyMap, key::AbstractString) = value(propmap, key).value
+Base.getindex(propmap::QQmlPropertyMap, key::AbstractString) = value(value(propmap, key))
 function Base.setindex!(propmap::QQmlPropertyMap, val::T, key::AbstractString) where {T}
   if !isbits(T) && !isimmutable(T)
     gcprotect(val)
@@ -304,7 +326,7 @@ function data(m::ListModelData, row::Integer, role::Integer)
   return QVariant(m.getters[role](m.values[row]))
 end
 
-function setdata(m::ListModelData, row::Integer, val::CxxWrap.CxxBaseRef{QVariant}, role::Integer)
+@cxxdereference function setdata(m::ListModelData, row::Integer, val::QVariant, role::Integer)
   if row ∉ axes(m.values,1)
     @warn "row $row is out of range for listmodel"
     return false
@@ -324,11 +346,11 @@ function setdata(m::ListModelData, row::Integer, val::CxxWrap.CxxBaseRef{QVarian
   end
 end
 
-function append_list(m::ListModelData, args::CxxWrap.CxxBaseRef{QVariantList})
+@cxxdereference function append_list(m::ListModelData, args::QVariantList)
   try
-    push!(m.values, m.constructor((value(x) for x in args[])...))
+    push!(m.values, m.constructor((value(x) for x in args)...))
   catch e
-    @error "Error $e when appending value to listmodel."
+    @error "Error $(typeof(e)) when appending value to listmodel."
   end
 end
 
@@ -428,8 +450,6 @@ function removerole(lm::ListModel, idx::Integer)
     @error "Request to delete non-existing role $idx, aborting"
     return
   end
-
-  println("removing role $(m.roles[idx])")
 
   deleteat!(m.roles, idx)
   deleteat!(m.getters, idx)

@@ -14,12 +14,12 @@ f = Observable(1.0)
 A = Observable(1.0)
 
 # Arguments here need to be the "reference types", hence the "Ref" suffix
-function paint(p::QML.QPainterRef, item::QML.JuliaPaintedItemRef)  
+function paint(p::CxxPtr{QPainter}, item::CxxPtr{JuliaPaintedItem})  
   ENV["GKS_WSTYPE"] = 381
   ENV["GKS_CONID"] = split(repr(p.cpp_object), "@")[2]
 
-  dev = device(p)
-  r = effectiveDevicePixelRatio(window(item))
+  dev = device(p[])[]
+  r = effectiveDevicePixelRatio(window(item[])[])
   w, h = width(dev) / r, height(dev) / r
 
   x = 0:π/100:π
@@ -31,7 +31,7 @@ function paint(p::QML.QPainterRef, item::QML.JuliaPaintedItemRef)
 end
 
 load(qmlfile,
-  paint_cfunction = @safe_cfunction(paint, Cvoid, (QML.QPainterRef, QML.JuliaPaintedItemRef)),
+  paint_cfunction = @safe_cfunction(paint, Cvoid, (CxxPtr{QPainter}, CxxPtr{JuliaPaintedItem})),
   frequency = f,
   amplitude = A
 )

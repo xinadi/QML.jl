@@ -22,17 +22,12 @@ ApplicationWindow {
         Text {
             id: helloText
             text: "KPS Optimizer"
-            anchors.top: parent.top
-            anchors.topMargin: 10
-            anchors.horizontalCenter: page.horizontalCenter
+            Layout.alignment: Qt.AlignCenter
             font.pointSize: 24; font.bold: true
         }
         GroupBox {
             title: "Plot diagrams, showing the scaling effects of KPS scenarios:      "
-            anchors.left: parent.left
-            anchors.top: parent.top
-            anchors.leftMargin: 20
-            anchors.topMargin: 60
+            Layout.alignment: Qt.AlignTop
             ColumnLayout {
                 y: 20
                 CheckBox { id:chk1; text: "plot_costs_per_watt"; checked: true }

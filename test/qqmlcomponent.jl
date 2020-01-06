@@ -35,7 +35,7 @@ set_context_object(ctx, ctxobj)
 ctxobj["hi"] = "Hi from Julia"
 
 qcomp = QQmlComponent(qengine)
-set_data(qcomp, qml_data, "")
+set_data(qcomp, qml_data, QML.QUrl())
 create(qcomp, qmlcontext());
 
 exec()
