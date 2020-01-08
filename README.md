@@ -380,3 +380,4 @@ This should display the result of the plotting command in the QML window.
 * Role indices are 1-based now on the Julia side
 * The interface of some functions has changed because of the way CxxWrap handles references and pointers more strictly now
 * No more automatic conversion from `String` to `QUrl`, use the `QUrl("mystring")` constructor
+* Setting a `QQmlPropertyMap` as context object is not supported as of Qt 5.12
