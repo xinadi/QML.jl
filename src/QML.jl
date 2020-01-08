@@ -5,7 +5,7 @@ export QQmlContext, root_context, load, qt_prefix_path, set_source, engine, QByt
 export QStringList, QVariantList
 export QPainter, device, width, height, logicalDpiX, logicalDpiY, QQuickWindow, effectiveDevicePixelRatio, window, JuliaPaintedItem, update
 export @emit, @qmlfunction, qmlfunction, load, QQmlPropertyMap
-export set_context_object, set_context_property
+export set_context_property
 
 const depsfile = joinpath(dirname(dirname(@__FILE__)), "deps", "deps.jl")
 if !isfile(depsfile)
@@ -36,12 +36,11 @@ CxxWrap.argument_overloads(::Type{<:QString}) = [QString,String]
 
 @wrapfunctions
 
-set_context_object(ctx::Union{Ref{<:QQmlContext}, QQmlContext}, obj::QObject) = set_context_object(ctx, CxxPtr(obj))
-set_context_property(ctx::Union{Ref{<:QQmlContext}, QQmlContext}, name, value::QObject) = set_context_property(ctx, name, CxxPtr(value))
+@cxxdereference set_context_property(ctx::QQmlContext, name, value::QObject) = _set_context_property(ctx, QString(name), CxxPtr(value))
+@cxxdereference set_context_property(ctx::QQmlContext, name, value) = _set_context_property(ctx, QString(name), QVariant(value))
 
-function load_qml(qmlfilename, engine, contextobject)
+function load_qml(qmlfilename, engine)
   ctx = root_context(CxxRef(engine))
-  set_context_object(CxxRef(ctx), CxxPtr(contextobject))
   if !load_into_engine(engine, QString(qmlfilename))
     error("Failed to load QML file ", qmlfilename)
   end
@@ -66,11 +65,10 @@ Load a QML file, creating a QQmlApplicationEngine and setting the context object
 function FileIO.load(f::FileIO.File{format"QML"}; kwargs...)
   qml_engine = init_qmlapplicationengine()
   ctx = root_context(CxxRef(qml_engine))
-  propmap = QQmlPropertyMap(ctx)
   for (key,value) in kwargs
-    propmap[String(key)] = value
+    set_context_property(ctx, String(key), value)
   end
-  return load_qml(filename(f), qml_engine, propmap)
+  return load_qml(filename(f), qml_engine)
 end
 
 # Add the correct rpath to Qt5 if GR is installed on macOS

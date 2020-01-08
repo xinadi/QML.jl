@@ -6,9 +6,7 @@ qml_file = joinpath(dirname(@__FILE__), "qml", "qquickview.qml")
 
 qview = init_qquickview()
 ctx = root_context(QML.engine(qview))
-ctxobj = QQmlPropertyMap(ctx)
-set_context_object(ctx, ctxobj)
-ctxobj["hi"] = "Hi from Julia"
+set_context_property(ctx, "hi", "Hi from Julia")
 
 # Load QML after setting context properties, to avoid errors
 set_source(qview, QUrl(qml_file))
