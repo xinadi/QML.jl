@@ -7,11 +7,7 @@ export QPainter, device, width, height, logicalDpiX, logicalDpiY, QQuickWindow, 
 export @emit, @qmlfunction, qmlfunction, load, QQmlPropertyMap
 export set_context_property
 
-const depsfile = joinpath(dirname(dirname(@__FILE__)), "deps", "deps.jl")
-if !isfile(depsfile)
-  error("$depsfile not found, package QML did not build properly")
-end
-include(depsfile)
+using jlqml_jll
 
 @static if Sys.iswindows()
   ENV["QML_PREFIX_PATH"] = dirname(dirname(libjlqml))
@@ -28,7 +24,7 @@ if isfile(envfile)
   include(envfile)
 end
 
-@readmodule libjlqml
+@readmodule libjlqml :define_julia_module Libdl.RTLD_GLOBAL
 @wraptypes
 
 # Make sure functions accepting a QString argument also accept a Julia string
@@ -88,15 +84,6 @@ end
 end
 
 function __init__()
-  @static if Sys.iswindows()
-    libdir = joinpath(dirname(dirname(@__FILE__)),"deps","usr","lib")
-    for fname in readdir(libdir)
-      if endswith(fname, ".dll")
-        Libdl.dlopen(joinpath(libdir,fname), Libdl.RTLD_GLOBAL)
-      end
-    end
-  end
-
   @initcxx
   FileIO.add_format(format"QML", (), ".qml")
 

@@ -31,7 +31,6 @@ ApplicationWindow {
 qengine = init_qmlengine()
 ctx = root_context(qengine)
 set_context_property(ctx, "hi", "Hi from Julia")
-QML.print_ctx_property(ctx, QString("hi"))
 
 qcomp = QQmlComponent(qengine)
 set_data(qcomp, qml_data, QML.QUrl())
