@@ -319,16 +319,6 @@ function qmlapp(path::AbstractString)
   return load_into_engine(qml_engine, path)
 end
 
-function Base.copy!(dest::JuliaCanvas, src::Array{ARGB32, 2})
-  (height, width) = Base.size(src)
-  println("copy!:  height=$height, width=$width")
-  src = permutedims(src)  # julia arrays are row-major; Qt expects scan lines
-  src = reshape(src, :)
-  src = reinterpret(UInt8, src)
-  src2 = copy(src)
-  println("calling load_image...  typeof(src2) = $(typeof(src2))")
-  load_image(dest, src2, width, height)
-end
 
 function Base.display(d::JuliaDisplay, x)
   buf = IOBuffer()
