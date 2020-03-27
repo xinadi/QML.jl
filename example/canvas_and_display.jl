@@ -127,7 +127,7 @@ end
 
 @qmlfunction init_jdisp1 init_jdisp2
 
-load("main.qml",
+load(qmlfile,
      do_this=do_this,
      amplitude=amplitude,
      frequency=frequency,
