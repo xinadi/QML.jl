@@ -367,6 +367,57 @@ QML.jl provides a custom QML type named `JuliaDisplay` that acts as a standard J
  ```
  Of course the display can also be added using `pushdisplay!`, but passing by value can be more convenient when defining multiple displays in QML.
 
+## JuliaCanvas
+QML.jl provides a custom QML type named `JuliaCanvas` which presents a canvas to be painted via a julia callback function.  This approach avoids the MIME content encoding overhead of the JuliaDisplay approach.
+
+Example use in QML from the `plot` example:
+ ```qml
+ JuliaCanvas {
+   id: circle_canvas
+   paintFunction: paint_cfunction
+   Layout.fillWidth: true
+   Layout.fillHeight: true
+   Layout.minimumWidth: 100
+   Layout.minimumHeight: 100
+ }
+ ```
+ The callback function `paint_cfunction` is defined in julia:
+ ```julia
+ 
+ # fix callback arguments (TODO: macro this?)
+ function paint_circle(buffer::Array{UInt32, 1},
+                       width32::Int32,
+                       height32::Int32)
+    width::Int = width32
+    height::Int = height32
+    buffer = reshape(buffer, width, height)
+    buffer = reinterpret(ARGB32, buffer)
+    paint_circle(buffer)
+end
+
+# callback to paint circle
+function paint_circle(buffer)
+    width, height = size(buffer)
+    for x in 1:width
+        for y in 1:height
+            # paint here..., e.g.
+            buffer[x,y] = ARGB32(1, 0, 0, 1) #red
+        end
+    end
+ end
+ 
+ load(qmlfile,
+      #...
+      paint_cfunction = CxxWrap.@safe_cfunction(paint_circle, Cvoid, (Array{UInt32,1}, Int32, Int32))
+ ) 
+```
+Note that the canvas buffer is allocated (and freed) in the C++ code.  A new unitialized buffer is allocated for each frame (this could change).
+
+At the moment, only the 32-bit QImage::Format_RGB32 (alpha, red, green, blue) image format is supported.
+
+See the example for details on emitting an update signal from julia to force redrawing the JuliaCanvas.
+
+
 ## Combination with the REPL
 When launching the application using `exec`, execution in the REPL will block until the GUI is closed. If you want to continue using the REPL with an active QML gui, `exec_async` provides an alternative. This method keeps the REPL active and polls the QML interface periodically for events, using a timer in the Julia event loop. An example (requiring packages Plots.jl and PyPlot.jl) can be found in `example/repl-background.jl`, to be used as:
 ```julia
