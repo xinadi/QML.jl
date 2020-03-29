@@ -2,14 +2,14 @@ import QtQuick 2.6
 import QtQuick.Window 2.2
 import QtQuick.Controls 2.3
 import QtQuick.Layouts 1.0
-import org.julialang 1.0
+import org.julialang 1.1
 import "content"  // for NamedSlider
 
 ApplicationWindow {
     visible: true
     width: 640
     height: 480
-    title: qsTr("Hello World")
+    title: qsTr("Canvas and GR Example")
 
     ColumnLayout {
 	id: root
@@ -17,43 +17,40 @@ ApplicationWindow {
 	RowLayout {
 	    ColumnLayout {
 		CheckBox {
+		    checked: true
 		    text: "do this"
 		    onClicked: {
 			do_this = checked
 		    }
 		}
 		NamedSlider {
-		    text: "frequency"; from: 1; to: 10
+		    text: "frequency"; from: 1; to: 10; value: 5
 		    onValueChanged: frequency = value
 		}
 		NamedSlider {
-		    text: "amplitude"; from: 1; to: 5
+		    text: "amplitude"; from: 1; to: 5; value: 2.3
 		    onValueChanged: amplitude = value
 		}
 		NamedSlider {
-		    text: "diameter"; from: 50; to: 100
+		    text: "diameter"; from: 50; to: 100; value: 80
 		    onValueChanged: diameter = value
 		}
 	    }
-	    JuliaDisplay {
-		id: jdisp1
+	    JuliaPaintedItem {
+		id: sin_plot
 		Layout.minimumHeight: 80
 		Layout.minimumWidth: 150
 		Layout.fillWidth: true
 		Layout.fillHeight: true
-		onHeightChanged:  init_plot()
-		onWidthChanged:  init_plot()
-		function init_plot() { Julia.init_jdisp1(jdisp1, width, height) }
+		paintFunction: paint_sin_plot_wrapped
 	    }
-	    JuliaDisplay {
-		id: jdisp2
+	    JuliaPaintedItem {
+		id: cos_plot
 		Layout.minimumHeight: 100
 		Layout.minimumWidth: 300
 		Layout.fillWidth: true
 		Layout.fillHeight: true
-		onHeightChanged:  init_plot()
-		onWidthChanged:  init_plot()
-		function init_plot() { Julia.init_jdisp2(jdisp2, width, height) }
+		paintFunction: paint_cos_plot_wrapped
 	    }
 	}
 	RowLayout {
@@ -68,17 +65,21 @@ ApplicationWindow {
 	    }
 	    JuliaCanvas {
 		id: circle_canvas
-		paintFunction: paint_cfunction
 		Layout.fillWidth: true
 		Layout.fillHeight: true
 		Layout.minimumWidth: 100
 		Layout.minimumHeight: 100
+		paintFunction: paint_canvas_wrapped
 	    }
 	}	    
     }
     JuliaSignals {
-	signal updateCircle()
-	onUpdateCircle: circle_canvas.update()
+	signal updateCanvas()
+	signal updateSinPlot()
+	signal updateCosPlot()
+	onUpdateCanvas: circle_canvas.update()
+	onUpdateSinPlot: sin_plot.update()
+	onUpdateCosPlot: cos_plot.update()
     }
 }
 
