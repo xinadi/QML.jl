@@ -370,7 +370,7 @@ QML.jl provides a custom QML type named `JuliaDisplay` that acts as a standard J
 ## JuliaCanvas
 QML.jl provides a custom QML type named `JuliaCanvas` which presents a canvas to be painted via a julia callback function.  This approach avoids the MIME content encoding overhead of the JuliaDisplay approach.
 
-Example use in QML from the `plot` example:
+Example use in QML from the `canvas` example:
  ```qml
  JuliaCanvas {
    id: circle_canvas
