@@ -17,6 +17,7 @@ A = Observable(1.0)
 function paint(p::CxxPtr{QPainter}, item::CxxPtr{JuliaPaintedItem})  
   ENV["GKS_WSTYPE"] = 381
   ENV["GKS_CONID"] = split(repr(p.cpp_object), "@")[2]
+  ENV["GKS_QT_VERSION"] = 5
 
   dev = device(p[])[]
   r = effectiveDevicePixelRatio(window(item[])[])
