@@ -17,7 +17,7 @@ invert_sin = Observable(-1)
 amplitude = Observable(-1.0)
 frequency = Observable(-1.0)
 diameter = Observable(-1.0)
-description_text = Observable("Hello, world")
+description_text = Observable("")
 
 function paint_sin_plot(p::CxxPtr{QPainter}, item::CxxPtr{JuliaPaintedItem})  
     ENV["GKS_CONID"] = split(repr(p.cpp_object), "@")[2]
@@ -25,7 +25,7 @@ function paint_sin_plot(p::CxxPtr{QPainter}, item::CxxPtr{JuliaPaintedItem})
     r = effectiveDevicePixelRatio(window(item[])[])
     w, h = width(dev) / r, height(dev) / r
 
-    x = 0:π/2000:π
+    x = 0:π/1000:π
     y = amplitude[]*sin.(frequency[]*x)
     if invert_sin[] == true
         y = -y
@@ -42,7 +42,7 @@ function paint_cos_plot(p::CxxPtr{QPainter}, item::CxxPtr{JuliaPaintedItem})
     r = effectiveDevicePixelRatio(window(item[])[])
     w, h = width(dev) / r, height(dev) / r
 
-    x = 0:π/2000:π
+    x = 0:π/1000:π
     y = amplitude[]*cos.(frequency[]*x)
 
     plot(x, y, ylims=(-5,5), size=(w, h))

@@ -37,8 +37,8 @@ ApplicationWindow {
 	    }
 	    JuliaPaintedItem {
 		id: sin_plot
-		Layout.minimumHeight: 80
-		Layout.minimumWidth: 150
+		Layout.minimumHeight: 100
+		Layout.minimumWidth: 200
 		Layout.fillWidth: true
 		Layout.fillHeight: true
 		paintFunction: paint_sin_plot_wrapped
@@ -46,7 +46,7 @@ ApplicationWindow {
 	    JuliaPaintedItem {
 		id: cos_plot
 		Layout.minimumHeight: 100
-		Layout.minimumWidth: 300
+		Layout.minimumWidth: 200
 		Layout.fillWidth: true
 		Layout.fillHeight: true
 		paintFunction: paint_cos_plot_wrapped
