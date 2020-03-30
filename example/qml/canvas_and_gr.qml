@@ -53,15 +53,13 @@ ApplicationWindow {
 	    }
 	}
 	RowLayout {
-	    Frame {
-		GridLayout {
-		    columns: 2   // name, value
-		    Text { text: "foinkle"}
-		    Text { text: foinkle }
-		    Text { text: "sheesh boogles"}
-		    Text { text: "1.62 GHz" }
+		TextArea {
+		    Layout.fillHeight: true
+		    Layout.minimumWidth: 200
+		    textFormat: TextEdit.RichText
+		    text: description_text
+		    readOnly: true
 		}
-	    }
 	    JuliaCanvas {
 		id: circle_canvas
 		Layout.fillWidth: true

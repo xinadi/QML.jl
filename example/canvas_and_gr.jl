@@ -17,9 +17,7 @@ invert_sin = Observable(-1)
 amplitude = Observable(-1.0)
 frequency = Observable(-1.0)
 diameter = Observable(-1.0)
-
-foinkle = Observable(1.0)
-
+description_text = Observable("Hello, world")
 
 function paint_sin_plot(p::CxxPtr{QPainter}, item::CxxPtr{JuliaPaintedItem})  
     ENV["GKS_CONID"] = split(repr(p.cpp_object), "@")[2]
@@ -96,12 +94,29 @@ function paint_circle(buffer)
     return
 end
 
+onany(amplitude, frequency, invert_sin, diameter) do amp, freq, inv, dia
+    amp  = round(amp, digits=2)
+    freq = round(freq, digits=2)
+    dia  = round(dia, digits=2)
+
+    description_text[]="""<table>
+    
+<tr> <td>amp<\td> <td>$amp</b> </tr>
+<tr> <td>freq<\td> <td>$freq</b> </tr>
+<tr> <td>diameter<\td> <td>$dia</b> </tr>
+</table>"""
+
+    if inv==true
+        description_text[] *= "<i>The sin wave is inverted.</i>"
+    end
+end
+
 load(qmlfile,
      invert_sin = invert_sin,
      amplitude=amplitude,
      frequency=frequency,
      diameter=diameter,
-     foinkle=foinkle,
+     description_text=description_text,
      paint_sin_plot_wrapped = @safe_cfunction(paint_sin_plot, Cvoid,
                                               (CxxPtr{QPainter}, CxxPtr{JuliaPaintedItem})),
      paint_cos_plot_wrapped = @safe_cfunction(paint_cos_plot, Cvoid,
@@ -111,12 +126,6 @@ load(qmlfile,
      )
 
 onany(amplitude, frequency, invert_sin) do a, f, i
-    @emit updateSinPlot()
-    @emit updateCosPlot()
-end
-
-on(frequency) do f
-    foinkle[] = round(2*f, digits=2)
     @emit updateSinPlot()
     @emit updateCosPlot()
 end
