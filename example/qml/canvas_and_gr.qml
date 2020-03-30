@@ -18,10 +18,9 @@ ApplicationWindow {
 	    ColumnLayout {
 		CheckBox {
 		    checked: true
-		    text: "do this"
-		    onClicked: {
-			do_this = checked
-		    }
+		    text: "invert sin plot"
+		    onCheckedChanged: invert_sin = checked
+		    Component.onCompleted: invert_sin = checked
 		}
 		NamedSlider {
 		    text: "frequency"; from: 1; to: 10; value: 5

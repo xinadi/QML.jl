@@ -13,7 +13,7 @@ ENV["GKS_WSTYPE"] = 381
 ENV["GKS_QT_VERSION"] = 5
 gr(show=true)
 
-do_this = Observable(-1)
+invert_sin = Observable(-1)
 amplitude = Observable(-1.0)
 frequency = Observable(-1.0)
 diameter = Observable(-1.0)
@@ -29,6 +29,9 @@ function paint_sin_plot(p::CxxPtr{QPainter}, item::CxxPtr{JuliaPaintedItem})
 
     x = 0:π/2000:π
     y = amplitude[]*sin.(frequency[]*x)
+    if invert_sin[] == true
+        y = -y
+    end
 
     plot(x, y, ylims=(-5,5), size=(w, h))
 
@@ -94,7 +97,7 @@ function paint_circle(buffer)
 end
 
 load(qmlfile,
-     do_this=do_this,
+     invert_sin = invert_sin,
      amplitude=amplitude,
      frequency=frequency,
      diameter=diameter,
@@ -107,11 +110,7 @@ load(qmlfile,
                                             (Array{UInt32,1}, Int32, Int32))
      )
 
-on(do_this) do dt
-    println("do_this changed to ", dt)
-end
-
-on(amplitude) do a
+onany(amplitude, frequency, invert_sin) do a, f, i
     @emit updateSinPlot()
     @emit updateCosPlot()
 end
