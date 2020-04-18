@@ -1,7 +1,5 @@
 # QML
-
-[![Build Status](https://travis-ci.org/barche/QML.jl.svg?branch=master)](https://travis-ci.org/barche/QML.jl)
-[![Build status](https://ci.appveyor.com/api/projects/status/7edud4w38g8m17yw?svg=true)](https://ci.appveyor.com/project/barche/qml-jl)
+[![Build Status](https://github.com/barche/QML.jl/workflows/CI/badge.svg)](https://github.com/barche/QML.jl/actions?query=workflow%3ACI)
 
 This package provides an interface to [Qt5 QML](http://qt.io/). It uses the [`CxxWrap`](https://github.com/barche/CxxWrap.jl) package to expose C++ classes. Current functionality allows interaction between QML and Julia using basic numerical and string types, as well as display of PNG images and a very experimental OpenGL rendering element (see `example/gltriangle.jl`).
 
