@@ -116,7 +116,7 @@ QString(u::QUrl) = toString(u)
 
 const QVariantList = QList{QVariant}
 
-# Conversion to the strongly-types QVariant interface
+# Conversion to the strongly-typed QVariant interface
 @inline QVariant(x) = QVariant(Any,x)
 @inline QVariant(x::T) where {T<:Union{Number,Ref,CxxWrap.SafeCFunction,QVariantMap,Nothing}} = QVariant(T, x)
 @inline QVariant(x::AbstractString) = QVariant(QString,QString(x))
@@ -139,6 +139,8 @@ Base.convert(::Type{QVariant}, x::T) where {T} = QVariant(x)
 Base.convert(::Type{T}, x::QVariant) where {T} = convert(T,value(x))
 Base.convert(::Type{Any}, x::QVariant) = x
 Base.convert(::Type{<:QVariant}, x::QVariant) = x
+
+@cxxdereference Base.show(io::IO, x::QVariant) = write(io, string("QVariant of type ", type(x), " with value ", value(x)))
 
 Base.IndexStyle(::Type{<:QList}) = IndexLinear()
 Base.size(v::QList) = (Int(cppsize(v)),)
