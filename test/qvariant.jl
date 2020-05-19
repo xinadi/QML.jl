@@ -54,6 +54,7 @@ let testvars = [1, 2.0, QString("test")]
         qvar = QVariant(x)
         @test QML.value(qvar) == x
         @test QML.type(qvar) == vartype(x)
+        @test string(qvar) == "QVariant of type $(vartype(x)) with value $x"
     end
 end
 
@@ -75,6 +76,33 @@ let qvl = QML.QVariantList()
     end
     @test result == 3
 end
+
+nb_created = 0
+nb_finalized = 0
+
+mutable struct FooVariant
+    x::Int
+    function FooVariant(x)
+        global nb_created += 1
+        return new(x)
+    end
+end
+
+foovar = FooVariant(42)
+finalizer(foovar) do y
+    y.x = 0
+    global nb_finalized += 1
+end
+qfoovar = QVariant(foovar)
+foovar = nothing
+GC.gc(); GC.gc(); GC.gc()
+@test nb_created == 1
+@test nb_finalized == 0
+@test QML.value(qfoovar).x == 42
+qfoovar = nothing
+GC.gc(); GC.gc(); GC.gc()
+@test nb_created == 1
+@test nb_finalized == 1
 
 let N = 100
     @test bench_sum_julia(N) == sum(1:N)
