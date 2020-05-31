@@ -2,6 +2,7 @@ module QML
 
 export QVariant, QString, QUrl
 export QQmlContext, root_context, load, qt_prefix_path, set_source, engine, QByteArray, to_string, QQmlComponent, set_data, create, QQuickItem, content_item, JuliaObject, QTimer, context_property, emit, JuliaDisplay, init_application, qmlcontext, init_qmlapplicationengine, init_qmlengine, init_qquickview, exec, exec_async, ListModel, addrole, setconstructor, removerole, setrole, roles, QVariantMap
+export JuliaPropertyMap
 export QStringList, QVariantList
 export QPainter, device, width, height, logicalDpiX, logicalDpiY, QQuickWindow, effectiveDevicePixelRatio, window, JuliaPaintedItem, update
 export @emit, @qmlfunction, qmlfunction, load, QQmlPropertyMap
@@ -41,11 +42,6 @@ function load_qml(qmlfilename, engine)
     error("Failed to load QML file ", qmlfilename)
   end
   return engine
-end
-
-function FileIO.load(f::FileIO.File{format"QML"}, ctxobj::QObject)
-  gcprotect(ctxobj)
-  return load_qml(filename(f), init_qmlapplicationengine(), ctxobj)
 end
 
 """
@@ -134,6 +130,7 @@ end
 
 @inline @cxxdereference setValue(v::QVariant, x::T) where {T} = setValue(T, v, x)
 QVariant(::Type{Nothing}, ::Nothing) = QVariant()
+@cxxdereference value(::Type{Nothing}, ::QML.QVariant) = nothing
 @cxxdereference value(v::QVariant) = CxxWrap.dereference_argument(value(type(v),v))
 Base.convert(::Type{QVariant}, x::T) where {T} = QVariant(x)
 Base.convert(::Type{T}, x::QVariant) where {T} = convert(T,value(x))
@@ -164,6 +161,34 @@ function get_julia_call()
   return @cfunction(julia_call, Ptr{Cvoid}, (Any,Ptr{Cvoid}))
 end
 
+# QQmlPropertyMap indexing interface
+Base.getindex(propmap::QQmlPropertyMap, key::AbstractString) = value(value(propmap, key))
+Base.setindex!(propmap::QQmlPropertyMap, val, key::AbstractString) = insert(propmap, QString(key), QVariant(val))
+Base.setindex!(propmap::QQmlPropertyMap, val::QVariant, key::AbstractString) = insert(propmap, key, val)
+Base.setindex!(propmap::QQmlPropertyMap, val::Irrational, key::AbstractString) = (propmap[key] = convert(Float64, val))
+
+function on_value_changed end
+
+"""
+Store Julia values for access from QML. Observables are connected so they change on the QML side when updated from Julia
+and vice versa.
+"""
+mutable struct JuliaPropertyMap <: AbstractDict{String,Any}
+  propertymap::QQmlPropertyMap
+  dict::Dict{String, Any}
+
+  function JuliaPropertyMap()
+    result = new(QQmlPropertyMap(), Dict{String, Any}())
+    connect_value_changed(result.propertymap, result, on_value_changed)
+    finalizer(result) do jpm
+      for k in keys(jpm.dict)
+        delete!(jpm, k) # Call delete on all keys to detach observable updates to QML
+      end
+    end
+    return result
+  end
+end
+
 # Functor to update a QML property when an Observable is changed in Julia
 struct QmlPropertyUpdater
   propertymap::QQmlPropertyMap
@@ -173,32 +198,55 @@ function (updater::QmlPropertyUpdater)(x)
   updater.propertymap[updater.key] = x
 end
 
-# Predicate to find out if a handler is a QML updater
-noqmlupdater(::Any) = true
-noqmlupdater(::QmlPropertyUpdater) = false
 
-# Called from C++ to update an Observable linked to a QML property
-function update_observable_property!(o::Observable, v::QVariant)
-  # This avoids calling the to-qml update handler, since we initiated the update from QML
-  Observables.setexcludinghandlers(o, value(v), noqmlupdater)
-end
+Base.getindex(jpm::JuliaPropertyMap, k::AbstractString) = jpm.dict[k]
+Base.get(jpm::JuliaPropertyMap, k::AbstractString, def) = get(jpm.dict, k, def)
 
-# QQmlPropertyMap indexing interface
-Base.getindex(propmap::QQmlPropertyMap, key::AbstractString) = value(value(propmap, key))
-function Base.setindex!(propmap::QQmlPropertyMap, val::T, key::AbstractString) where {T}
-  if !isbits(T) && !isimmutable(T)
-    gcprotect(val)
+function Base.delete!(jpm::JuliaPropertyMap, k::AbstractString)
+  storedvalue = jpm.dict[k]
+  if storedvalue isa Observable
+    for observer in filter(x -> x isa QmlPropertyUpdater, Observables.listeners(storedvalue))
+      if observer.propertymap == jpm.propertymap
+        off(storedvalue, observer)
+      end
+    end
   end
-  qvar = QVariant(val)
-  insert(propmap, QString(key), qvar)
+  delete!(jpm.dict, k)
+  clear(jpm.propertymap, k)
 end
-Base.setindex!(propmap::QQmlPropertyMap, val::QVariant, key::AbstractString) = insert(propmap, key, val)
-function Base.setindex!(propmap::QQmlPropertyMap, ob::Observable, key::AbstractString)
+function Base.setindex!(jpm::JuliaPropertyMap, val, key::AbstractString)
+  jpm.propertymap[key] = val
+  jpm.dict[key] = val
+end
+# Base.push!(jpm::JuliaPropertyMap, kv::Pair{<:AbstractString}) = setindex!(ENV, kv.second, kv.first)
+
+function Base.setindex!(jpm::JuliaPropertyMap, ob::Observable, key::AbstractString)
   val = QVariant(ob[])
-  insert_observable(propmap, key, ob, val)
-  on(QmlPropertyUpdater(propmap, key), ob)
+  jpm.propertymap[key] = val
+  jpm.dict[key] = ob
+  on(QmlPropertyUpdater(jpm.propertymap, key), ob)
 end
-Base.setindex!(propmap::QQmlPropertyMap, val::Irrational, key::AbstractString) = (propmap[key] = convert(Float64, val))
+
+Base.iterate(jpm::JuliaPropertyMap) = iterate(jpm.dict)
+Base.iterate(jpm::JuliaPropertyMap, state) = iterate(jpm.dict, state)
+Base.length(jpm::JuliaPropertyMap) = length(jpm.dict)
+
+@cxxdereference function set_context_property(ctx::QQmlContext, name, jpm::JuliaPropertyMap)
+  gc_name = "__jlcxx_gc_protect" * name
+  set_context_property(ctx, gc_name, QVariant(jpm)) # This is to protect the jpm object from GC
+  set_context_property(ctx, name, jpm.propertymap) # QML needs the QQmlPropertyMap
+end
+
+# Called upon change from QML, so QmlPropertyUpdater is excluded from the handlers
+@cxxdereference function on_value_changed(jpm::JuliaPropertyMap, key::QString, variantvalue::QVariant)
+  storedvalue = jpm[key]
+  newvalue = value(variantvalue)
+  if storedvalue isa Observable
+    Observables.setexcludinghandlers(storedvalue, newvalue, x -> !(x isa QmlPropertyUpdater))
+  else
+    jpm.dict[key] = newvalue
+  end
+end
 
 """
 Expand an expression of the form a.b.c to replace the dot operator by function calls:
