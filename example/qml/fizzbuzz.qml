@@ -21,7 +21,7 @@ ApplicationWindow {
         }
         Text {
             id: text
-            text: fizzbuzzMessage
+            text: fizzbuzz.message
         }
         Button {
             text: 'Quit'

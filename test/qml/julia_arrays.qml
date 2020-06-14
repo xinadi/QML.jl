@@ -18,14 +18,14 @@ Item {
     onTriggered: {
       var a = Julia.get_array()
       verify_array(a)
-      verify_array(julia_array)
+      verify_array(arrays.julia_array)
 
-      if(int_array[0] != 1 || int_array[1] != 2 || int_array[2] != 3) {
-        console.log("Bad int array: ", int_array)
+      if(arrays.int_array[0] != 1 || arrays.int_array[1] != 2 || arrays.int_array[2] != 3) {
+        console.log("Bad int array: ", arrays.int_array)
         throw "Error verifying int array"
       }
 
-      ob_array = [7,8,9]
+      arrays.ob_array = [7,8,9]
 
       array_model2.setProperty(2, "myrole", "TEST2")
       array_model2.append({"myrole":"Added"})

@@ -120,6 +120,9 @@ const QVariantList = QList{QVariant}
 @inline QVariant(x::QObject) = QVariant(CxxPtr{QObject},CxxPtr(x))
 @inline QVariant(x::QVariant) = x
 
+QVariant(::Type{Bool}, b::Bool) = QVariant(CxxBool, CxxBool(b))
+@cxxdereference value(::Type{Bool}, qvar::QML.QVariant) = Bool(value(CxxBool, qvar))
+
 function QVariant(arr::AbstractArray)
   qvarlist = QVariantList()
   for x in arr
@@ -174,11 +177,12 @@ Store Julia values for access from QML. Observables are connected so they change
 and vice versa.
 """
 mutable struct JuliaPropertyMap <: AbstractDict{String,Any}
-  propertymap::QQmlPropertyMap
+  propertymap::_JuliaPropertyMap
   dict::Dict{String, Any}
 
   function JuliaPropertyMap()
-    result = new(QQmlPropertyMap(), Dict{String, Any}())
+    result = new(_JuliaPropertyMap(), Dict{String, Any}())
+    set_julia_value(result.propertymap, result)
     connect_value_changed(result.propertymap, result, on_value_changed)
     finalizer(result) do jpm
       for k in keys(jpm.dict)
@@ -189,6 +193,17 @@ mutable struct JuliaPropertyMap <: AbstractDict{String,Any}
   end
 end
 
+function JuliaPropertyMap(pairs::Pair{<:AbstractString,<:Any}...)
+  result = JuliaPropertyMap()
+  for (k,v) in pairs
+    result[k] = v
+  end
+  return result
+end
+JuliaPropertyMap(dict::Dict{<:AbstractString,<:Any}) = JuliaPropertyMap(dict...)
+
+@cxxdereference value(::Type{JuliaPropertyMap}, qvar::QVariant) = getpropertymap(qvar)
+
 # Functor to update a QML property when an Observable is changed in Julia
 struct QmlPropertyUpdater
   propertymap::QQmlPropertyMap
@@ -197,7 +212,6 @@ end
 function (updater::QmlPropertyUpdater)(x)
   updater.propertymap[updater.key] = x
 end
-
 
 Base.getindex(jpm::JuliaPropertyMap, k::AbstractString) = jpm.dict[k]
 Base.get(jpm::JuliaPropertyMap, k::AbstractString, def) = get(jpm.dict, k, def)

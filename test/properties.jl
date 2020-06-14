@@ -3,7 +3,7 @@ using QML
 
 # Test context properties
 
-propmap = QQmlPropertyMap()
+propmap = JuliaPropertyMap()
 propmap["my_prop"] = 1
 propmap["π"] = π
 
@@ -20,5 +20,5 @@ end
 @qmlfunction check_property check_pi
 qmlfile = joinpath(dirname(@__FILE__), "qml", "properties.qml")
 
-load(qmlfile, propmap)
+load(qmlfile, properties=propmap)
 exec()

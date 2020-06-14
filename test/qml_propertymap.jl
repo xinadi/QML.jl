@@ -50,7 +50,11 @@ function do_ob_update(x)
   ob[] = x
 end
 
-@qmlfunction propertymap_test set_expected_ob do_ob_update
+function pass_propertymap(pm::AbstractDict)
+  @test pm["a"] == 1
+end
+
+@qmlfunction propertymap_test set_expected_ob do_ob_update pass_propertymap
 
 propmap = JuliaPropertyMap()
 propmap["a"] = 1
