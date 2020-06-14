@@ -5,14 +5,20 @@ using Observables
 # absolute path in case working dir is overridden
 qml_file = joinpath(dirname(@__FILE__), "qml", "julia_arrays.qml")
 
-julia_array = ["A", 1, 2.2]
 move_array = collect(0:9)
 resize_typed_array = collect(1:5)
 insert_array = [1,2,4]
 clear_array = [1.,2.]
-any_array = Any[1,2,3]
 int_array = [1,2,3]
-ob_array = Observable(int_array)
+
+arrays = JuliaPropertyMap(
+  "julia_array" => ["A", 1, 2.2],
+  "any_array" => Any[1,2,3],
+  "int_array" => int_array,
+  "ob_array" => Observable(int_array),
+)
+
+julia_array = arrays["julia_array"]
 
 get_array() = julia_array
 
@@ -42,19 +48,16 @@ custom_model = ListModel(custom_list)
 
 @qmlfunction get_array
 load(qml_file,
-  julia_array=julia_array,
+  arrays=arrays,
   array_model=array_model,
   array_model2=array_model2,
   move_model=move_model,
   resize_typed_model=resize_typed_model,
   insert_model=insert_model,
   clear_model=clear_model,
-  custom_model=custom_model,
-  any_array=any_array,
-  int_array=int_array,
-  ob_array=ob_array)
+  custom_model=custom_model)
 
-ob_array[] = [4,5,6]
+arrays["ob_array"][] = [4,5,6]
 
 # Run the application
 exec()
@@ -83,4 +86,4 @@ exec()
 @test custom_list[3].a == "ten"
 @test custom_list[3].b == 10
 
-@test ob_array[] == [7, 8, 9]
+@test arrays["ob_array"][] == [7, 8, 9]
