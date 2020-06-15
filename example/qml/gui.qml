@@ -10,8 +10,8 @@ ApplicationWindow {
     visible: true
 
     Connections {
-      target: timer
-      onTimeout: Julia.counter_slot()
+      target: guiproperties.timer
+      function onTimeout() { Julia.counter_slot(); }
     }
 
     ColumnLayout {
@@ -56,24 +56,24 @@ ApplicationWindow {
 
       Text {
           Layout.alignment: Qt.AlignCenter
-          text: Julia.string(oldcounter, ", ", upperOut.text)
+          text: Julia.string(guiproperties.oldcounter, ", ", upperOut.text)
       }
 
       Button {
           Layout.alignment: Qt.AlignCenter
           text: "Start counting"
-          onClicked: timer.start()
+          onClicked: guiproperties.timer.start()
       }
 
       Text {
           Layout.alignment: Qt.AlignCenter
-          text: bg_counter.toString()
+          text: guiproperties.bg_counter.toString()
       }
 
       Button {
           Layout.alignment: Qt.AlignCenter
           text: "Stop counting"
-          onClicked: timer.stop()
+          onClicked: guiproperties.timer.stop()
       }
   }
 }

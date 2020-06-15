@@ -5,7 +5,7 @@ Item {
 
   Connections {
     target: timer
-    onTimeout: Julia.counter_slot()
+    function onTimeout() { Julia.counter_slot() }
   }
 
   // Timer to quit the program, has nothing to do with the QTimer which counts much faster
