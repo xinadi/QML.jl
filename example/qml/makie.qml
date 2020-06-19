@@ -28,7 +28,7 @@ ApplicationWindow {
         minimumValue: 0.0
         maximumValue: 360.0
         onValueChanged: {
-          catangle = value;
+          cat.angle = value;
           viewport.update();
         }
       }

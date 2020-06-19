@@ -7,16 +7,18 @@ using QML
 using Makie
 
 const catangle = Observable(0.0)
-const cat = mesh(Makie.loadasset("cat.obj"))
+const cat = mesh(Makie.loadasset("cat.obj"), color = :blue)
+const lastrot = Ref(0.0)
 
 # Render function that takes a parameter t from a QML slider
 function render_function(screen)
-  rotate!(cat, Vec3f0(0, 0, 1), catangle[]*π/180)
+  rotate_cam!(cat, (catangle[] - lastrot[])*π/180, 0.0, 0.0)
+  lastrot[] = catangle[]
   display(screen, cat)
 end
 
 load(joinpath(dirname(@__FILE__), "qml", "makie.qml"),
-  catangle=catangle,
-  render_callback=@safe_cfunction(render_function, Cvoid, (Any,))
+  cat = JuliaPropertyMap("angle" => catangle),
+  render_callback = @safe_cfunction(render_function, Cvoid, (Any,))
 )
 exec()

@@ -1,9 +1,9 @@
 module MakieSupport
 
-using Colors
-using FixedPointNumbers
-using Makie
-using ModernGL
+using ..Makie
+using ..Makie.GLMakie.Colors
+using ..Makie.GLMakie.FixedPointNumbers
+using ..Makie.GLMakie.ModernGL
 using QML
 using CxxWrap
 
@@ -12,9 +12,9 @@ mutable struct QMLGLContext
   fbo::CxxPtr{QML.QOpenGLFramebufferObject}
 end
 
-Makie.GLMakie.GLAbstraction.native_switch_context!(ctx::QMLGLContext) = QML.bind(ctx.fbo)
+Makie.GLMakie.ShaderAbstractions.native_switch_context!(ctx::QMLGLContext) = QML.bind(ctx.fbo)
 
-function Makie.GLMakie.GLAbstraction.native_context_alive(ctx::QMLGLContext)
+function Makie.GLMakie.ShaderAbstractions.native_context_alive(ctx::QMLGLContext)
   return ctx.valid
 end
 
@@ -50,7 +50,7 @@ mutable struct QMLScreen <: Makie.GLMakie.GLScreen
 end
 
 Base.isopen(screen::QMLScreen) = true
-Makie.GeometryTypes.widths(screen::QMLScreen) = screen.size
+Makie.GLMakie.GeometryBasics.widths(screen::QMLScreen) = screen.size
 
 function Makie.GLMakie.render_frame(screen::QMLScreen)
   Makie.GLMakie.setup!(screen)
@@ -74,12 +74,13 @@ function setup_screen(fbo)
     old_ctx.valid = false
   catch
   end
-  Makie.GLMakie.GLAbstraction.switch_context!(QMLGLContext(true, fbo))
-  return QMLScreen(QML.size(fbo)...)
+  Makie.GLMakie.ShaderAbstractions.switch_context!(QMLGLContext(true, fbo))
+  fbosize = QML.size(fbo)
+  return QMLScreen(QML.width(fbosize), QML.height(fbosize))
 end
 
 function on_context_destroy()
-  Makie.GLMakie.GLAbstraction.switch_context!()
+  Makie.GLMakie.ShaderAbstractions.switch_context!()
   return
 end
 

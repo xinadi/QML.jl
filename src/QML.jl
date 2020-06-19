@@ -86,6 +86,8 @@ function __init__()
   @static if Sys.isapple()
     @require GR="28b8d3ca-fb5f-59d9-8090-bfdbd6d07a71" patchgr()
   end
+
+  @require Makie="ee78f7c6-11fb-53f2-987a-cfe4a2b5a57a" include(joinpath(@__DIR__, "makie_support.jl"))
 end
 
 # QString
@@ -338,10 +340,6 @@ function Base.displayable(d::JuliaDisplay, mime::AbstractString)
     return true
   end
   return false
-end
-
-function load_makie_support()
-  include(joinpath(dirname(@__FILE__), "makie_support.jl"))
 end
 
 struct ListModelFunctionUndefined <: Exception end
