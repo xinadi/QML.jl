@@ -63,16 +63,21 @@ function step(sim::Simulation)
   progress[] = getprogress(sim)
 end
 
+# Observables does something special to Channels, so we need to wrap it
+struct ChannelSim
+  channel::Channel
+end
+
 # Track the simulation in a channel
-function simulate_chan(c::Channel)
+function simulate_chan(channel::Channel)
   sim = Simulation()
   while !isfinished(sim)
     dostep(sim)
-    put!(c, getprogress(sim))
+    put!(channel, getprogress(sim))
   end
 end
-function step(c::Channel)
-  progress[] = take!(c)
+function step(cs::ChannelSim)
+  progress[] = take!(cs.channel)
 end
 
 # Track the simulation in a ResumableFunction
@@ -93,14 +98,13 @@ function setup(observablesim, simtype)
   if simtype == :direct
     observablesim[] = Simulation()
   elseif simtype == :channel
-    observablesim[] = Channel(simulate_chan)
+    observablesim[] = ChannelSim(Channel(simulate_chan))
   elseif simtype == :resumable
     observablesim[] = simulate_resumable()
   else
     error("Unknown simulation type $simtype")
   end
   progress[] = 0.0
-  println("set up simulation $(simulation[])")
 end
 
 # set up initial simulation
@@ -131,12 +135,9 @@ end
 # All arguments after qmlfile are context properties:
 load(
   qmlfile,
-  progress=progress,
   timer=timer,
-  ticks=ticks,
   simulationTypes=ListModel(first.(simulation_types)),
-  selectedSimType=selectedsimtype,
-  stepsize=stepsize)
+  parameters = JuliaPropertyMap("progress" => progress, "ticks" => ticks, "selectedSimType" => selectedsimtype, "stepsize" => stepsize))
 
 exec()
 

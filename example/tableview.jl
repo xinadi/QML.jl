@@ -7,11 +7,13 @@ struct Nuclide
   values::Dict{Int,Float64}
 end
 
-const years = Observable(collect(2016:2025)) # exposed as context property
+const years = Observable(collect(Cint,2016:2025)) # exposed as context property
 nuclides = [Nuclide(name, Dict([(y,rand()) for y in years[]])) for name in ["Co60", "Cs137", "Ni63"]]
-nuclidesModel = ListModel(nuclides)
+nuclidesModel = ListModel(nuclides, false)
+addrole(nuclidesModel, "name", n -> n.name)
 
-add_year_role(model, year) = addrole(model, string(year), n -> round(n.values[year]; digits=2))
+# Seems roles can't start with a number
+add_year_role(model, year::Integer) = addrole(model, "y" * string(year), n -> round(n.values[year]; digits=2))
 
 # add year roles manually:
 for y in years[]
@@ -19,8 +21,8 @@ for y in years[]
 end
 
 on(years) do ys
-  ys_int = Int.(ys)
-  roleints = parse.(Int,roles(nuclidesModel)[3:end])
+  ys_int = Int.(QML.value.(ys))
+  roleints = parse.(Int,getindex.(roles(nuclidesModel)[2:end], Ref(2:5)))
   addyears!(nuclidesModel, nuclides, setdiff(ys_int, roleints))
   delyears!(nuclidesModel, nuclides, setdiff(roleints, ys_int))
 end
@@ -39,13 +41,13 @@ function delyears!(model, nuclides, years)
     for nuc in nuclides
       delete!(nuc.values, y)
     end
-    removerole(model, string(y))
+    removerole(model, "y"*string(y))
   end
 end
 
 # Load QML after setting context properties, to avoid errors on initialization
 qml_file = joinpath(dirname(@__FILE__), "qml", "tableview.qml")
-load(qml_file, years=years, nuclidesModel=nuclidesModel)
+load(qml_file, properties=JuliaPropertyMap("years" => years), nuclidesModel=nuclidesModel)
 
 # Run the application
 exec()

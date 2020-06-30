@@ -7,10 +7,6 @@ const y = Observable(0.0)
 qmlfile = joinpath(dirname(Base.source_path()), "qml", "sketch.qml")
 # Load the QML file, using position as a context property
 
-posmap = QQmlPropertyMap()
-posmap["x"] = x
-posmap["y"] = y
-
 # Confirm that the point position is exposed to Julia
 const positionskip = 10
 const nb_moves = Ref(0)
@@ -21,7 +17,7 @@ on(x) do px
   nb_moves[] += 1
 end
 
-load(qmlfile, position=posmap)
+load(qmlfile, position=JuliaPropertyMap("x" => x, "y" =>y))
 exec()
 
 """
