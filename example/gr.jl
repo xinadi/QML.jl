@@ -33,9 +33,7 @@ end
 
 load(qmlfile,
   paint_cfunction = @safe_cfunction(paint, Cvoid, (CxxPtr{QPainter}, CxxPtr{JuliaPaintedItem})),
-  frequency = f,
-  amplitude = A
-)
+  parameters = JuliaPropertyMap("frequency" => f, "amplitude" => A))
 exec()
 
 """

@@ -24,13 +24,16 @@ ApplicationWindow {
       Button {
           Layout.alignment: Qt.AlignCenter
           text: "Add column"
-          onClicked: { years = years.concat([years[years.length-1]+1]); }
+          onClicked: {
+            var newyear = properties.years[properties.years.length-1]+1
+            properties.years = properties.years.concat([newyear]);
+          }
       }
 
       Button {
           Layout.alignment: Qt.AlignCenter
           text: "Remove column"
-          onClicked: { years = years.slice(1) }
+          onClicked: { properties.years = properties.years.slice(1) }
       }
     }
 
@@ -53,10 +56,11 @@ ApplicationWindow {
           removeColumn(0);
         }
         addColumn(columnComponent.createObject(view, { "role": "name", "title": "Nuclide", "width": 100 }));
-        for(var i=0; i<years.length; i++)
+        for(var i=0; i<properties.years.length; i++)
         {
-          var role  = years[i];
-          addColumn(columnComponent.createObject(view, { "role": role, "title": role}));
+          var year = properties.years[i];
+          var role = "y" + year
+          addColumn(columnComponent.createObject(view, { "role": role, "title": year}));
         }
         model = savedModel;
       }
@@ -64,7 +68,7 @@ ApplicationWindow {
       // Update on role changes
       Connections {
         target: nuclidesModel
-        onRolesChanged: view.update_columns()
+        function onRolesChanged() { view.update_columns(); }
       }
 
       // First-time init

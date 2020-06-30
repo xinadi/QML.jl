@@ -12,7 +12,7 @@ ApplicationWindow {
   // Set up timer connection
   Connections {
     target: timer
-    onTimeout: ticks += 1
+    function onTimeout() { parameters.ticks += 1; }
   }
 
   ColumnLayout {
@@ -21,10 +21,10 @@ ApplicationWindow {
 
     ComboBox {
       Layout.alignment: Qt.AlignCenter
-      currentIndex: selectedSimType-1
+      currentIndex: parameters.selectedSimType-1
       model: simulationTypes
       width: 300
-      onCurrentIndexChanged: selectedSimType = currentIndex+1
+      onCurrentIndexChanged: parameters.selectedSimType = currentIndex+1
     }
 
     RowLayout {
@@ -32,17 +32,17 @@ ApplicationWindow {
       Text { text: "Step size (ms)" }
       Slider {
         from: 0
-        value: stepsize
+        value: parameters.stepsize
         stepSize: 1
         to: 100
-        onValueChanged: stepsize = value
+        onValueChanged: parameters.stepsize = value
       }
-      Text { text: stepsize }
+      Text { text: parameters.stepsize }
     }
 
     ProgressBar {
       Layout.alignment: Qt.AlignCenter
-      value: progress
+      value: parameters.progress
     }
 
     Button {

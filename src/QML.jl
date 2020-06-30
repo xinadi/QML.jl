@@ -356,8 +356,7 @@ mutable struct ListModelData
 
   function ListModelData(values::AbstractVector)
     roles = QStringList()
-    push!(roles, "string")
-    return new(values, roles, [string], [defaultsetter], defaultconstructor, false)
+    return new(values, roles, [], [], defaultconstructor, false)
   end
 end
 
@@ -430,21 +429,28 @@ Constructor for ListModel that automatically creates a constructor and setter an
 """
 function ListModel(a::AbstractVector{T}, addroles=true) where {T}
   data = ListModelData(a)
-
-  if !isabstracttype(T) && nfields(T) > 0 && addroles
+  if addroles
     empty!(data.roles)
     empty!(data.getters)
     empty!(data.setters)
-    for fname in fieldnames(T)
-      push!(data.roles, string(fname))
-      push!(data.getters, (x) -> getfield(x, fname))
-      push!(data.setters, (array, value, index) -> setfield!(array[index], fname, value))
+    if !isabstracttype(T) && !isempty(fieldnames(T))
+      for fname in fieldnames(T)
+        push!(data.roles, string(fname))
+        push!(data.getters, (x) -> getfield(x, fname))
+        push!(data.setters, (array, value, index) -> setfield!(array[index], fname, value))
+      end
+      data.constructor = T
+    else
+      push!(data.roles, "text")
+      push!(data.getters, string)
+      push!(data.setters, defaultsetter)
     end
-    data.constructor = T
   end
 
   return ListModel(data)
 end
+
+roles(lm::ListModel) = rolenames(get_julia_data(lm))
 
 function addrole(lm::ListModel, name, getter, setter=defaultsetter)
   m = get_julia_data(lm)

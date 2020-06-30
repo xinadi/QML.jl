@@ -15,7 +15,7 @@ ApplicationWindow {
     anchors.fill: parent
 
     Slider {
-      value: input
+      value: observables.input
       Layout.alignment: Qt.AlignCenter
       Layout.fillWidth: true
       minimumValue: 0.0
@@ -23,14 +23,14 @@ ApplicationWindow {
       stepSize: 1.0
       tickmarksEnabled: true
       onValueChanged: {
-        input = value;
-        output = 2*input;
+        observables.input = value;
+        observables.output = 2*observables.input;
       }
     }
 
     Text {
       Layout.alignment: Qt.AlignCenter
-      text: output
+      text: observables.output
       font.pixelSize: 0.1*root.height
     }
   }
