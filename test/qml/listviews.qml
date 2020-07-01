@@ -18,7 +18,7 @@ ApplicationWindow {
       width: 200
       height: 125
       model: array_model
-      delegate: Text { text: string }
+      delegate: Text { text: "" }
     }
 
     ListView {
@@ -68,7 +68,9 @@ ApplicationWindow {
 
       Connections {
         target: tablemodel
-        onRolesChanged: tabview.setcolumns()
+        function onRolesChanged() {
+          tabview.setcolumns()
+        }
       }
 
       Component.onCompleted: setcolumns()
