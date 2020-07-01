@@ -16,6 +16,7 @@ myrole2(x::Number) = Int(round(x))
 decorated2(x) = "---" * string(x) * "---"
 
 array_model = ListModel(julia_array)
+addrole(array_model, "string", string)
 array_model2 = ListModel(julia_array)
 addrole(array_model2, "myrole", myrole2, setindex!)
 addrole(array_model2, "decorated", decorated2)
