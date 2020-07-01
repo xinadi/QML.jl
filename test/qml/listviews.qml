@@ -18,7 +18,7 @@ ApplicationWindow {
       width: 200
       height: 125
       model: array_model
-      delegate: Text { text: "" }
+      delegate: Text { text: string}
     }
 
     ListView {
