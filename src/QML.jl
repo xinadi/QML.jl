@@ -82,6 +82,7 @@ end
 function __init__()
   @initcxx
   FileIO.add_format(format"QML", (), ".qml")
+  ENV["FONTCONFIG_FILE"] = "/etc/fonts/fonts.conf"
 
   @static if Sys.isapple()
     @require GR="28b8d3ca-fb5f-59d9-8090-bfdbd6d07a71" patchgr()
