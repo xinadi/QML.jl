@@ -1,5 +1,10 @@
 using Test
 
+import QML
+using Documenter: doctest
+
+doctest(QML)
+
 excluded = ["runtests.jl", "qml", "include"]
 
 # OpenGL on Linux travis is excessively old, causing a crash when attempting display of a window
