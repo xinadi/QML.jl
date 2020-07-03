@@ -1,3 +1,5 @@
+ENV["QSG_RENDER_LOOP"] = "basic"
+
 using QML
 using Observables
 using ColorTypes
