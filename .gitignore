@@ -10,3 +10,4 @@
 CMakeLists.txt.user
 /Manifest.toml
 example/Manifest.toml
+/docs/build

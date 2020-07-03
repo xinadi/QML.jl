@@ -1,5 +1,6 @@
 # QML
 
+[![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://barche.github.io/QML.jl/dev)
 [![Build Status](https://travis-ci.org/barche/QML.jl.svg?branch=master)](https://travis-ci.org/barche/QML.jl)
 [![Build status](https://ci.appveyor.com/api/projects/status/7edud4w38g8m17yw?svg=true)](https://ci.appveyor.com/project/barche/qml-jl)
 
@@ -28,14 +29,18 @@ override USE_SYSTEM_LLVM=1
 ```
 
 ## Usage
+
 ### Running examples
 To run the included examples, execute:
+
 ```julia
 include(joinpath(Pkg.dir("QML"), "example", "runexamples.jl"))
 ```
+
 The examples require some additional packages to be described by the manifest and project files in the examples directory, so from the examples directory you should
 start Julia with `julia --project` and then run `instantiate` from the pkg shell.
 
+<<<<<<< HEAD
 ### Loading a QML file
 We support three methods of loading a QML file: `QQmlApplicationEngine`, `QQuickView` and `QQmlComponent`. These behave equivalently to the corresponding Qt classes.
 #### QQmlApplicationEngine
@@ -425,6 +430,9 @@ include("example/repl-background.jl")
 plot([1,2],[3,4])
 ```
 This should display the result of the plotting command in the QML window.
+=======
+For further examples, see the [`documentation`](https://barche.github.io/QML.jl/dev).
+>>>>>>> bramtayl_fix_warnings
 
 ## Breaking changes
 * Signals in `JuliaSignals` must have arguments of type `var`
