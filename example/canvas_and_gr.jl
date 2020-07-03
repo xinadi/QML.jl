@@ -112,11 +112,12 @@ onany(amplitude, frequency, invert_sin, diameter) do amp, freq, inv, dia
 end
 
 load(qmlfile,
-     invert_sin = invert_sin,
-     amplitude=amplitude,
-     frequency=frequency,
-     diameter=diameter,
-     description_text=description_text,
+     parameters = JuliaPropertyMap(
+     "invert_sin"       => invert_sin,
+     "amplitude"        => amplitude,
+     "frequency"        => frequency,
+     "diameter"         => diameter,
+     "description_text" => description_text),
      paint_sin_plot_wrapped = @safe_cfunction(paint_sin_plot, Cvoid,
                                               (CxxPtr{QPainter}, CxxPtr{JuliaPaintedItem})),
      paint_cos_plot_wrapped = @safe_cfunction(paint_cos_plot, Cvoid,

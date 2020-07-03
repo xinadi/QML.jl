@@ -1,6 +1,5 @@
 using QML
 using Observables
-using Plots
 using ColorTypes
 import CxxWrap # for safe_cfunction
 
@@ -40,12 +39,8 @@ function paint_circle(buffer)
 end
 
 load(qmlfile,
-     diameter=diameter,
+     parameters=JuliaPropertyMap("diameter" => diameter),
      paint_cfunction = CxxWrap.@safe_cfunction(paint_circle, Cvoid, 
                                                (Array{UInt32,1}, Int32, Int32)))
-
-on(diameter) do d
-    @emit updateCircle()
-end
 
 exec()

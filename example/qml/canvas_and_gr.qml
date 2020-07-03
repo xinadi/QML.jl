@@ -19,20 +19,20 @@ ApplicationWindow {
 		CheckBox {
 		    checked: true
 		    text: "invert sin plot"
-		    onCheckedChanged: invert_sin = checked
-		    Component.onCompleted: invert_sin = checked
+		    onCheckedChanged: parameters.invert_sin = checked
+		    Component.onCompleted: parameters.invert_sin = checked
 		}
 		NamedSlider {
 		    text: "frequency"; from: 1; to: 10; value: 5
-		    onValueChanged: frequency = value
+		    onValueChanged: parameters.frequency = value
 		}
 		NamedSlider {
 		    text: "amplitude"; from: 1; to: 5; value: 2.3
-		    onValueChanged: amplitude = value
+		    onValueChanged: parameters.amplitude = value
 		}
 		NamedSlider {
 		    text: "diameter"; from: 50; to: 100; value: 80
-		    onValueChanged: diameter = value
+		    onValueChanged: parameters.diameter = value
 		}
 	    }
 	    JuliaPaintedItem {
@@ -57,7 +57,7 @@ ApplicationWindow {
 		    Layout.fillHeight: true
 		    Layout.minimumWidth: 200
 		    textFormat: TextEdit.RichText
-		    text: description_text
+		    text: parameters.description_text
 		    readOnly: true
 		}
 	    JuliaCanvas {
