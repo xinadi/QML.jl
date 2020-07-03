@@ -1,8 +1,7 @@
 # QML
 
-[![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://barche.github.io/QML.jl/dev)
-[![Build Status](https://travis-ci.org/barche/QML.jl.svg?branch=master)](https://travis-ci.org/barche/QML.jl)
-[![Build status](https://ci.appveyor.com/api/projects/status/7edud4w38g8m17yw?svg=true)](https://ci.appveyor.com/project/barche/qml-jl)
+[![Latest](https://img.shields.io/badge/docs-dev-blue.svg)](https://barche.github.io/QML.jl/dev)
+[![CodeCov](https://codecov.io/gh/barche/QML.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/barche/QML.jl)
 
 This package provides an interface to [Qt5 QML](http://qt.io/). It uses the [`CxxWrap`](https://github.com/barche/CxxWrap.jl) package to expose C++ classes. Current functionality allows interaction between QML and Julia using basic numerical and string types, as well as display of PNG images and a very experimental OpenGL rendering element (see `example/gltriangle.jl`).
 
@@ -40,7 +39,6 @@ include(joinpath(Pkg.dir("QML"), "example", "runexamples.jl"))
 The examples require some additional packages to be described by the manifest and project files in the examples directory, so from the examples directory you should
 start Julia with `julia --project` and then run `instantiate` from the pkg shell.
 
-<<<<<<< HEAD
 ### Loading a QML file
 We support three methods of loading a QML file: `QQmlApplicationEngine`, `QQuickView` and `QQmlComponent`. These behave equivalently to the corresponding Qt classes.
 #### QQmlApplicationEngine
@@ -373,6 +371,7 @@ QML.jl provides a custom QML type named `JuliaDisplay` that acts as a standard J
  Of course the display can also be added using `pushdisplay!`, but passing by value can be more convenient when defining multiple displays in QML.
 
 ## JuliaCanvas
+
 QML.jl provides a custom QML type named `JuliaCanvas` which presents a canvas to be painted via a julia callback function.  This approach avoids the MIME content encoding overhead of the JuliaDisplay approach.
 
 Example use in QML from the `canvas` example:
@@ -388,7 +387,7 @@ Example use in QML from the `canvas` example:
  ```
  The callback function `paint_cfunction` is defined in julia:
  ```julia
- 
+
  # fix callback arguments (TODO: macro this?)
  function paint_circle(buffer::Array{UInt32, 1},
                        width32::Int32,
@@ -410,11 +409,11 @@ function paint_circle(buffer)
         end
     end
  end
- 
+
  load(qmlfile,
       #...
       paint_cfunction = CxxWrap.@safe_cfunction(paint_circle, Cvoid, (Array{UInt32,1}, Int32, Int32))
- ) 
+ )
 ```
 Note that the canvas buffer is allocated (and freed) in the C++ code.  A new unitialized buffer is allocated for each frame (this could change).
 
@@ -430,9 +429,8 @@ include("example/repl-background.jl")
 plot([1,2],[3,4])
 ```
 This should display the result of the plotting command in the QML window.
-=======
+
 For further examples, see the [`documentation`](https://barche.github.io/QML.jl/dev).
->>>>>>> bramtayl_fix_warnings
 
 ## Breaking changes
 * Signals in `JuliaSignals` must have arguments of type `var`
