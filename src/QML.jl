@@ -10,10 +10,6 @@ export set_context_property
 
 using jlqml_jll
 
-@static if Sys.iswindows()
-  ENV["QML_PREFIX_PATH"] = dirname(dirname(libjlqml))
-end
-
 using CxxWrap
 using Observables
 using FileIO
