@@ -554,11 +554,11 @@ Base.push!(m::ListModelData, val) = push!(m.values, val)
 
 Constructor for a ListModel. The `ListModel` type allows using data in QML views such as
 `ListView` and `Repeater`, providing a two-way synchronization of the data. A ListModel is
-constructed from a 1D Julia array. To use the model from QML, it can
-be exposed as a context attribute.
+constructed from a 1D Julia array. To use the model from QML, it can be exposed as a context
+attribute.
 
-If the `eltype` has fieldnames, a constructor based on these fields and setter and getter
-"roles" will be automatically created if `addroles` is `true`.
+A constructor (the `eltype`) and setter and getter "roles" based on the `fieldnames` of the
+`eltype` will be automatically created if `addroles` is `true`.
 
 If new elements need to be constructed from QML, a constructor can also be provided, using
 the [`setconstructor`](@ref) method.
@@ -650,7 +650,7 @@ roles(lm::ListModel) = rolenames(get_julia_data(lm))
 Add your own `getter` (and optionally, `setter`) functions to a [`ListModel`](@ref) for use
 by QML. `setter` is optional, and if it is not provided the role will be read-only. `getter`
 will process an item before it is returned. The arguments of `setter` will be
-`collection, new_value, key` as in the standard `setindex!` function. If you would like to
+`collection, new_value, index` as in the standard `setindex!` function. If you would like to
 see the roles defined for a list, use [`roles`](@ref). To remove a role, use
 [`removerole`](@ref).
 
@@ -777,8 +777,8 @@ end
 """
     function setconstructor(model::ListModel, constructor)
 
-Add a constructor to a list model. The `constructor` will process `append`ed items before
-they are added.
+Add a constructor to a [`ListModel`](@ref). The `constructor` will process `append`ed items
+before they are added.
 
 ```jldoctest
 julia> using QML
