@@ -6,7 +6,7 @@ using ResumableFunctions
 using Statistics
 
 const nsteps = 100
-const stepsize = Observable(0)
+const stepsize = Observable(Cint(0))
 
 # Simple counting "simulation" with its interface
 mutable struct Simulation
@@ -50,8 +50,8 @@ qmlfile = joinpath(dirname(Base.source_path()), "qml", "progressbar.qml")
 # Global state, accessible from QML
 const simulation = Observable{Any}(nothing) # The simulation
 const progress = Observable(0.0) # Simulation progress
-const selectedsimtype = Observable(0) # Index of the selected simulation type
-const ticks = Observable(0) # Number of times the timer has ticked
+const selectedsimtype = Observable(Cint(0)) # Index of the selected simulation type
+const ticks = Observable(Cint(0)) # Number of times the timer has ticked
 
 on(selectedsimtype) do i
   setup(simulation, simulation_types[i][2])
@@ -119,7 +119,7 @@ on(progress) do p
     QML.stop(timer)
     meantime = mean(timings[2:end] .- timings[1:end-1]) / 1e6
     println("Finished simulation after $(ticks[]) ticks with average time of $meantime ms between ticks")
-    ticks[] = 0
+    ticks[] = Cint(0)
     setup(simulation, simulation_types[selectedsimtype[]][2])
   end
 end
@@ -132,11 +132,13 @@ on(ticks) do t
   end
 end
 
+simtypes = ListModel(first.(simulation_types))
+
 # All arguments after qmlfile are context properties:
 load(
   qmlfile,
   timer=timer,
-  simulationTypes=ListModel(first.(simulation_types)),
+  simulationTypes=simtypes,
   parameters = JuliaPropertyMap("progress" => progress, "ticks" => ticks, "selectedSimType" => selectedsimtype, "stepsize" => stepsize))
 
 exec()

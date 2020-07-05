@@ -24,7 +24,7 @@ ApplicationWindow {
       currentIndex: parameters.selectedSimType-1
       model: simulationTypes
       width: 300
-      onCurrentIndexChanged: parameters.selectedSimType = currentIndex+1
+      onCurrentIndexChanged: { if (currentIndex >= 0) { parameters.selectedSimType = currentIndex+1; }}
     }
 
     RowLayout {
