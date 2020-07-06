@@ -779,7 +779,7 @@ end
     function setconstructor(model::ListModel, constructor)
 
 Add a constructor to a [`ListModel`](@ref). The `constructor` will process `append`ed items
-before they are added. Note that you can simply pass a list of arguments tofrom QML,
+before they are added. Note that you can simply pass a list of arguments from QML,
 and they will be interpret in Julia as positional arguments.
 
 ```jldoctest
