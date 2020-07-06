@@ -1,12 +1,15 @@
 module QML
 
 export QVariant, QString, QUrl
-export QQmlContext, root_context, load, qt_prefix_path, set_source, engine, QByteArray, to_string, QQmlComponent, set_data, create, QQuickItem, content_item, JuliaObject, QTimer, context_property, emit, JuliaDisplay, JuliaCanvas, init_application, qmlcontext, init_qmlapplicationengine, init_qmlengine, init_qquickview, exec, exec_async, ListModel, addrole, setconstructor, removerole, setrole, roles, QVariantMap
+export QQmlContext, root_context, load, qt_prefix_path, set_source, engine, QByteArray, to_string, QQmlComponent, set_data, create, QQuickItem, content_item, QTimer, context_property, emit, JuliaDisplay, JuliaCanvas, init_application, qmlcontext, init_qmlapplicationengine, init_qmlengine, init_qquickview, exec, exec_async, ListModel, addrole, setconstructor, removerole, setrole, roles, QVariantMap
 export JuliaPropertyMap
 export QStringList, QVariantList
-export QPainter, device, width, height, logicalDpiX, logicalDpiY, QQuickWindow, effectiveDevicePixelRatio, window, JuliaPaintedItem, update
+export QPainter, device, width, height, logicalDpiX, logicalDpiY, QQuickWindow, effectiveDevicePixelRatio, window, JuliaPaintedItem
 export @emit, @qmlfunction, qmlfunction, load, QQmlPropertyMap
 export set_context_property
+
+# TODO: Document: init_application, init_qmlapplicationengine
+# TODO: Document painter: device, effectiveDevicePixelRatio, height, JuliaCanvas, JuliaPaintedItem, logicalDpiX, logicalDpiY, width, window
 
 using jlqml_jll
 
@@ -16,6 +19,7 @@ using FileIO
 import Libdl
 using Requires
 using ColorTypes
+using MacroTools: @capture
 
 const envfile = joinpath(dirname(dirname(@__FILE__)), "deps", "env.jl")
 if isfile(envfile)
@@ -42,14 +46,11 @@ function load_qml(qmlfilename, engine)
 end
 
 """
+    function load(qml_file::String; properties...)
 
-load(qml_file, prop1=x, prop2=y, ...)
-
-Load a QML file, creating a QQmlApplicationEngine and setting the context properties supplied in the keyword arguments. Returns the created engine.
-
-load(qml_file, context_object)
-
-Load a QML file, creating a QQmlApplicationEngine and setting the context object to the supplied QObject
+Load a QML file, creating a [`QML.QQmlApplicationEngine`](@ref), and setting the context
+`properties` supplied in the keyword arguments. Will create and return a
+`QQmlApplicationEngine`. See the example for [`QML.QQmlApplicationEngine`](@ref).
 """
 function FileIO.load(f::FileIO.File{format"QML"}; kwargs...)
   qml_engine = init_qmlapplicationengine()
@@ -171,10 +172,6 @@ Base.setindex!(propmap::QQmlPropertyMap, val::Irrational, key::AbstractString) =
 
 function on_value_changed end
 
-"""
-Store Julia values for access from QML. Observables are connected so they change on the QML side when updated from Julia
-and vice versa.
-"""
 mutable struct JuliaPropertyMap <: AbstractDict{String,Any}
   propertymap::_JuliaPropertyMap
   dict::Dict{String, Any}
@@ -192,6 +189,46 @@ mutable struct JuliaPropertyMap <: AbstractDict{String,Any}
   end
 end
 
+"""
+    function JuliaPropertyMap(pairs...)
+
+Store Julia values for access from QML. `Observables` are connected so they change on the
+QML side when updated from Julia and vice versa only when passed in a property map. Note
+that in the example below, if you run `output[] = new_value` from within Julia, the slider
+in QML will move.
+
+```jldoctest
+julia> using QML
+
+julia> using Observables: Observable, on
+
+julia> output = Observable(0.0);
+
+julia> on(println, output);
+
+julia> mktempdir() do folder
+         path = joinpath(folder, "main.qml")
+         write(path, \"""
+         import QtQuick 2.0
+         import QtQuick.Controls 1.0
+         ApplicationWindow {
+           visible: true
+           Slider {
+             onValueChanged: {
+               observables.output = value;
+             }
+           }
+           Timer {
+             running: true
+             onTriggered: Qt.quit()
+           }
+         }
+         \""")
+         load(path; observables = JuliaPropertyMap("output" => output))
+         exec()
+       end
+```
+"""
 function JuliaPropertyMap(pairs::Pair{<:AbstractString,<:Any}...)
   result = JuliaPropertyMap()
   for (k,v) in pairs
@@ -261,18 +298,27 @@ end
   end
 end
 
+expand_dots(source_expr, func) =
+  if @capture source_expr object_.field_
+    Expr(:call, func, expand_dots(object, func), String(field))
+  else
+    source_expr
+  end
+
 """
-Expand an expression of the form a.b.c to replace the dot operator by function calls:
-`@expand_dots a.b.c.d f` returns `f(f(f(a,"b"),"c"),"d")`
+    QML.@expand_dots object_.field_ func
+
+Expand an expression of the form a.b.c to replace the dot operator by function calls.
+
+```jldoctest
+julia> using QML
+
+julia> @macroexpand QML.@expand_dots a.b.c.d f
+:(f(f(f(a, "b"), "c"), "d"))
+```
 """
 macro expand_dots(source_expr, func)
-  if source_expr.head == :escape
-    source_expr = source_expr.args[1]
-  end
-  if isa(source_expr, Expr) && source_expr.head == :(.)
-    return :($func(@expand_dots($(esc(source_expr.args[1])), $func), $(string(source_expr.args[2].args[1]))))
-  end
-  return esc(source_expr)
+  esc(expand_dots(source_expr, func))
 end
 
 function emit(name, args...)
@@ -284,9 +330,52 @@ function emit(name, args...)
 end
 
 """
-Emit a signal in the form:
-```
-@emit signal_name(arg1, arg2)
+    @emit signal_name(arguments...)
+
+Emit a signal from Julia to QML. Handle signals in QML using a `JuliaSignals` block. See the
+example below for syntax.
+
+!!! warning
+    There must never be more than one JuliaSignals block in QML
+
+```jldoctest
+julia> using QML
+
+julia> duplicate(value) = @emit duplicateSignal(value);
+
+julia> @qmlfunction duplicate
+
+julia> mktempdir() do folder
+          path = joinpath(folder, "main.qml")
+          write(path, \"""
+          import QtQuick 2.2
+          import QtQuick.Controls 1.1
+          import QtQuick.Layouts 1.1
+          import org.julialang 1.0
+          ApplicationWindow {
+              visible: true
+              Column {
+                TextField {
+                    id: input
+                    onTextChanged: Julia.duplicate(text)
+                }
+                Text {
+                    id: output
+                }
+                JuliaSignals {
+                  signal duplicateSignal(var value)
+                  onDuplicateSignal: output.text = value
+                }
+                Timer {
+                  running: true
+                  onTriggered: Qt.quit()
+                }
+              }
+          }
+          \""")
+          load(path)
+          exec()
+        end
 ```
 """
 macro emit(expr)
@@ -294,9 +383,42 @@ macro emit(expr)
 end
 
 """
-Register a Julia function for access from QML:
-```
-@qmlfunction MyFunc
+    @qmlfunction function_names...
+
+Register Julia functions for access from QML under their own name. Function names must be
+valid in QML, e.g. they can't contain `!`. You can use your newly registered functions in
+QML by first importing `org.julialang 1.0`, and then calling them with
+`Julia.function_name(arguments...)`. If you would like to register a function under a
+different name, use [`qmlfunction`](@ref). This will be necessary for non-exported functions
+from a different module or in case the function contains a `!` character.
+
+```jldoctest
+julia> using QML
+
+julia> greet() = "Hello, World!";
+
+julia> @qmlfunction greet
+
+julia> mktempdir() do folder
+          path = joinpath(folder, "main.qml")
+          write(path, \"""
+          import org.julialang 1.0
+          import QtQuick 2.0
+          import QtQuick.Controls 1.0
+          ApplicationWindow {
+            visible: true
+            Text {
+              text: Julia.greet()
+            }
+            Timer {
+              running: true
+              onTriggered: Qt.quit()
+            }
+          }
+          \""")
+          load(path)
+          exec()
+        end
 ```
 """
 macro qmlfunction(fnames...)
@@ -423,7 +545,69 @@ clear(m::ListModelData) = empty!(m.values)
 Base.push!(m::ListModelData, val) = push!(m.values, val)
 
 """
-Constructor for ListModel that automatically creates a constructor and setter and getter functions for each field if addroles == true
+    function ListModel(items::AbstractVector, addroles::Bool = true)
+
+Constructor for a ListModel. The `ListModel` type allows using data in QML views such as
+`ListView` and `Repeater`, providing a two-way synchronization of the data. A ListModel is
+constructed from a 1D Julia array. To use the model from QML, it can be exposed as a context
+attribute.
+
+A constructor (the `eltype`) and setter and getter "roles" based on the `fieldnames` of the
+`eltype` will be automatically created if `addroles` is `true`.
+
+If new elements need to be constructed from QML, a constructor can also be provided, using
+the [`setconstructor`](@ref) method. QML can pass a list of arguments to constructors.
+
+In Qt, each of the elements of a model has a series of roles, available as properties in the
+delegate that is used to display each item. The roles can be added using the
+[`addrole`](@ref) function.
+
+```jldoctest
+julia> using QML
+
+julia> mutable struct Fruit
+          name::String
+          cost::Float64
+        end
+
+julia> fruits = ListModel([Fruit("apple", 1.0), Fruit("orange", 2.0)]);
+
+julia> mktempdir() do folder
+          path = joinpath(folder, "main.qml")
+          write(path, \"""
+          import QtQuick 2.0
+          import QtQuick.Controls 1.0
+          import QtQuick.Layouts 1.0
+          ApplicationWindow {
+            visible: true
+            ListView {
+              model: fruits
+              anchors.fill: parent
+              delegate:
+                Row {
+                  Text {
+                    text: name
+                  }
+                  Button {
+                    text: "Sale"
+                    onClicked: cost = cost / 2
+                  }
+                  Button {
+                    text: "Duplicate"
+                    onClicked: fruits.append([name, cost])
+                  }
+                  Timer {
+                    running: true
+                    onTriggered: Qt.quit()
+                  }
+                }
+              }
+            }
+          \""")
+          load(path; fruits = fruits)
+          exec()
+        end
+```
 """
 function ListModel(a::AbstractVector{T}, addroles=true) where {T}
   data = ListModelData(a)
@@ -448,8 +632,65 @@ function ListModel(a::AbstractVector{T}, addroles=true) where {T}
   return ListModel(data)
 end
 
+"""
+    function roles(model::ListModel)
+
+See all roles defined for a [`ListModel`](@ref). See the example for [`addrole`](@ref).
+"""
 roles(lm::ListModel) = rolenames(get_julia_data(lm))
 
+"""
+    function addrole(model::ListModel, name::String, getter, [setter])
+
+Add your own `getter` (and optionally, `setter`) functions to a [`ListModel`](@ref) for use
+by QML. `setter` is optional, and if it is not provided the role will be read-only. `getter`
+will process an item before it is returned. The arguments of `setter` will be
+`collection, new_value, index` as in the standard `setindex!` function. If you would like to
+see the roles defined for a list, use [`roles`](@ref). To remove a role, use
+[`removerole`](@ref).
+
+```jldoctest
+julia> using QML
+
+julia> items = ["A", "B"];
+
+julia> array_model = ListModel(items, false);
+
+julia> addrole(array_model, "item", identity, setindex!)
+
+julia> roles(array_model)
+1-element QML.QStringListAllocated:
+ "item"
+
+julia> mktempdir() do folder
+          path = joinpath(folder, "main.qml")
+          write(path, \"""
+          import QtQuick 2.0
+          import QtQuick.Controls 1.0
+          import QtQuick.Layouts 1.0
+          ApplicationWindow {
+            visible: true
+            ListView {
+              model: array_model
+              anchors.fill: parent
+              delegate: TextField {
+                placeholderText: item
+                onTextChanged: item = text;
+              }
+            }
+            Timer {
+              running: true
+              onTriggered: Qt.quit()
+            }
+          }
+          \""")
+          load(path; array_model = array_model)
+          exec()
+        end
+
+julia> removerole(array_model, "item")
+```
+"""
 function addrole(lm::ListModel, name, getter, setter=defaultsetter)
   m = get_julia_data(lm)
   if name ∈ rolenames(m)
@@ -511,6 +752,12 @@ function removerole(lm::ListModel, idx::Integer)
   emit_roles_changed(lm)
 end
 
+"""
+    function removerole(model::ListModel, name::AbstractString)
+
+Remove one of the [`roles`](@ref) from a [`ListModel`](@ref). See the example for
+[`addrole`](@ref).
+"""
 function removerole(lm::ListModel, name::AbstractString)
   m = get_julia_data(lm)
   idx = findfirst(isequal(name), m.roles)
@@ -522,6 +769,45 @@ function removerole(lm::ListModel, name::AbstractString)
   removerole(lm,idx)
 end
 
+"""
+    function setconstructor(model::ListModel, constructor)
+
+Add a constructor to a [`ListModel`](@ref). The `constructor` will process `append`ed items
+before they are added. Note that you can simply pass a list of arguments from QML,
+and they will be interpret in Julia as positional arguments.
+
+```jldoctest
+julia> using QML
+
+julia> items = ["A", "B"];
+
+julia> array_model = ListModel(items, false);
+
+julia> setconstructor(array_model, uppercase);
+
+julia> mktempdir() do folder
+          path = joinpath(folder, "main.qml")
+          write(path, \"""
+          import QtQuick 2.0
+          import QtQuick.Controls 1.0
+          import QtQuick.Layouts 1.0
+          ApplicationWindow {
+            visible: true
+            Button {
+              text: "Add C"
+              onClicked: array_model.append(["c"])
+            }
+            Timer {
+              running: true
+              onTriggered: Qt.quit()
+            }
+          }
+          \""")
+          load(path; array_model = array_model)
+          exec()
+        end
+```
+"""
 function setconstructor(lm::ListModel, constructor)
   get_julia_data(lm).constructor = constructor
 end
@@ -538,37 +824,6 @@ Base.size(lm::ListModel) = Base.size(get_julia_data(lm).values)
 Base.length(lm::ListModel) = length(get_julia_data(lm).values)
 Base.delete!(lm::ListModel, i) = remove(lm, i-1)
 
-@doc """
-Module for building [Qt5 QML](http://doc.qt.io/qt-5/qtqml-index.html) graphical user interfaces for Julia programs.
-Types starting with `Q` are equivalent of their Qt C++ counterpart, so they have no Julia docstring and we refer to
-the [Qt documentation](http://doc.qt.io/qt-5/qtqml-index.html) for details instead.
-""" QML
-
-@doc "Equivalent to [`QQmlEngine::rootContext`](http://doc.qt.io/qt-5/qqmlengine.html#rootContext)" root_context
-
-@doc "Equivalent to `QLibraryInfo::location(QLibraryInfo::PrefixPath)`" qt_prefix_path
-@doc "Equivalent to `QQuickWindow::contentItem`" content_item
-@doc "Equivalent to `QQuickView::setSource`" set_source
-@doc "Equivalent to `QQuickView::show`" show
-@doc "Equivalent to `QQuickView::engine`" engine
-@doc "Equivalent to `QQuickView::rootObject`" root_object
-
-@doc "Equivalent to `QByteArray::toString`" to_string
-
-@doc """
-Equivalent to `QQmlComponent::setData`. Use this to set the QML code for a QQmlComponent from a Julia string literal.
-""" set_data
-
-@doc """
-Equivalent to `QQmlComponent::create`. This creates a component defined by the QML code set using `set_data`.
-It also makes sure the newly created object is parented to the given context.
-""" create
-
-@doc """
-qmlfunction(name, function)
-
-Register the given function using the given name. Useful for registering functions from a non-exported module or renaming a function upon register (e.g. removing the !)
-
-""" qmlfunction
+include("docs.jl")
 
 end
