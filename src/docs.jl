@@ -85,7 +85,8 @@ engine
     function exec()
 
 Fill out a window. Use with a [`QQmlApplicationEngine`](@ref), [`QQuickView`](@ref), or
-[`QQmlComponent`](@ref).
+[`QQmlComponent`](@ref). Note that after calling `exec`, you will need to reregister
+functions, e.g. with [`@qmlfunction`], if you want to `exec` again.
 """
 exec
 
@@ -179,7 +180,7 @@ QML
 """
     function qmlcontext()
 
-Create an empty context for QML. Required for [`set_data`](@ref).
+Create an empty context for QML. Required for [`create`](@ref).
 """
 qmlcontext
 
