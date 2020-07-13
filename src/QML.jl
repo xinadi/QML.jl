@@ -817,12 +817,17 @@ Base.getindex(lm::ListModel, idx::Int) = get_julia_data(lm).values[idx]
 function Base.setindex!(lm::ListModel, value, idx::Int)
   lmdata = get_julia_data(lm)
   lmdata.values[idx] = value
-  emit_data_changed(lm, idx-1, 1, StdVector(Int32.(axes(rolenames(lmdata), 1))))
+  emit_data_changed(lm, idx-1, 1, StdVector{Int32}())
 end
 Base.push!(lm::ListModel, val) = push_back(lm, val)
 Base.size(lm::ListModel) = Base.size(get_julia_data(lm).values)
 Base.length(lm::ListModel) = length(get_julia_data(lm).values)
 Base.delete!(lm::ListModel, i) = remove(lm, i-1)
+
+function force_model_update(lm::ListModel)
+  lmdata = get_julia_data(lm)
+  emit_data_changed(lm, 0, length(lm), StdVector{Int32}())
+end
 
 include("docs.jl")
 
