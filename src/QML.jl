@@ -628,7 +628,6 @@ function ListModel(a::AbstractVector{T}, addroles=true) where {T}
       push!(data.setters, defaultsetter)
     end
   end
-  propertynames
 
   return ListModel(data)
 end
