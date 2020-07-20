@@ -13,6 +13,14 @@ Observables = "510215fc-4207-5dde-b226-833fc4488ee2"
 Requires = "ae029012-a4dd-5104-9daa-d747884805df"
 jlqml_jll = "6b5019fb-a83d-5b4e-a9f7-678a36c28df7"
 
+[compat]
+FileIO = "1.4"
+ColorTypes = "0.10"
+MacroTools = "0.5"
+CxxWrap = "0.11"
+Requires = "1.0"
+Observables = "0.3"
+
 [extras]
 BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
