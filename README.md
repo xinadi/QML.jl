@@ -13,7 +13,7 @@ This package provides an interface to [Qt5 QML](http://qt.io/). It uses the [`Cx
 Installation on Linux, Mac and Windows should be as easy as: (in pkg mode, hit `]` in the Julia REPL):
 
 ```
-add https://github.com/barche/QML.jl.git
+add QML
 ```
 
 ## Documentation
