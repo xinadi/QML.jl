@@ -4,8 +4,9 @@ using QML
 using Observables
 
 # Set up plots with GR so QPainter can be used directly
+ENV["GKSwstype"] = 381
+ENV["GKS_QT_VERSION"] = 5
 using Plots
-ENV["GKSwstype"] = "use_default"
 gr(show=true)
 
 const qmlfile = joinpath(dirname(Base.source_path()), "qml", "gr.qml")
@@ -15,9 +16,7 @@ A = Observable(1.0)
 
 # Arguments here need to be the "reference types", hence the "Ref" suffix
 function paint(p::CxxPtr{QPainter}, item::CxxPtr{JuliaPaintedItem})  
-  ENV["GKS_WSTYPE"] = 381
   ENV["GKS_CONID"] = split(repr(p.cpp_object), "@")[2]
-  ENV["GKS_QT_VERSION"] = 5
 
   dev = device(p[])[]
   r = effectiveDevicePixelRatio(window(item[])[])

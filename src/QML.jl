@@ -63,22 +63,6 @@ function FileIO.load(f::FileIO.File{format"QML"}; kwargs...)
   return load_qml(filename(f), qml_engine)
 end
 
-# Add the correct rpath to Qt5 if GR is installed on macOS
-@static if Sys.isapple()
-  function patchgr()
-    try
-      # If GR is loaded this path is found, if Qt is not found then it throws an error
-      Libdl.dlpath("qt5plugin.so")
-    catch e
-      qtpluginso = split(split(e.msg,('(',')'))[2], ',')[1]
-      @assert isfile(qtpluginso)
-      qtpath = joinpath(QML.qt_prefix_path(), "Frameworks")
-      run(`install_name_tool -add_rpath $qtpath $qtpluginso`)
-      println("Installed library rpath $qtpath to plugin $qtpluginso")
-    end
-  end
-end
-
 @static if Sys.iswindows()
   using Mesa_jll
 end
@@ -86,10 +70,6 @@ end
 function __init__()
   @initcxx
   FileIO.add_format(format"QML", (), ".qml")
-
-  @static if Sys.isapple()
-    @require GR="28b8d3ca-fb5f-59d9-8090-bfdbd6d07a71" patchgr()
-  end
 
   @require Makie="ee78f7c6-11fb-53f2-987a-cfe4a2b5a57a" include(joinpath(@__DIR__, "makie_support.jl"))
 
