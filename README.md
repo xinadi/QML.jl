@@ -413,6 +413,18 @@ At the moment, only the 32-bit QImage::Format_RGB32 (alpha, red, green, blue) im
 
 See the example for details on emitting an update signal from julia to force redrawing the JuliaCanvas.
 
+----
+**NOTE**
+
+Set 
+
+```julia
+ENV["QSG_RENDER_LOOP"] = "basic"
+```
+
+at the top of your Julia file to avoid crashes or infinite loops when using JuliaCanvas.
+
+----
 
 ## Combination with the REPL
 When launching the application using `exec`, execution in the REPL will block until the GUI is closed. If you want to continue using the REPL with an active QML gui, `exec_async` provides an alternative. This method keeps the REPL active and polls the QML interface periodically for events, using a timer in the Julia event loop. An example (requiring packages Plots.jl and PyPlot.jl) can be found in `example/repl-background.jl`, to be used as:
