@@ -30,6 +30,8 @@ end
 @readmodule libjlqml :define_julia_module Libdl.RTLD_GLOBAL
 @wraptypes
 
+const QStringList = QList{QString}
+
 # Make sure functions accepting a QString argument also accept a Julia string
 CxxWrap.argument_overloads(::Type{<:QString}) = [QString,String]
 
@@ -100,10 +102,7 @@ function __init__()
 end
 
 # QString
-function QString(s::String)
-  char_arr = transcode(UInt16, s)
-  return fromUtf16(char_arr, length(char_arr))
-end
+QString(s::String) = fromStdWString(StdWString(s))
 Base.ncodeunits(s::QString)::Int = cppsize(s)
 Base.codeunit(s::QString) = UInt16
 Base.codeunit(s::QString, i::Integer) = uint16char(s, i-1)
