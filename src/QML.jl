@@ -101,7 +101,8 @@ function __init__()
   end
 
   loadqmljll(jlqml_jll.Qt5Declarative_jll)
-  @require Qt5QuickControls_jll="e4aecf45-a397-53cc-864f-87db395e0248" @eval loadqmljll(Qt5QuickControls_jll) 
+  @require Qt5QuickControls_jll="e4aecf45-a397-53cc-864f-87db395e0248" @eval loadqmljll(Qt5QuickControls_jll)
+  @require Qt5QuickControls2_jll="bf3ac11c-603e-589e-b4b7-e696ac65aa4a" @eval loadqmljll(Qt5QuickControls2_jll)
 end
 
 # QString
