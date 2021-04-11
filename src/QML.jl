@@ -72,6 +72,19 @@ end
   using Mesa_jll
 end
 
+const _loaded_qml_modules = Module[]
+
+function loadqmljll(m::Module)
+  if m ∈ _loaded_qml_modules
+    return
+  end
+  push!(_loaded_qml_modules, m)
+  qmlpath(mod) = joinpath(mod.artifact_dir, "qml")
+  separator = Sys.iswindows() ? ';' : ':'
+  ENV["QML2_IMPORT_PATH"] = join(qmlpath.(_loaded_qml_modules), separator)
+end
+
+
 function __init__()
   @initcxx
   FileIO.add_format(format"QML", (), ".qml")
@@ -82,6 +95,9 @@ function __init__()
   @static if Sys.iswindows()
     qputenv("PATH", QByteArray(ENV["PATH"] * ";" * dirname(Mesa_jll.opengl32sw)))
   end
+
+  loadqmljll(jlqml_jll.Qt5Declarative_jll)
+  @require Qt5QuickControls_jll="e4aecf45-a397-53cc-864f-87db395e0248" @eval loadqmljll(Qt5QuickControls_jll) 
 end
 
 # QString
