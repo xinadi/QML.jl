@@ -825,6 +825,24 @@ function force_model_update(lm::ListModel)
   emit_data_changed(lm, 0, length(lm), StdVector{Int32}())
 end
 
+global _async_timer
+
+# Stop the async loop (called on quit from C++)
+function _stoptimer()
+  if !isdefined(QML, :_async_timer)
+    return
+  end
+  global _async_timer
+  if isopen(_async_timer)
+    close(_async_timer)
+  end
+end
+
+function exec_async()
+  global _async_timer = Timer((t) -> process_events(), 0.015; interval=0.015)
+  return
+end
+
 include("docs.jl")
 
 end
