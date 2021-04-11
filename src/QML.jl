@@ -81,7 +81,11 @@ function loadqmljll(m::Module)
   push!(_loaded_qml_modules, m)
   qmlpath(mod) = joinpath(mod.artifact_dir, "qml")
   separator = Sys.iswindows() ? ';' : ':'
-  ENV["QML2_IMPORT_PATH"] = join(qmlpath.(_loaded_qml_modules), separator)
+  new_import_paths = join(qmlpath.(_loaded_qml_modules), separator)
+  ENV["QML2_IMPORT_PATH"] = new_import_paths
+  @static if Sys.iswindows() # ENV doesn't work on Windows for Qt, for reasons I forgot but that are explained on StackOverflow
+    qputenv("QML2_IMPORT_PATH", QByteArray(new_import_paths))
+  end
 end
 
 
