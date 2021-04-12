@@ -1,4 +1,5 @@
 using QML
+using Qt5QuickControls_jll
 using Test
 
 qmlfile = joinpath(dirname(@__FILE__), "qml", "badqml.qml")

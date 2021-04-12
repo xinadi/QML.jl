@@ -1,4 +1,5 @@
 using QML
+using Qt5QuickControls_jll
 
 loadqml(joinpath(dirname(Base.source_path()), "qml", "tutorial.qml"))
 exec()

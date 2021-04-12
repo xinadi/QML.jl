@@ -1,4 +1,5 @@
 using QML
+using Qt5QuickControls_jll
 #=
 A simple gui. A set of diagrams can be selected with check boxes.
 They should be displayed, when the button "Plot" is clicked.

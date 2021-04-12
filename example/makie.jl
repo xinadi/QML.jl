@@ -4,6 +4,7 @@ ENV["QSG_RENDER_LOOP"] = "basic"
 using CxxWrap
 using Observables
 using QML
+using Qt5QuickControls_jll
 using Makie
 
 const catangle = Observable(0.0)

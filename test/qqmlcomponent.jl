@@ -1,4 +1,5 @@
 using Test
+using Qt5QuickControls_jll
 using QML
 
 # absolute path in case working dir is overridden

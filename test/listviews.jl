@@ -1,5 +1,6 @@
 using Test
 using QML
+using Qt5QuickControls_jll
 
 # absolute path in case working dir is overridden
 qml_file = joinpath(dirname(@__FILE__), "qml", "listviews.qml")

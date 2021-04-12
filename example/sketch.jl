@@ -1,4 +1,5 @@
 using QML
+using Qt5QuickControls2_jll
 using Observables
 
 const x = Observable(0.0)

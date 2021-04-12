@@ -3,6 +3,7 @@ ENV["QSG_RENDER_LOOP"] = "basic"
 
 using CxxWrap
 using QML
+using Qt5QuickControls2_jll
 using ModernGL, GeometryTypes
 
 mutable struct Corner

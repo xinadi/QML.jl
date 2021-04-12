@@ -1,5 +1,6 @@
 using Test
 using QML
+using Qt5QuickControls_jll
 using Plots
 
 # No Python gui:
