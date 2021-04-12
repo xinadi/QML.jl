@@ -5,7 +5,7 @@ export QQmlContext, root_context, loadqml, qt_prefix_path, set_source, engine, Q
 export JuliaPropertyMap
 export QStringList, QVariantList
 export QPainter, device, width, height, logicalDpiX, logicalDpiY, QQuickWindow, effectiveDevicePixelRatio, window, JuliaPaintedItem
-export @emit, @qmlfunction, qmlfunction, load, QQmlPropertyMap
+export @emit, @qmlfunction, qmlfunction, QQmlPropertyMap
 export set_context_property
 export QUrlFromLocalFile
 export qputenv, qgetenv, qunsetenv
@@ -17,7 +17,6 @@ using jlqml_jll
 
 using CxxWrap
 using Observables
-using FileIO
 import Libdl
 using Requires
 using ColorTypes
@@ -63,11 +62,6 @@ function loadqml(qmlfilename; kwargs...)
   return load_qml(qmlfilename, qml_engine)
 end
 
-function FileIO.load(f::FileIO.File{format"QML"}; kwargs...)
-  Base.depwarn("load(qmlfile;...) is deprecated, please use loadqml(qmlfile;...)", :load)
-  return loadqml(filename(f); kwargs...)
-end
-
 @static if Sys.iswindows()
   using Mesa_jll
 end
@@ -91,7 +85,6 @@ end
 
 function __init__()
   @initcxx
-  FileIO.add_format(format"QML", (), ".qml")
 
   @require Makie="ee78f7c6-11fb-53f2-987a-cfe4a2b5a57a" include(joinpath(@__DIR__, "makie_support.jl"))
 
