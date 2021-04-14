@@ -210,6 +210,8 @@ in QML will move.
 ```jldoctest
 julia> using QML
 
+julia> using Qt5QuickControls_jll
+
 julia> using Observables: Observable, on
 
 julia> output = Observable(0.0);
@@ -351,6 +353,8 @@ example below for syntax.
 ```jldoctest
 julia> using QML
 
+julia> using Qt5QuickControls_jll
+
 julia> duplicate(value) = @emit duplicateSignal(value);
 
 julia> @qmlfunction duplicate
@@ -404,6 +408,8 @@ from a different module or in case the function contains a `!` character.
 
 ```jldoctest
 julia> using QML
+
+julia> using Qt5QuickControls_jll
 
 julia> greet() = "Hello, World!";
 
@@ -575,6 +581,8 @@ delegate that is used to display each item. The roles can be added using the
 ```jldoctest
 julia> using QML
 
+julia> using Qt5QuickControls_jll
+
 julia> mutable struct Fruit
           name::String
           cost::Float64
@@ -661,6 +669,8 @@ see the roles defined for a list, use [`roles`](@ref). To remove a role, use
 
 ```jldoctest
 julia> using QML
+
+julia> using Qt5QuickControls_jll
 
 julia> items = ["A", "B"];
 
@@ -788,6 +798,8 @@ and they will be interpret in Julia as positional arguments.
 
 ```jldoctest
 julia> using QML
+
+julia> using Qt5QuickControls_jll
 
 julia> items = ["A", "B"];
 
