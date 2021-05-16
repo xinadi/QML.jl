@@ -257,10 +257,14 @@ JuliaPropertyMap(dict::Dict{<:AbstractString,<:Any}) = JuliaPropertyMap(dict...)
 struct QmlPropertyUpdater
   propertymap::QQmlPropertyMap
   key::String
+  active::Bool
 end
 function (updater::QmlPropertyUpdater)(x)
   updater.propertymap[updater.key] = x
 end
+
+setactive!(::Any,::Bool) = nothing
+setactive!(updater::QmlPropertyUpdater, active::Bool) = (updater.active = active)
 
 Base.getindex(jpm::JuliaPropertyMap, k::AbstractString) = jpm.dict[k]
 Base.get(jpm::JuliaPropertyMap, k::AbstractString, def) = get(jpm.dict, k, def)
@@ -287,7 +291,7 @@ function Base.setindex!(jpm::JuliaPropertyMap, ob::Observable, key::AbstractStri
   val = QVariant(ob[])
   jpm.propertymap[key] = val
   jpm.dict[key] = ob
-  on(QmlPropertyUpdater(jpm.propertymap, key), ob)
+  on(QmlPropertyUpdater(jpm.propertymap, key, true), ob)
 end
 
 Base.iterate(jpm::JuliaPropertyMap) = iterate(jpm.dict)
@@ -305,7 +309,9 @@ end
   storedvalue = jpm[key]
   newvalue = value(variantvalue)
   if storedvalue isa Observable
-    Observables.setexcludinghandlers!(storedvalue, newvalue)
+    setactive!(Observables.listeners(storedvalue), false)
+    storedvalue[] = newvalue
+    setactive!(Observables.listeners(storedvalue), true)
   else
     jpm.dict[key] = newvalue
   end
