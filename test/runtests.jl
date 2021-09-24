@@ -8,14 +8,14 @@ excluded = ["runtests.jl", "qml", "include", "runexamples.jl"]
 
 testfiles = filter(fname -> fname ∉ excluded, readdir(@__DIR__))
 
-# @testset "QML tests" begin
-#   @testset "$f" for f in testfiles
-#     println("Running tests from $f")
-#     include(f)
-#   end
-# end
+@testset "QML tests" begin
+  @testset "$f" for f in testfiles
+    println("Running tests from $f")
+    include(f)
+  end
+end
 
-# doctest(QML, fix=true)
+doctest(QML, fix=true)
 
 import LibGit2
 
