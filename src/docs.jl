@@ -11,8 +11,8 @@ julia> using CxxWrap.CxxWrapCore: CxxPtr
 julia> quick_view = mktempdir() do folder
           path = joinpath(folder, "main.qml")
           write(path, \"""
-          import QtQuick 2.0
-          import QtQuick.Controls 1.0
+          import QtQuick
+          import QtQuick.Controls
           Rectangle {
             Timer {
               running: true
@@ -58,8 +58,8 @@ julia> using QML
 julia> mktempdir() do folder
           path = joinpath(folder, "main.qml")
           write(path, \"""
-          import QtQuick 2.0
-          import QtQuick.Controls 1.0
+          import QtQuick
+          import QtQuick.Controls
           Rectangle {
             Text {
               text: greeting
@@ -139,10 +139,10 @@ julia> @qmlfunction simple_plot
 julia> mktempdir() do folder
           path = joinpath(folder, "main.qml")
           write(path, \"""
-          import QtQuick 2.0
-          import QtQuick.Controls 1.0
-          import QtQuick.Layouts 1.0
-          import org.julialang 1.0
+          import QtQuick
+          import QtQuick.Controls
+          import QtQuick.Layouts
+          import org.julialang
           ApplicationWindow {
             visible: true
             Column {
@@ -218,8 +218,8 @@ julia> using QML
 julia> mktempdir() do folder
           path = joinpath(folder, "main.qml")
           write(path, \"""
-          import QtQuick 2.0
-          import QtQuick.Controls 1.0
+          import QtQuick
+          import QtQuick.Controls
           ApplicationWindow {
             visible: true
             Text {
@@ -252,8 +252,8 @@ julia> using QML
 julia> component = QQmlComponent(init_qmlengine());
 
 julia> set_data(component, QByteArray(\"""
-          import QtQuick 2.0
-          import QtQuick.Controls 1.0
+          import QtQuick
+          import QtQuick.Controls
           ApplicationWindow {
             visible: true
             Rectangle {
@@ -305,8 +305,8 @@ julia> using QML
 julia> mktempdir() do folder
           path = joinpath(folder, "main.qml")
           write(path, \"""
-          import QtQuick 2.0
-          import QtQuick.Controls 1.0
+          import QtQuick
+          import QtQuick.Controls
           Rectangle {
             Text {
               text: "Hello, World!"
@@ -344,9 +344,9 @@ julia> @qmlfunction increment
 julia> mktempdir() do folder
           path = joinpath(folder, "main.qml")
           write(path, \"""
-          import QtQuick 2.0
-          import QtQuick.Controls 1.0
-          import org.julialang 1.0
+          import QtQuick
+          import QtQuick.Controls
+          import org.julialang
           ApplicationWindow {
               visible: true
               Connections {
@@ -404,8 +404,8 @@ QVariant of type QML.QString with value Hello, World!
 julia> component = QQmlComponent(an_engine);
 
 julia> set_data(component, QByteArray(\"""
-          import QtQuick 2.0
-          import QtQuick.Controls 1.0
+          import QtQuick
+          import QtQuick.Controls
           ApplicationWindow {
             visible: true
             Rectangle {

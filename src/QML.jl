@@ -221,8 +221,8 @@ julia> on(println, output);
 julia> mktempdir() do folder
          path = joinpath(folder, "main.qml")
          write(path, \"""
-         import QtQuick 2.0
-         import QtQuick.Controls 1.0
+         import QtQuick
+         import QtQuick.Controls
          ApplicationWindow {
            visible: true
            Slider {
@@ -368,10 +368,10 @@ julia> @qmlfunction duplicate
 julia> mktempdir() do folder
           path = joinpath(folder, "main.qml")
           write(path, \"""
-          import QtQuick 2.2
-          import QtQuick.Controls 1.1
-          import QtQuick.Layouts 1.1
-          import org.julialang 1.0
+          import QtQuick
+          import QtQuick.Controls
+          import QtQuick.Layouts
+          import org.julialang
           ApplicationWindow {
               visible: true
               Column {
@@ -424,9 +424,9 @@ julia> @qmlfunction greet
 julia> mktempdir() do folder
           path = joinpath(folder, "main.qml")
           write(path, \"""
-          import org.julialang 1.0
-          import QtQuick 2.0
-          import QtQuick.Controls 1.0
+          import org.julialang
+          import QtQuick
+          import QtQuick.Controls
           ApplicationWindow {
             visible: true
             Text {
@@ -599,9 +599,9 @@ julia> fruits = ListModel([Fruit("apple", 1.0), Fruit("orange", 2.0)]);
 julia> mktempdir() do folder
           path = joinpath(folder, "main.qml")
           write(path, \"""
-          import QtQuick 2.0
-          import QtQuick.Controls 1.0
-          import QtQuick.Layouts 1.0
+          import QtQuick
+          import QtQuick.Controls
+          import QtQuick.Layouts
           ApplicationWindow {
             visible: true
             ListView {
@@ -691,9 +691,9 @@ julia> roles(array_model)
 julia> mktempdir() do folder
           path = joinpath(folder, "main.qml")
           write(path, \"""
-          import QtQuick 2.0
-          import QtQuick.Controls 1.0
-          import QtQuick.Layouts 1.0
+          import QtQuick
+          import QtQuick.Controls
+          import QtQuick.Layouts
           ApplicationWindow {
             visible: true
             ListView {
@@ -816,9 +816,9 @@ julia> setconstructor(array_model, uppercase);
 julia> mktempdir() do folder
           path = joinpath(folder, "main.qml")
           write(path, \"""
-          import QtQuick 2.0
-          import QtQuick.Controls 1.0
-          import QtQuick.Layouts 1.0
+          import QtQuick
+          import QtQuick.Controls
+          import QtQuick.Layouts
           ApplicationWindow {
             visible: true
             Button {

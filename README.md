@@ -117,7 +117,7 @@ However, the macro cannot be used in the case of non-exported functions from a d
 
 In QML, include the Julia API:
 ```qml
-import org.julialang 1.0
+import org.julialang
 ```
 
 Then call a Julia function in QML using:
@@ -172,9 +172,9 @@ exec_async() # run from REPL for async execution
 
 In QML we add a slider for the input and display the output, which is twice the input (computed in QML here):
 ```qml
-import QtQuick 2.0
-import QtQuick.Controls 1.0
-import QtQuick.Layouts 1.0
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Layouts
 
 ApplicationWindow {
   id: root
@@ -312,10 +312,10 @@ load(qml_file, timer=QTimer(), bg_counter=bg_counter)
 
 Use in QML like this:
 ```qml
-import QtQuick 2.0
-import QtQuick.Controls 1.0
-import QtQuick.Layouts 1.0
-import org.julialang 1.0
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Layouts
+import org.julialang
 
 ApplicationWindow {
     title: "My Application"

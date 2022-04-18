@@ -1,5 +1,5 @@
-import QtQuick 2.0
-import org.julialang 1.0
+import QtQuick
+import org.julialang
 
 Item {
 

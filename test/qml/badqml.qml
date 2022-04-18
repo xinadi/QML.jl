@@ -1,5 +1,5 @@
-import QtQuick 2.7
-import QtQuick.Controls 1.5
+import QtQuick
+import QtQuick.Controls
 
 ApplicationWindow {
     visible: true

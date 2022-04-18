@@ -1,7 +1,8 @@
-import QtQuick 2.0
-import QtQuick.Controls 1.0
-import QtQuick.Layouts 1.0
-import org.julialang 1.0
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Layouts
+import Qt.labs.qmlmodels
+import org.julialang
 
 ApplicationWindow {
   title: "Arrays"
@@ -45,7 +46,7 @@ ApplicationWindow {
     Component
     {
       id: columnComponent
-      TableViewColumn { width: 50 }
+      TableModelColumn {  }
     }
 
     TableView {
