@@ -155,7 +155,6 @@ This will create context properties `a` and `b`, initialized to `1` and `2`.
 When an [`Observable`](https://github.com/JuliaGizmos/Observables.jl) is set in a `QQmlPropertyMap`, bi-directional change notification is enabled. For example, using the Julia code:
 ```julia
 using QML
-using Qt5QuickControls_jll
 using Observables
 
 const qml_file = "observable.qml"
@@ -456,7 +455,6 @@ For further examples, see the [`documentation`](https://barche.github.io/QML.jl/
 
 ### Upgrade from v0.6 to v0.7
 * Julia 1.6 minimal requirement
-* Need to specifically add and load Julia packages for `Controls` and `Controls 2`, i.e. `Qt5QuickControls_jll` and `Qt5QuickControls2_jll`
 
 ### Upgrade from v0.4 to v0.6
 * Signals in `JuliaSignals` must have arguments of type `var`

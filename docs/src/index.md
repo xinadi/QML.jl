@@ -12,7 +12,7 @@ corresponding Qt classes. They have different advantages:
 
 ## QML modules
 
-Since QML.jl version 0.2, only the `QtDeclarative` package is installed by default, which includes only a very limited set of QML modules. Most notably, the `Controls` and `Controls 2` modules are missing. To get these, you need to add the julia packages `Qt5QuickControls_jll` and `Qt5QuickControls2_jll` and use these in your Julia file.
+Since QML.jl version 0.2, only the `QtDeclarative` package is installed by default, which includes only a very limited set of QML modules.
 
 ## Interaction
 

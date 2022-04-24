@@ -1,6 +1,5 @@
 using Test
 using QML
-using Qt5QuickControls_jll
 using Observables
 
 # absolute path in case working dir is overridden

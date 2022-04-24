@@ -95,10 +95,8 @@ function __init__()
     qputenv("PATH", QByteArray(ENV["PATH"] * ";" * dirname(Mesa_jll.opengl32sw)))
   end
 
-  loadqmljll(jlqml_jll.Qt5Declarative_jll)
-  @require Qt5QuickControls_jll="e4aecf45-a397-53cc-864f-87db395e0248" @eval loadqmljll(Qt5QuickControls_jll)
-  @require Qt5QuickControls2_jll="bf3ac11c-603e-589e-b4b7-e696ac65aa4a" @eval loadqmljll(Qt5QuickControls2_jll)
-  @require Qt5Charts_jll="dd720b4e-75c8-5196-993d-eac563881c8e" @eval loadqmljll(Qt5Charts_jll)
+  loadqmljll(jlqml_jll.Qt6Declarative_jll)
+  # @require Qt5Charts_jll="dd720b4e-75c8-5196-993d-eac563881c8e" @eval loadqmljll(Qt5Charts_jll)
 end
 
 # QString
@@ -209,8 +207,6 @@ in QML will move.
 
 ```jldoctest
 julia> using QML
-
-julia> using Qt5QuickControls_jll
 
 julia> using Observables: Observable, on
 
@@ -359,8 +355,6 @@ example below for syntax.
 ```jldoctest
 julia> using QML
 
-julia> using Qt5QuickControls_jll
-
 julia> duplicate(value) = @emit duplicateSignal(value);
 
 julia> @qmlfunction duplicate
@@ -414,8 +408,6 @@ from a different module or in case the function contains a `!` character.
 
 ```jldoctest
 julia> using QML
-
-julia> using Qt5QuickControls_jll
 
 julia> greet() = "Hello, World!";
 
@@ -587,8 +579,6 @@ delegate that is used to display each item. The roles can be added using the
 ```jldoctest
 julia> using QML
 
-julia> using Qt5QuickControls_jll
-
 julia> mutable struct Fruit
           name::String
           cost::Float64
@@ -675,8 +665,6 @@ see the roles defined for a list, use [`roles`](@ref). To remove a role, use
 
 ```jldoctest
 julia> using QML
-
-julia> using Qt5QuickControls_jll
 
 julia> items = ["A", "B"];
 
@@ -804,8 +792,6 @@ and they will be interpret in Julia as positional arguments.
 
 ```jldoctest
 julia> using QML
-
-julia> using Qt5QuickControls_jll
 
 julia> items = ["A", "B"];
 

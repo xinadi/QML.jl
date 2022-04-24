@@ -1,6 +1,5 @@
 using Test
 using QML
-using Qt5QuickControls_jll
 
 # absolute path in case working dir is overridden
 qml_file = joinpath(dirname(@__FILE__), "qml", "listviews.qml")
@@ -32,11 +31,9 @@ end
 tableitems = [TableItem(1,2,3), TableItem(4,5,6)]
 tablemodel = ListModel(tableitems)
 
-removerole_b() = removerole(tablemodel, 2)
-removerole_c() = removerole(tablemodel, "c")
-setrole_a() = setrole(tablemodel, 1, "abc", (x::TableItem) -> x.a*x.b*x.c)
+setfirstmodelrow() = (tablemodel[1] = TableItem(7,8,9))
 
-@qmlfunction testfail removerole_b removerole_c setrole_a
+@qmlfunction testfail setfirstmodelrow
 loadqml(qml_file, array_model=array_model, array_model2=array_model2, tablemodel=tablemodel)
 
 exec()

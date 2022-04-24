@@ -1,5 +1,4 @@
 using Test
-using Qt5QuickControls_jll
 using QML
 
 # absolute path in case working dir is overridden
@@ -23,7 +22,7 @@ ApplicationWindow {
 
     Timer {
       interval: 500; running: true; repeat: false
-      onTriggered: Qt.quit()
+      onTriggered: Qt.exit(0)
     }
   }
 }

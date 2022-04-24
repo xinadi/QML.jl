@@ -8,7 +8,7 @@ Item {
     signal testsignalargs(var x, var s)
 
     onTestsignal: Julia.check1(true)
-    onTestsignalargs: Julia.check2(x, s)
+    onTestsignalargs: function(x,s) { Julia.check2(x,s); }
   }
 
   Timer {
