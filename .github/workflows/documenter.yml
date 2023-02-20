@@ -2,7 +2,7 @@ name: docs
 on:
   push:
     branches:
-      - 'master'
+      - 'main'
 jobs:
   document:
     runs-on: ubuntu-latest
@@ -10,7 +10,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@latest
         with:
-          version: '1.6'
+          version: '1.8'
       - uses: julia-actions/julia-docdeploy@releases/v1
         env:
           GITHUB_TOKEN: ${{ secrets.QML_TOKEN }}
