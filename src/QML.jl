@@ -71,10 +71,6 @@ function loadqml(qmlfilename; kwargs...)
   end
 end
 
-@static if Sys.iswindows()
-  using Mesa_jll
-end
-
 const _loaded_qml_modules = Module[]
 
 function loadqmljll(m::Module)
@@ -121,11 +117,6 @@ function __init__()
   @initcxx
 
   @require GLMakie="e9467ef8-e4e7-5192-8a1a-b1aee30e663a" include(joinpath(@__DIR__, "makie_support.jl"))
-
-  # Make sure Qt can find the Mesa dll if it doesn't find a compatible OpenGL implementation
-  @static if Sys.iswindows()
-    qputenv("PATH", QByteArray(ENV["PATH"] * ";" * dirname(Mesa_jll.opengl32sw)))
-  end
 
   loadqmljll(jlqml_jll.Qt6Declarative_jll)
   # @require Qt5Charts_jll="dd720b4e-75c8-5196-993d-eac563881c8e" @eval loadqmljll(Qt5Charts_jll)

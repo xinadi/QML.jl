@@ -361,7 +361,7 @@ julia> mktempdir() do folder
                   }
                   Button {
                     text: "Duplicate"
-                    onClicked: fruits.append([name, cost])
+                    onClicked: fruits.appendRow({"name": name, "cost": cost})
                   }
                   Timer {
                     running: true; repeat: false
@@ -371,7 +371,7 @@ julia> mktempdir() do folder
               }
             }
           \""")
-          loadqml(path; fruits = fruits)
+          loadqml(path; fruits)
           exec()
         end
 ```
