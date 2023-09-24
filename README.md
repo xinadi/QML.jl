@@ -1,11 +1,11 @@
 # QML
 
-[![Latest](https://img.shields.io/badge/docs-dev-blue.svg)](https://barche.github.io/QML.jl/dev)
-[![CodeCov](https://codecov.io/gh/barche/QML.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/barche/QML.jl)
-[![test-linux](https://github.com/barche/QML.jl/workflows/test-linux/badge.svg)](https://github.com/barche/QML.jl/actions?query=workflow%3Atest-linux)
-[![test-win-mac](https://github.com/barche/QML.jl/workflows/test-win-mac/badge.svg)](https://github.com/barche/QML.jl/actions?query=workflow%3Atest-win-mac)
+[![Latest](https://img.shields.io/badge/docs-dev-blue.svg)](https://JuliaGraphics.github.io/QML.jl/dev)
+[![CodeCov](https://codecov.io/gh/JuliaGraphics/QML.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/JuliaGraphics/QML.jl)
+[![test-linux](https://github.com/JuliaGraphics/QML.jl/workflows/test-linux/badge.svg)](https://github.com/JuliaGraphics/QML.jl/actions?query=workflow%3Atest-linux)
+[![test-win-mac](https://github.com/JuliaGraphics/QML.jl/workflows/test-win-mac/badge.svg)](https://github.com/JuliaGraphics/QML.jl/actions?query=workflow%3Atest-win-mac)
 
-This package provides an interface to [Qt6 QML](http://qt.io/) (and to Qt5 for older versions). It uses the [`CxxWrap`](https://github.com/barche/CxxWrap.jl) package to expose C++ classes. Current functionality allows interaction between QML and Julia using [Observables](https://github.com/JuliaGizmos/Observables.jl), ListModels and function calling. There is also a generic Julia display, as well as specialized integration for image drawing, GR plots and Makie.
+This package provides an interface to [Qt6 QML](http://qt.io/) (and to Qt5 for older versions). It uses the [`CxxWrap`](https://github.com/JuliaInterop/CxxWrap.jl) package to expose C++ classes. Current functionality allows interaction between QML and Julia using [Observables](https://github.com/JuliaGizmos/Observables.jl), JuliaItemModels and function calling. There is also a generic Julia display, as well as specialized integration for image drawing, GR plots and Makie.
 
 ![QML demo](docs/src/qml.gif?raw=true "QML demo")
 
@@ -17,7 +17,7 @@ add QML
 ```
 
 ## Documentation
-See https://barche.github.io/QML.jl/dev
+See https://JuliaGraphics.github.io/QML.jl/dev
 
 ## Examples
 A set of examples is available in the repository at https://github.com/barche/QmlJuliaExamples
@@ -30,7 +30,7 @@ To run the examples, execute the following code block in the Julia REPL.
 ```julia
 # Alternatively, execute the git command directly in the shell or download the zip file
 isdir("QmlJuliaExamples") || run(`git clone --depth 1 https://github.com/barche/QmlJuliaExamples`)
-cd("QmlJuliaExamples")
+cd("QmlJuliaExamples/basic") # or images, opengl or plots instead of the basic subdirectory
 
 # As an alternative to next three lines,
 # 1) Start Julia with `julia --project`
@@ -218,7 +218,7 @@ Most fundamental types are converted implicitly. Mind that the default integer t
 We also convert `QVariantMap`, exposing the indexing operator `[]` to access element by a string key. This mostly to deal with arguments passed to the QML `append` function in list models.
 
 ### Emitting signals from Julia
-Defining signals must be done in QML in the JuliaSignals block, following the instructions from the [QML manual](http://doc.qt.io/qt-5/qtqml-syntax-objectattributes.html#signal-attributes). Example signal with connection:
+Defining signals must be done in QML in the JuliaSignals block, following the instructions from the [QML manual](https://doc.qt.io/qt-6/qtqml-syntax-objectattributes.html#signal-attributes). Example signal with connection:
 ```qml
 JuliaSignals {
   signal fizzBuzzFound(int fizzbuzzvalue)
@@ -234,16 +234,16 @@ The above signal is emitted from Julia using simply:
 **There must never be more than one JuliaSignals block in QML**
 
 ### Using data models
-#### ListModel
-The `ListModel` type allows using data in QML views such as `ListView` and `Repeater`, providing a two-way synchronization of the data. The [dynamiclist](http://doc.qt.io/qt-5/qtquick-views-listview-dynamiclist-qml.html) example from Qt has been translated to Julia in the [`dynamiclist.jl`](https://github.com/barche/QmlJuliaExamples/blob/master/dynamiclist.jl) example. As can be seen from [this commit](https://github.com/barche/QML.jl/commit/5f3e64579180fb913c47d92a438466b67098ee52#diff-2a0ca16de100fb8512e0f95c563c9f56c5d5844a756a6e3c8f2bd88476e264a5), the only required change was moving the model data from QML to Julia, otherwise the Qt-provided QML file is left unchanged.
+#### JuliaItemModel
+The `JuliaItemModel` type allows using data in QML views such as `ListView` and `Repeater`, providing a two-way synchronization of the data. The (now removed from Qt) dynamiclist example from Qt has been translated to Julia in the [`dynamiclist.jl`](https://github.com/barche/QmlJuliaExamples/blob/master/dynamiclist.jl) example. As can be seen from [this commit](https://github.com/JuliaGraphics/QML.jl/commit/5f3e64579180fb913c47d92a438466b67098ee52#diff-2a0ca16de100fb8512e0f95c563c9f56c5d5844a756a6e3c8f2bd88476e264a5), the only required change was moving the model data from QML to Julia, otherwise the Qt-provided QML file is left unchanged.
 
-A ListModel is constructed from a 1D Julia array. In Qt, each of the elements of a model has a series of roles, available as properties in the delegate that is used to display each item. The roles can be added using the `addrole!` function, for example:
+A JuliaItemModel is constructed from a 1D Julia array. In Qt, each of the elements of a model has a series of roles, available as properties in the delegate that is used to display each item. The roles can be added using the `addrole!` function, for example:
 ```julia
 julia_array = ["A", 1, 2.2]
 myrole(x::AbstractString) = lowercase(x)
 myrole(x::Number) = Int(round(x))
 
-array_model = ListModel(julia_array)
+array_model = JuliaItemModel(julia_array)
 addrole!(array_model, "myrole", myrole, setindex!)
 ```
 adds the role named `myrole` to `array_model`, using the function `myrole` to access the value. The `setindex!` argument is a function used to set the value for that role from QML. This argument is optional, if it is not provided the role will be read-only. The arguments of this setter are `collection, new_value, key` as in the standard `setindex!` function.
@@ -270,23 +270,23 @@ In the dynamiclist example, the entries in the model are all "fruits", having th
 mutable struct Fruit
   name::String
   cost::Float64
-  attributes::ListModel
+  attributes::JuliaItemModel
 end
 ```
 
-When an array composed only of `Fruit` elements is passed to a listmodel, setters and getters for the roles and the constructor are all passed to QML automatically, i.e. this will automatically expose the roles `name`, `cost` and `attributes`:
+When an array composed only of `Fruit` elements is passed to a JuliaItemModel, setters and getters for the roles and the constructor are all passed to QML automatically, i.e. this will automatically expose the roles `name`, `cost` and `attributes`:
 ```julia
 # Our initial data
 fruitlist = [
-  Fruit("Apple", 2.45, ListModel([Attribute("Core"), Attribute("Deciduous")])),
-  Fruit("Banana", 1.95, ListModel([Attribute("Tropical"), Attribute("Seedless")])),
-  Fruit("Cumquat", 3.25, ListModel([Attribute("Citrus")])),
-  Fruit("Durian", 9.95, ListModel([Attribute("Tropical"), Attribute("Smelly")]))]
+  Fruit("Apple", 2.45, JuliaItemModel([Attribute("Core"), Attribute("Deciduous")])),
+  Fruit("Banana", 1.95, JuliaItemModel([Attribute("Tropical"), Attribute("Seedless")])),
+  Fruit("Cumquat", 3.25, JuliaItemModel([Attribute("Citrus")])),
+  Fruit("Durian", 9.95, JuliaItemModel([Attribute("Tropical"), Attribute("Smelly")]))]
 
-# Set a context property with our listmodel
-propmap["fruitModel"] = ListModel(fruitlist)
+# Set a context property with our JuliaItemModel
+propmap["fruitModel"] = JuliaItemModel(fruitlist)
 ```
-See the full example for more details, including the addition of an extra constructor to deal with the nested `ListModel` for the attributes.
+See the full example for more details, including the addition of an extra constructor to deal with the nested `JuliaItemModel` for the attributes.
 
 ## Using QTimer
 `QTimer` can be used to simulate running Julia code in the background. Excerpts from [`test/gui.jl`](test/gui.jl):
@@ -444,7 +444,7 @@ plot([1,2],[3,4])
 ```
 This should display the result of the plotting command in the QML window.
 
-For further examples, see the [`documentation`](https://barche.github.io/QML.jl/dev).
+For further examples, see the [`documentation`](https://JuliaGraphics.github.io/QML.jl/dev).
 
 ## Breaking changes
 
@@ -457,3 +457,7 @@ For further examples, see the [`documentation`](https://barche.github.io/QML.jl/
 * The interface of some functions has changed because of the way CxxWrap handles references and pointers more strictly now
 * No more automatic conversion from `String` to `QUrl`, use the `QUrl("mystring")` constructor
 * Setting a `QQmlPropertyMap` as context object is not supported as of Qt 5.12
+
+### Upgrade from v0.6 to v0.8
+
+This moves the package to Qt 6. Aside from this, the JuliaItemModel was changed extensively, refer to the [test](https://github.com/JuliaGraphics/QML.jl/blob/main/test/tableview.jl) and [examples](https://github.com/barche/QmlJuliaExamples/blob/master/basic/tableview.jl) to see how to use it.
