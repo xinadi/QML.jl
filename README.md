@@ -1,7 +1,7 @@
 # QML
 
 [![Latest](https://img.shields.io/badge/docs-dev-blue.svg)](https://JuliaGraphics.github.io/QML.jl/dev)
-[![CodeCov](https://codecov.io/gh/JuliaGraphics/QML.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/JuliaGraphics/QML.jl)
+[![CodeCov](https://codecov.io/gh/JuliaGraphics/QML.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/JuliaGraphics/QML.jl)
 [![test](https://github.com/JuliaGraphics/QML.jl/actions/workflows/test.yml/badge.svg)](https://github.com/JuliaGraphics/QML.jl/actions?query=workflow%3Atest)
 
 
