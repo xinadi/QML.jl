@@ -234,7 +234,7 @@ The above signal is emitted from Julia using simply:
 
 ### Using data models
 #### JuliaItemModel
-The `JuliaItemModel` type allows using data in QML views such as `ListView` and `Repeater`, providing a two-way synchronization of the data. The (now removed from Qt) dynamiclist example from Qt has been translated to Julia in the [`dynamiclist.jl`](https://github.com/barche/QmlJuliaExamples/blob/master/dynamiclist.jl) example. As can be seen from [this commit](https://github.com/JuliaGraphics/QML.jl/commit/5f3e64579180fb913c47d92a438466b67098ee52#diff-2a0ca16de100fb8512e0f95c563c9f56c5d5844a756a6e3c8f2bd88476e264a5), the only required change was moving the model data from QML to Julia, otherwise the Qt-provided QML file is left unchanged.
+The `JuliaItemModel` type allows using data in QML views such as `ListView` and `Repeater`, providing a two-way synchronization of the data. The (now removed from Qt) dynamiclist example from Qt has been translated to Julia in the [`dynamiclist.jl`](https://github.com/barche/QmlJuliaExamples/blob/master/basic/dynamiclist.jl) example. As can be seen from [this commit](https://github.com/JuliaGraphics/QML.jl/commit/5f3e64579180fb913c47d92a438466b67098ee52#diff-2a0ca16de100fb8512e0f95c563c9f56c5d5844a756a6e3c8f2bd88476e264a5), the only required change was moving the model data from QML to Julia, otherwise the Qt-provided QML file is left unchanged.
 
 A JuliaItemModel is constructed from a 1D Julia array. In Qt, each of the elements of a model has a series of roles, available as properties in the delegate that is used to display each item. The roles can be added using the `addrole!` function, for example:
 ```julia
@@ -389,8 +389,7 @@ Example use in QML from the `canvas` example:
  The callback function `paint_cfunction` is defined in julia:
  ```julia
 
- # fix callback arguments (TODO: macro this?)
- function paint_circle(buffer::Array{UInt32, 1},
+  function paint_circle(buffer::Array{UInt32, 1},
                        width32::Int32,
                        height32::Int32)
     width::Int = width32
@@ -436,7 +435,7 @@ at the top of your Julia file to avoid crashes or infinite loops when using Juli
 ----
 
 ## Combination with the REPL
-When launching the application using `exec`, execution in the REPL will block until the GUI is closed. If you want to continue using the REPL with an active QML gui, `exec_async` provides an alternative. This method keeps the REPL active and polls the QML interface periodically for events, using a timer in the Julia event loop. An example (requiring packages Plots.jl and PyPlot.jl) can be found in [`repl-background.jl`](https://github.com/barche/QmlJuliaExamples/blob/master/repl-background.jl), to be used as:
+When launching the application using `exec`, execution in the REPL will block until the GUI is closed. If you want to continue using the REPL with an active QML gui, `exec_async` provides an alternative. This method keeps the REPL active and polls the QML interface periodically for events, using a timer in the Julia event loop. An example (requiring packages Plots.jl and PyPlot.jl) can be found in [`repl-background.jl`](https://github.com/barche/QmlJuliaExamples/blob/master/plots/repl-background.jl), to be used as:
 ```julia
 include("repl-background.jl")
 plot([1,2],[3,4])
