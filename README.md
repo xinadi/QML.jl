@@ -288,7 +288,7 @@ propmap["fruitModel"] = JuliaItemModel(fruitlist)
 See the full example for more details, including the addition of an extra constructor to deal with the nested `JuliaItemModel` for the attributes.
 
 ## Using QTimer
-`QTimer` can be used to simulate running Julia code in the background. Excerpts from [`test/gui.jl`](test/gui.jl):
+`QTimer` can be used to simulate running Julia code in the background. Excerpts from [`basic/gui.jl`](https://github.com/barche/QmlJuliaExamples/blob/master/basic/gui.jl):
 
 ```julia
 const bg_counter = Observable(0)
