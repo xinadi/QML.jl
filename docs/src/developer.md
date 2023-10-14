@@ -3,7 +3,7 @@
 ## Building the documentation locally
 
 If not mentioned otherwise I assume that you are using the `bash` terminal. On Windows you can install
-it using this software: https://gitforwindows.org/ . Be careful: The included bash terminal is not fully compatible with the [juliaup](https://github.com/JuliaLang/juliaup) Julia installer. If you are using [juliaup](https://github.com/JuliaLang/juliaup) either use the `bash` terminal from VSCode, or install [Windows Terminal](https://apps.microsoft.com/detail/windows-terminal/9N0DX20HK701).
+it using this software: [Git for Windows](https://gitforwindows.org/) . Be careful: The included bash terminal is not fully compatible with the [juliaup](https://github.com/JuliaLang/juliaup) Julia installer. If you are using [juliaup](https://github.com/JuliaLang/juliaup) either use the `bash` terminal from VSCode, or install [Windows Terminal](https://apps.microsoft.com/detail/windows-terminal/9N0DX20HK701).
 
 To build the documentation locally:
 - add the package `TestEnv` to your global Julia environment  
