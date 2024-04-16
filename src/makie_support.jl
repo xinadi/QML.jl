@@ -58,7 +58,7 @@ end
     ctx, 
     shader_cache, 
     fb, 
-    GLMakie.ScreenConfig(GLMakie.renderloop, false, false, true, 30.0, false, false, true, "Makie", false, false, nothing, false, true, true, 1000f0), 
+    GLMakie.ScreenConfig(GLMakie.renderloop, false, false, true, 30.0, false, false, true, "Makie", false, false, nothing, true, false, true, true, 1000f0), 
     false, nothing, Dict{WeakRef, ScreenID}(), ScreenArea[], Tuple{ZIndex, ScreenID, RenderObject}[],       
     [
         enable_SSAO[] ? GLMakie.ssao_postprocessor(fb, shader_cache) : GLMakie.empty_postprocessor(),
