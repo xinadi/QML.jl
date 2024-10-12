@@ -48,49 +48,29 @@ const ScreenArea = GLMakie.ScreenArea
   return (Int(QML.width(fbosize)), Int(QML.height(fbosize)))
 end
 
-mutable struct QMLScreen <: GLMakie.GLScreen
-  glscreen::QMLGLContext
-  shader_cache::GLAbstraction.ShaderCache
-  screen2scene::Dict{WeakRef, ScreenID}
-  screens::Vector{ScreenArea}
-  renderlist::Vector{Tuple{ZIndex, ScreenID, RenderObject}}
-  postprocessors::Vector{GLMakie.PostProcessor}
-  cache::Dict{UInt64, RenderObject}
-  cache2plot::Dict{UInt32, AbstractPlot}
-  framecache::Matrix{RGB{N0f8}}
-  framebuffer::GLMakie.GLFramebuffer
-  # render_tick::Observable{Nothing}
-  # window_open::Observable{Bool}
-
-  @cxxdereference function QMLScreen(fbo::QML.QOpenGLFramebufferObject)
-    ctx = QMLGLContext(true, CxxPtr(fbo))
-    GLMakie.ShaderAbstractions.switch_context!(ctx)
-    fbosize = sizetuple(fbo)
-    fb = GLMakie.GLFramebuffer(fbosize)
-    shader_cache = GLAbstraction.ShaderCache()
-    newscreen = new(
-      ctx,
-      shader_cache,
-      Dict{WeakRef, ScreenID}(),
-      ScreenArea[],
-      Tuple{ZIndex, ScreenID, RenderObject}[],
-      [
+@cxxdereference function QMLScreen(fbo::QML.QOpenGLFramebufferObject)
+  ctx = QMLGLContext(true, CxxPtr(fbo))
+  GLMakie.ShaderAbstractions.switch_context!(ctx)
+  fbosize = sizetuple(fbo)
+  fb = GLMakie.GLFramebuffer(fbosize)
+  shader_cache = GLAbstraction.ShaderCache(ctx)
+  newscreen = GLMakie.Screen( 
+    ctx, 
+    shader_cache, 
+    fb, 
+    GLMakie.ScreenConfig(GLMakie.renderloop, false, false, 30.0, false, false, true, "Makie", false, false, nothing, false, true, true, 1000f0), 
+    false, Base.RefValue{Task}(), Dict{WeakRef, ScreenID}(), ScreenArea[], Tuple{ZIndex, ScreenID, RenderObject}[],       
+    [
         enable_SSAO[] ? GLMakie.ssao_postprocessor(fb, shader_cache) : GLMakie.empty_postprocessor(),
         GLMakie.OIT_postprocessor(fb, shader_cache),
         enable_FXAA[] ? GLMakie.fxaa_postprocessor(fb, shader_cache) : GLMakie.empty_postprocessor(),
         to_qmlscreen_postprocessor(fb, shader_cache)
-      ],
-      Dict{UInt64, RenderObject}(),
-      Dict{UInt32, AbstractPlot}(),
-      Matrix{RGB{N0f8}}(undef, fbosize),
-      fb,
-      # Observable(nothing),
-      # Observable(true),
-    )
-    finalizer(newscreen) do s
-      empty!.((s.renderlist, s.screens, s.cache, s.screen2scene, s.cache2plot, s.postprocessors))
-      return
-    end
+    ],
+    Dict{UInt64, RenderObject}(),
+    Dict{UInt32, AbstractPlot}())
+  finalizer(newscreen) do s
+    empty!.((s.renderlist, s.screens, s.cache, s.screen2scene, s.cache2plot, s.postprocessors))
+    return
   end
 end
 
@@ -103,11 +83,11 @@ function update_fbo!(screen, fbo)
   return screen
 end
 
-Base.isopen(screen::QMLScreen) = true
-GLMakie.GeometryBasics.widths(screen::QMLScreen) = sizetuple(screen.glscreen.fbo)
+Base.isopen(screen::GLMakie.Screen{QMLGLContext}) = true
+GLMakie.GeometryBasics.widths(screen::GLMakie.Screen{QMLGLContext}) = sizetuple(screen.glscreen.fbo)
 
 # From rendering.jl in GLMakie, with only slight adaptations
-function GLMakie.render_frame(screen::QMLScreen; resize_buffers=true)
+function GLMakie.render_frame(screen::GLMakie.Screen{QMLGLContext}; resize_buffers=true)
   w, h = sizetuple(screen.glscreen.fbo)
   fb = screen.framebuffer
   if resize_buffers
@@ -198,7 +178,7 @@ function to_qmlscreen_postprocessor(framebuffer, shader_cache)
     w, h = sizetuple(screen.glscreen.fbo)
     # w, h = size(fb) # original from Makie
 
-    QML.bind(screen.glscreen.fbo) # Transfer everything to the QMLScreen
+    QML.bind(screen.glscreen.fbo) # Transfer everything to the GLMakie.Screen{QMLGLContext}
     glViewport(0, 0, w, h)
     glClear(GL_COLOR_BUFFER_BIT)
     GLAbstraction.render(pass) # copy postprocess
@@ -206,13 +186,13 @@ function to_qmlscreen_postprocessor(framebuffer, shader_cache)
   return GLMakie.PostProcessor(GLMakie.GLAbstraction.RenderObject[pass], full_render)
 end
 
-function Base.empty!(screen::QMLScreen)
+function Base.empty!(screen::GLMakie.Screen{QMLGLContext})
     empty!(screen.renderlist)
     empty!(screen.screen2scene)
     empty!(screen.screens)
 end
 
-function Base.display(screen::QMLScreen, scene::Scene)
+function Base.display(screen::GLMakie.Screen{QMLGLContext}, scene::Scene)
   scene.events.window_area[] = Makie.IRect(0,0,sizetuple(screen.glscreen.fbo)...)
   empty!(screen)
   insertplots!(screen, scene)
