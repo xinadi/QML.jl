@@ -58,8 +58,8 @@ end
     ctx, 
     shader_cache, 
     fb, 
-    GLMakie.ScreenConfig(GLMakie.renderloop, false, false, 30.0, false, false, true, "Makie", false, false, nothing, false, true, true, 1000f0), 
-    false, Base.RefValue{Task}(), Dict{WeakRef, ScreenID}(), ScreenArea[], Tuple{ZIndex, ScreenID, RenderObject}[],       
+    GLMakie.ScreenConfig(GLMakie.renderloop, false, false, true, 30.0, false, false, true, "Makie", false, false, nothing, false, true, true, 1000f0),  
+    false, nothing, Dict{WeakRef, ScreenID}(), ScreenArea[], Tuple{ZIndex, ScreenID, RenderObject}[],              
     [
         enable_SSAO[] ? GLMakie.ssao_postprocessor(fb, shader_cache) : GLMakie.empty_postprocessor(),
         GLMakie.OIT_postprocessor(fb, shader_cache),
@@ -67,7 +67,8 @@ end
         to_qmlscreen_postprocessor(fb, shader_cache)
     ],
     Dict{UInt64, RenderObject}(),
-    Dict{UInt32, AbstractPlot}())
+    Dict{UInt32, AbstractPlot}(), 
+    true)
   finalizer(newscreen) do s
     empty!.((s.renderlist, s.screens, s.cache, s.screen2scene, s.cache2plot, s.postprocessors))
     return
@@ -183,7 +184,7 @@ function to_qmlscreen_postprocessor(framebuffer, shader_cache)
     glClear(GL_COLOR_BUFFER_BIT)
     GLAbstraction.render(pass) # copy postprocess
   end
-  return GLMakie.PostProcessor(GLMakie.GLAbstraction.RenderObject[pass], full_render)
+  return GLMakie.PostProcessor(GLMakie.GLAbstraction.RenderObject[pass], full_render, GLMakie.empty_postprocessor())
 end
 
 function Base.empty!(screen::GLMakie.Screen{QMLGLContext})
